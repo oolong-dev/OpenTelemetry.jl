@@ -1,0 +1,7 @@
+name = "OpenTelemetrySDK"
+uuid = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
+authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
+version = "0.0.1"
+
+[deps]
+OpenTelemetryAPI = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
