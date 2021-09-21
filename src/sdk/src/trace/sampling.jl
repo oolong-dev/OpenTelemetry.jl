@@ -1,29 +1,38 @@
+export should_sample,
+    ALWAYS_ON,
+    ALWAYS_OFF,
+    DEFAULT_ON,
+    DEFAULT_OFF
+
 abstract type AbstractSampler end
 
 @enum Decision begin
-    DROP
-    RECORD_ONLY
-    RECORD_AND_SAMPLE
+    DECISION_DROP
+    DECISION_RECORD_ONLY
+    DECISION_RECORD_AND_SAMPLE
 end
 
-is_sampled(d::Decision) = d === RECORD_AND_SAMPLE
-is_recording(d::Decision) = d === RECORD_ONLY || d === RECORD_AND_SAMPLE
+is_sampled(d::Decision) = d === DECISION_RECORD_AND_SAMPLE
+API.is_recording(d::Decision) = d === DECISION_RECORD_ONLY || d === DECISION_RECORD_AND_SAMPLE
 
 struct SamplingResult
     decision::Decision
-    attributes::API.Attributes
-    trace_state::API.TraceState
+    attributes::Attributes
+    trace_state::TraceState
 end
+
+is_sampled(r::SamplingResult) = is_sampled(r.decision)
+API.is_recording(r::SamplingResult) = is_recording(r.decision)
 
 struct StaticSampler <: AbstractSampler
     decision::Decision
 end
 
-const ALWAYS_ON = StaticSampler(RECORD_AND_SAMPLE)
-const ALWAYS_OFF = StaticSampler(DROP)
+const ALWAYS_ON = StaticSampler(DECISION_RECORD_AND_SAMPLE)
+const ALWAYS_OFF = StaticSampler(DECISION_DROP)
 
 function Base.show(io::IO, s::StaticSampler)
-    if s.decision === DROP
+    if s.decision === DECISION_DROP
         print(io, "AlwaysOffSampler")
     else
         print(io, "AlwaysOnSampler")
@@ -35,19 +44,18 @@ function should_sample(
     parent_context,
     trace_id,
     name,
-    kind=nothing,
-    attributes=nothing,
-    links=nothing,
-    trace_state=nothing,
+    kind=SPAN_KIND_INTERNAL,
+    attributes=Attributes(),
+    links=[],
+    trace_state=TraceState(),
 )
-    if s.decision === DROP
-        attributes = API.Attributes()
+    if s.decision === DECISION_DROP
+        attributes = Attributes()
     end
-    parent_span_ctx = parent_context |> current_span |> get_context
     SamplingResult(
         s.decision,
         attributes,
-        parent_span_ctx.trace_state
+        trace_state
     )
 end
 
@@ -65,28 +73,27 @@ function should_sample(
     parent_context,
     trace_id,
     name,
-    kind=nothing,
-    attributes=nothing,
-    links=nothing,
-    trace_state=nothing,
+    kind=SPAN_KIND_INTERNAL,
+    attributes=Attributes(),
+    links=[],
+    trace_state=TraceState(),
 )
-    decision = DROP
+    decision = DECISION_DROP
     if trace_id < s.bound
-        decision = RECORD_AND_SAMPLE
+        decision = DECISION_RECORD_AND_SAMPLE
     end
-    if decision === DROP
-        attributes = API.Attributes()
+    if decision === DECISION_DROP
+        attributes = Attributes()
     end
-    parent_span_ctx = parent_context |> current_span |> get_context
     SamplingResult(
         decision,
         attributes,
-        parent_span_ctx.trace_state
+        trace_state
     )
 end
 
 Base.@kwdef struct ParentBasedSampler{R,T1,T2,T3,T4} <: AbstractSampler
-    root::R
+    root_sampler::R
     remote_parent_sampled::T1 = ALWAYS_ON
     remote_parent_not_sampled::T2 = ALWAYS_OFF
     local_parent_sampled::T3 = ALWAYS_ON
@@ -98,14 +105,14 @@ function should_sample(
     parent_context,
     trace_id,
     name,
-    kind=nothing,
-    attributes=nothing,
-    links=nothing,
-    trace_state=nothing,
+    kind=SPAN_KIND_INTERNAL,
+    attributes=Attributes(),
+    links=[],
+    trace_state=TraceState(),
 )
-    parent_span_ctx = parent_context |> current_span |> get_context
-    sampler = s.root
-    if parent_span_ctx !== API.INVALID_SPAN_CONTEXT
+    parent_span_ctx = parent_context |> current_span |> span_context
+    sampler = s.root_sampler
+    if parent_span_ctx !== INVALID_SPAN_CONTEXT
         if parent_span_ctx.is_remote
             if parent_span_ctx.trace_flag.sampled
                 sampler = s.remote_parent_sampled
@@ -124,7 +131,7 @@ function should_sample(
 end
 
 """Sampler that respects its parent span's sampling decision, but otherwise never samples."""
-DEFAULT_OFF = ParentBased(root=ALWAYS_OFF)
+DEFAULT_OFF = ParentBasedSampler(root_sampler=ALWAYS_OFF)
 
 """Sampler that respects its parent span's sampling decision, but otherwise always samples."""
-DEFAULT_ON = ParentBased(root=ALWAYS_ON)
+DEFAULT_ON = ParentBasedSampler(root_sampler=ALWAYS_ON)

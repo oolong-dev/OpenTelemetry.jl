@@ -1,5 +1,7 @@
+export TracerProvider
+
 using Base.Threads
-using Dates: now
+using Dates: time
 
 struct Tracer{
     S<:AbstractSampler,
@@ -10,34 +12,41 @@ struct Tracer{
     resource::Resource
     span_processor::SP
     id_generator::G
+    instrumentation::InstrumentationInfo
 end
 
 function API.create_span(
-    t::Tracer,
-    name::String;
-    parent_context=API.current_context(),
-    kind=API.INTERNAL,
-    attributes=API.Attributes(),
+    name::String,
+    t::Tracer;
+    parent_context=current_context(),
+    kind=SPAN_KIND_INTERNAL,
+    attributes=Attributes(;is_mutable=true),
     links=[],
-    start_time=now(),
-    record_exception=true,
-    set_status_on_exception=true,
-    end_on_exit=true,
+    start_time=time()
 )
-    parent_span_ctx = parent_context |> current_span |> get_context
+    parent_span_ctx = parent_context |> current_span |> span_context
     if parent_span_ctx === INVALID_SPAN_CONTEXT
         trace_id = generate_trace_id(t.id_generator)
     else
         trace_id = parent_span_ctx.trace_id
     end
 
-    sampling_result = should_sample(t.sampler, parent_context, trace_id, name, kind, attributes, links, parent_span_ctx.trace_state)
-    trace_flag = is_sampled(sampling_result) ? API.TraceFlag(API.SAMPLED_TRACE) : API.TraceFlag(API.NO_SAMPLED_TRACE)
-    span_ctx = API.SpanContext(
+    sampling_result = should_sample(
+        t.sampler,
+        parent_context,
+        trace_id,
+        name,
+        kind,
+        attributes,
+        links,
+        parent_span_ctx.trace_state
+    )
+
+    span_ctx = SpanContext(
         trace_id = trace_id,
-        span_id = generate_span_id(t.sampler),
+        span_id = generate_span_id(t.id_generator),
         is_remote=false,
-        trace_flag = trace_flag,
+        trace_flag = TraceFlag(sampled=is_sampled(sampling_result)),
         trace_state=sampling_result.trace_state
     )
 
@@ -52,7 +61,7 @@ function API.create_span(
             start_time=start_time
         )
     else
-        API.NonRecordingSpan(span_ctx)
+        NonRecordingSpan(span_ctx)
     end
 end
 
@@ -60,31 +69,26 @@ end
 # TracerProvider
 #####
 
-struct TracerProvider{
+Base.@kwdef struct TracerProvider{
     S<:AbstractSampler,
     IDG<:AbstractIdGenerator
 } <: API.AbstractTracerProvider
-    sampler::S
-    resource::Resource
-    span_processor::MultiSpanProcessor
-    id_generator::IDG
-    shutdown_on_exit::Bool
-    function TracerProvider()
-        p = new{}()
-        finalizer(shut_down!, p)
-        p
-    end
+    sampler::S=DEFAULT_ON
+    resource::Resource=Resource()
+    span_processor::MultiSpanProcessor=MultiSpanProcessor()
+    id_generator::IDG=RandomIdGenerator()
 end
 
 shut_down!(p::TracerProvider) = shut_down!(p.span_processor)
 
 force_flush!(p::TracerProvider, args...) = force_flush!(p.span_processor, args...)
 
-function API.get_tracer(p::TracerProvider)
+function API.get_tracer(p::TracerProvider, instrumentation_name, instrumentation_version=nothing)
     Tracer(
         p.sampler,
         p.resource,
         p.span_processor,
         p.id_generator,
+        isnothing(instrumentation_version) ? InstrumentationInfo(instrumentation_name) : InstrumentationInfo(instrumentation_name, instrumentation_version)
     )
 end

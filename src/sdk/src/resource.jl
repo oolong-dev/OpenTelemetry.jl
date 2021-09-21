@@ -1,4 +1,6 @@
+export Resource
+
 Base.@kwdef struct Resource
-    attributes::API.Attributes = API.Attributes()
+    attributes::Attributes = Attributes()
     schema_url::String = ""
 end

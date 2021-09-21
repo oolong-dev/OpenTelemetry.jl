@@ -1,3 +1,5 @@
+export RandomIdGenerator
+
 using Random
 
 abstract type AbstractIdGenerator end
@@ -8,5 +10,5 @@ end
 
 Base.rand(g::RandomIdGenerator, T) = rand(g.rng, T)
 
-generate_trace_id(rng) = rand(rng.rng, API.TraceIdType)
-generate_span_id(rng) = rand(rng.rng, API.SpanIdType)
+generate_trace_id(rng::RandomIdGenerator) = rand(rng.rng, API.TraceIdType)
+generate_span_id(rng::RandomIdGenerator) = rand(rng.rng, API.SpanIdType)

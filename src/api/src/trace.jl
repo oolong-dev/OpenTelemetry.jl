@@ -23,6 +23,8 @@ export TraceFlag,
     record_exception!,
     NonRecordingSpan,
     global_tracer_provider,
+    INVALID_SPAN_CONTEXT,
+    current_span,
     create_span,
     with_span,
     get_tracer
@@ -132,7 +134,7 @@ struct Attributes{T}
     count_limit::Int
     value_length_limit::Int
     kv::T
-    n_dropped::Ref{UInt}
+    n_dropped::Ref{Int}
 end
 
 _truncate(x, limit) = x
@@ -244,7 +246,7 @@ struct SpanStatus
     code::SpanStatusCode
     description::Union{String,Nothing}
     function SpanStatus(code::SpanStatusCode, description=nothing)
-        if code === ERROR
+        if code === SPAN_STATUS_ERROR
             isnothing(description) && @error "description not provided"
             new(code, description)
         else
@@ -292,7 +294,7 @@ function Span(
     start_time=time()
 )
     parent = get(parent_context, SPAN_KEY, nothing)
-    Span(name, span_context, parent, kind, start_time, nothing, attributes, links, [], SPAN_STATUS_UNSET)
+    Span(name, span_context, parent, kind, start_time, nothing, attributes, links, [], SpanStatus(SPAN_STATUS_UNSET))
 end
 
 is_end(s::Span) = !isnothing(s.end_time)
@@ -340,7 +342,7 @@ end
 """
     set_status!(s::Span, code::SpanStatusCode, description=nothing)
 
-Update the status of span `s` by following the original specification. `description` is only considered when the `code` is `ERROR`. Only valid when the span is not ended yet.
+Update the status of span `s` by following the original specification. `description` is only considered when the `code` is `SPAN_STATUS_ERROR`. Only valid when the span is not ended yet.
 """
 function set_status!(s::Span, code::SpanStatusCode, description=nothing)
     if is_end(s)
@@ -438,30 +440,73 @@ struct DefaultTracer <: AbstractTracer
 end
 
 """
-    create_span(t::AbstractTracer, args...)
+    create_span(name, t::AbstractTracer)
 
 Create a new span based on tracer `t`.
 """
-create_span(::DefaultTracer, args...) = INVALID_SPAN
+create_span(name, ::DefaultTracer) = INVALID_SPAN
 
 """
-    with_span(f, s::AbstractSpan)
+    with_span(f, s::AbstractSpan;kw...)
 
 Call function `f` with the current span set to `s`.
+
+# Keyword arguments
+
+- `end_on_exit`, controls whether to call [`end!`](@ref) after `f` or not.
+- `record_exception`, controls whether to record the exception.
+- `set_status_on_exception`, decides whether to set status to [`SPAN_STATUS_ERROR`](@ref) automatically when an exception is caught.
 """
-function with_span(f, s::AbstractSpan)
+function with_span(
+    f,
+    s::AbstractSpan
+    ;end_on_exit=true,
+    record_exception=true,
+    set_status_on_exception=true
+)
     with_context(SPAN_KEY => s) do
-        f()
-        end!(s)
+        try
+            f()
+        catch ex
+            if is_recording(s)
+                if record_exception
+                    record_exception!(s, ex, true)
+                end
+                if set_status_on_exception
+                    set_status!(s, SPAN_STATUS_ERROR, string(ex))
+                end
+            end
+            rethrow(ex)
+        finally 
+            if end_on_exit
+                end!(s)
+            end
+        end
     end
 end
 
 """
-    with_span(f, t::AbstractTracer, args...)
+    with_span(f, name, t::AbstractTracer; kw...)
 
-The same with `with_span(f, create_span(t, args...))`.
+The same with `with_span(f, create_span(name, t; kw...); kw...)`.
 """
-with_span(f, t::AbstractTracer, args...) = with_span(f, create_span(t, args...))
+function with_span(
+    f,
+    name::String,
+    t::AbstractTracer
+    ;end_on_exit=true,
+    record_exception=true,
+    set_status_on_exception=true,
+    kw...
+)
+    with_span(
+        f,
+        create_span(name, t; kw...)
+        ;end_on_exit=end_on_exit,
+        record_exception=record_exception,
+        set_status_on_exception=set_status_on_exception
+    )
+end
 
 #####
 # TracerProvider

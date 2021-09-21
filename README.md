@@ -10,7 +10,7 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
     - [ ] Metrics
 - SDK
     - [x] Tracing
-    - [ ] Resource
+    - [x] Resource
 - Instrumentation
 
 ## Get Started
