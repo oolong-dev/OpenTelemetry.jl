@@ -261,7 +261,7 @@ abstract type AbstractSpan end
 mutable struct Span <: AbstractSpan
     name::String
     span_context::SpanContext
-    parent_span_context::SpanContext
+    parent_span_context::Union{Nothing, SpanContext}
     kind::SpanKind
     start_time::Float64
     end_time::Union{Nothing,Float64}
@@ -293,7 +293,7 @@ function Span(
     links=[],
     start_time=time()
 )
-    parent_span_ctx = get(context, SPAN_KEY, INVALID_SPAN) |> span_context
+    parent_span_ctx = context |> current_span |> span_context
     Span(name, span_ctx, parent_span_ctx, kind, start_time, nothing, attributes, links, [], SpanStatus(SPAN_STATUS_UNSET))
 end
 
@@ -305,6 +305,7 @@ is_end(s::Span) = !isnothing(s.end_time)
 Get the `SpanContext` from a span `s`.
 """
 span_context(s::Span) = s.span_context
+span_context(::Nothing) = nothing
 
 """
     is_recording(s::AbstractSpan)
@@ -428,7 +429,7 @@ const INVALID_SPAN = NonRecordingSpan(INVALID_SPAN_CONTEXT)
 Get the span in the current context.
 """
 current_span() = current_span(current_context())
-current_span(ctx::Context) = get(ctx, SPAN_KEY, INVALID_SPAN)
+current_span(ctx::Context) = get(ctx, SPAN_KEY, nothing)
 
 #####
 # Tracer

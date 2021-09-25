@@ -25,7 +25,7 @@ function API.create_span(
     start_time=time()
 )
     span_ctx = context |> current_span |> span_context
-    if span_ctx === INVALID_SPAN_CONTEXT
+    if isnothing(span_ctx)
         trace_id = generate_trace_id(t.id_generator)
     else
         trace_id = span_ctx.trace_id
@@ -39,7 +39,7 @@ function API.create_span(
         kind,
         attributes,
         links,
-        span_ctx.trace_state
+        isnothing(span_ctx) ? TraceState() : span_ctx.trace_state
     )
 
     span_ctx = SpanContext(
