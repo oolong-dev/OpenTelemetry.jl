@@ -8,9 +8,12 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
     - [x] Tracing
     - [ ] Baggage
     - [ ] Metrics
+
 - SDK
     - [x] Tracing
     - [x] Resource
+
 - Instrumentation
+    - [ ] HTTP.jl
 
 ## Get Started

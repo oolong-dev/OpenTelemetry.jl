@@ -18,28 +18,28 @@ end
 function API.create_span(
     name::String,
     t::Tracer;
-    parent_context=current_context(),
+    context=current_context(),
     kind=SPAN_KIND_INTERNAL,
     attributes=Attributes(;is_mutable=true),
     links=[],
     start_time=time()
 )
-    parent_span_ctx = parent_context |> current_span |> span_context
-    if parent_span_ctx === INVALID_SPAN_CONTEXT
+    span_ctx = context |> current_span |> span_context
+    if span_ctx === INVALID_SPAN_CONTEXT
         trace_id = generate_trace_id(t.id_generator)
     else
-        trace_id = parent_span_ctx.trace_id
+        trace_id = span_ctx.trace_id
     end
 
     sampling_result = should_sample(
         t.sampler,
-        parent_context,
+        context,
         trace_id,
         name,
         kind,
         attributes,
         links,
-        parent_span_ctx.trace_state
+        span_ctx.trace_state
     )
 
     span_ctx = SpanContext(
@@ -51,10 +51,13 @@ function API.create_span(
     )
 
     if is_recording(sampling_result)
-        Span(
-            ;name=name,
-            span_context=span_ctx,
-            parent_context=parent_context,
+        WrappedSpan(
+            ;span_processor=t.span_processor,
+            instrumentation_info=t.instrumentation,
+            resource=t.resource,
+            name=name,
+            span_ctx=span_ctx,
+            context=context,
             kind=kind,
             attributes=attributes,
             links=links,

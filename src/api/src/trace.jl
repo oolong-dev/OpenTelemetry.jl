@@ -261,7 +261,7 @@ abstract type AbstractSpan end
 mutable struct Span <: AbstractSpan
     name::String
     span_context::SpanContext
-    parent::Union{Nothing,Span,SpanContext}
+    parent_span_context::SpanContext
     kind::SpanKind
     start_time::Float64
     end_time::Union{Nothing,Float64}
@@ -277,8 +277,8 @@ end
 # Keyword Arguments
 
 - `name`
-- `span_context::SpanContext`
-- `parent_context`
+- `span_ctx::SpanContext`
+- `context`
 - `kind=SPAN_KIND_INTERNAL`
 - `attributes=Attributes()`
 - `links=[]`
@@ -286,15 +286,15 @@ end
 """
 function Span(
     ;name,
-    span_context,
-    parent_context::Context=current_context(),
+    span_ctx,
+    context::Context=current_context(),
     kind=SPAN_KIND_INTERNAL,
     attributes=Attributes(;is_mutable=true),
     links=[],
     start_time=time()
 )
-    parent = get(parent_context, SPAN_KEY, nothing)
-    Span(name, span_context, parent, kind, start_time, nothing, attributes, links, [], SpanStatus(SPAN_STATUS_UNSET))
+    parent_span_ctx = get(context, SPAN_KEY, INVALID_SPAN) |> span_context
+    Span(name, span_ctx, parent_span_ctx, kind, start_time, nothing, attributes, links, [], SpanStatus(SPAN_STATUS_UNSET))
 end
 
 is_end(s::Span) = !isnothing(s.end_time)
