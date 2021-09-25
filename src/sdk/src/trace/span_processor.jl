@@ -37,6 +37,17 @@ end
 
 abstract type AbstractSpanExporter end
 
+function export!(se::AbstractSpanExporter, sp::Vector{<:API.AbstractSpan})
+    res = SUCCESS
+    for s in sp
+        r = export!(se, s)
+        if r === FAILURE
+            res = FAILURE
+        end
+    end
+    res
+end
+
 @enum SpanExportResult begin
     SUCCESS
     FAILURE
@@ -51,11 +62,11 @@ Base.empty!(se::InMemorySpanExporter) = empty!(se.finished_spans)
 
 shut_down!(se::InMemorySpanExporter) = se.is_shut_down[] = true
 
-function export!(se::InMemorySpanExporter, sps::Vector)
+function export!(se::InMemorySpanExporter, sp::API.AbstractSpan)
     if se.is_shut_down[]
         FAILURE
     else
-        append!(se.finished_spans, sps)
+        push!(se.finished_spans, sp)
         SUCCESS
     end
 end
@@ -64,9 +75,15 @@ Base.@kwdef struct ConsoleSpanExporter <: AbstractSpanExporter
     io::IO = stdout
 end
 
-function export!(se::ConsoleSpanExporter, sps)
-    for s in sps
-        write(se.io, s)
+function export!(se::ConsoleSpanExporter, sp::API.AbstractSpan)
+    print(se.io, sp)
+    flush(se.io)
+    SUCCESS
+end
+
+function export!(se::ConsoleSpanExporter, sp::Vector{<:API.AbstractSpan})
+    for s in sp
+        print(se.io, s)
     end
     flush(se.io)
     SUCCESS
@@ -88,12 +105,12 @@ shut_down!(ssp::SimpleSpanProcessor) = shut_down!(ssp.span_exporter)
 
 force_flush!(ssp::SimpleSpanProcessor, args...) = true
 
-struct SpanWrapper <: API.AbstractSpan
+struct WrappedSpan <: API.AbstractSpan
     span::Span
     span_processor::MultiSpanProcessor
     instrumentation_info::InstrumentationInfo
     resource::Resource
-    function SpanWrapper(
+    function WrappedSpan(
         ;span_processor,
         instrumentation_info,
         resource,
@@ -106,8 +123,13 @@ struct SpanWrapper <: API.AbstractSpan
     end
 end
 
-for f in (:record_exception!, :end!, :update_name!, :set_status!, :add_event!, :is_recording, :span_context)
-    @eval API.$f(s::SpanWrapper, args...;kw...) = $f(s.span, args...;kw...)
+for f in (:record_exception!, :update_name!, :set_status!, :add_event!, :is_recording, :span_context)
+    @eval API.$f(s::WrappedSpan, args...;kw...) = $f(s.span, args...;kw...)
 end
 
-Base.setindex!(s::SpanWrapper, args...) = setindex!(s.span, args...)
+Base.setindex!(s::WrappedSpan, args...) = setindex!(s.span, args...)
+
+function API.end!(s::WrappedSpan)
+    end!(s.span)
+    on_end(s.span_processor, s.span)
+end
