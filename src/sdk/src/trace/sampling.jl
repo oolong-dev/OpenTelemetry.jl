@@ -112,7 +112,7 @@ function should_sample(
 )
     parent_span_ctx = parent_context |> current_span |> span_context
     sampler = s.root_sampler
-    if parent_span_ctx !== INVALID_SPAN_CONTEXT
+    if !isnothing(parent_span_ctx)
         if parent_span_ctx.is_remote
             if parent_span_ctx.trace_flag.sampled
                 sampler = s.remote_parent_sampled
@@ -127,7 +127,7 @@ function should_sample(
             end
         end
     end
-    should_sample(sampler, parent_span_ctx, trace_id, name, kind, attributes, links, trace_state)
+    should_sample(sampler, parent_context, trace_id, name, kind, attributes, links, trace_state)
 end
 
 """Sampler that respects its parent span's sampling decision, but otherwise never samples."""

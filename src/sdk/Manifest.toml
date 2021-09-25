@@ -17,6 +17,11 @@ uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 deps = ["ArgTools", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 
+[[GarishPrint]]
+git-tree-sha1 = "7ad88d9b96cdb8c2caa20fc53f2ef11ba8779e32"
+uuid = "b0ab02a7-8576-43f7-aa76-eaa7c3897c54"
+version = "0.2.1"
+
 [[InteractiveUtils]]
 deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"

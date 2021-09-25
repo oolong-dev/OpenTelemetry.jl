@@ -3,6 +3,8 @@ export MultiSpanProcessor,
     InMemorySpanExporter,
     ConsoleSpanExporter
 
+using GarishPrint: pprint
+
 abstract type AbstractSpanProcessor end
 
 struct MultiSpanProcessor <: AbstractSpanProcessor
@@ -76,16 +78,16 @@ Base.@kwdef struct ConsoleSpanExporter <: AbstractSpanExporter
 end
 
 function export!(se::ConsoleSpanExporter, sp::API.AbstractSpan)
-    print(se.io, sp)
-    flush(se.io)
+    pprint(se.io, sp)
+    println(se.io)
     SUCCESS
 end
 
 function export!(se::ConsoleSpanExporter, sp::Vector{<:API.AbstractSpan})
     for s in sp
-        print(se.io, s)
+        pprint(se.io, s)
+        println(se.io)
     end
-    flush(se.io)
     SUCCESS
 end
 
