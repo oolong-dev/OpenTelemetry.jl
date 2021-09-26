@@ -1,4 +1,8 @@
-name = "OpenTelemetryExporterOtlpProtoGRPC"
+name = "OpenTelemetryExporterOtlpProtoGrpc"
 uuid = "83e8ae56-efb3-499e-9158-b649d4f902fc"
 authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
 version = "0.0.1"
+
+[deps]
+OpenTelemetryProto = "cc651e92-2989-4f95-bcc3-32e6fb6ac025"
+OpenTelemetrySDK = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"

@@ -1,6 +1,8 @@
 export TraceFlag,
     TraceState,
     SpanContext,
+    Limited,
+    n_dropped,
     Attributes,
     SPAN_KIND_CLIENT,
     SPAN_KIND_SERVER,
@@ -130,12 +132,61 @@ const TAttrVal = Union{
     Vector{Float64}
 }
 
-struct Attributes{T}
-    count_limit::Int
-    value_length_limit::Int
-    kv::T
-    n_dropped::Ref{Int}
+struct Limited{T}
+    xs::T
+    limit::UInt
+    n_dropped::Ref{UInt}
 end
+
+Base.getindex(x::Limited, args...) = getindex(x.xs, args...)
+n_dropped(x::Limited) = x.n_dropped[]
+
+function Base.setindex!(x::Limited{<:AbstractDict}, v, k)
+    if haskey(x.xs, k)
+        setindex!(x.xs, v, k)
+    elseif length(x.xs) >= xs.limit
+        @warn "limit exceeded, dropped."
+        x.n_dropped[] += 1
+    else
+        setindex(x.xs, v, k)
+    end
+end
+
+function Base.push!(x::Limited{<:AbstractVector}, v)
+    if length(x.xs) >= xs.limit
+        @warn "limit exceeded, dropped."
+        x.n_dropped[] += 1
+    else
+        push!(x.xs, v)
+    end
+end
+
+function Limited(xs::NamedTuple, limit=32)
+    n_dropped = Ref(UInt(0))
+    if length(xs) > limit
+        n_dropped[] = length(xs) - limit
+        xs = NamedTuple{keys(xs)[1:limit]}(values(xs)[1:limit])
+    end
+    Limited(xs, limit, n_dropped)
+end
+
+function Limited(xs::Dict, limit=32)
+    n_dropped = Ref(UInt(0))
+    if length(xs) > limit
+        n_dropped[] = length(xs) - limit
+        for _ in 1:(length(xs)-limit)
+            pop!(xs)
+        end
+    end
+    Limited(xs, limit, n_dropped)
+end
+
+struct Attributes{T}
+    kv::Limited{T}
+    value_length_limit::Int
+end
+
+n_dropped(a::Attributes) = n_dropped(a.kv)
 
 _truncate(x, limit) = x
 
@@ -171,31 +222,21 @@ function Attributes(
     value_length_limit=typemax(Int),
     is_mutable=false
 )
-    if length(kv) > count_limit
-        kv = kv[1:count_limit]
-        n_dropped = Ref(length(kv) - count_limit)
-    else
-        n_dropped = Ref(0)
-    end
     kv_truncated = (k=>_truncate(v, value_length_limit) for (k, v) in kv)
     if is_mutable
-        data = Dict{String,TAttrVal}(kv)
+        data = Limited(Dict{String,TAttrVal}(kv_truncated), count_limit)
     else
-        data = NamedTuple(Symbol(k) => v for (k,v) in kv)
+        data = Limited(NamedTuple(Symbol(k) => v for (k,v) in kv_truncated), count_limit)
     end
-    Attributes(count_limit, value_length_limit, data, n_dropped)
+    Attributes(data, value_length_limit)
 end
 
 Base.getindex(d::Attributes, k::String) = getindex(d.kv, k)
 Base.getindex(d::Attributes{<:NamedTuple}, k::String) = getindex(d.kv, Symbol(k))
 
 function Base.setindex!(d::Attributes{<:Dict}, k::String, v::TAttrVal)
-    if length(d.kv) == d.count_limit
-        @warn "Count limit exceeded. Discarded."
-        d.n_dropped[] += 1
-    else
-        d.kv[k] = _truncate(v, d.value_length_limit)
-    end
+    v = _truncate(v, d.value_length_limit)
+    d.kv[k] = v
 end
 
 @enum SpanKind begin
@@ -266,8 +307,8 @@ mutable struct Span <: AbstractSpan
     start_time::Float64
     end_time::Union{Nothing,Float64}
     attributes::Attributes
-    links::Vector{Link}
-    events::Vector{Event}
+    links::Limited{Vector{Link}}
+    events::Limited{Vector{Event}}
     status::SpanStatus
 end
 
@@ -281,7 +322,8 @@ end
 - `context`
 - `kind=SPAN_KIND_INTERNAL`
 - `attributes=Attributes()`
-- `links=[]`
+- `links=Limited([])`
+- `events=Limited([])`
 - `start_time=time()`
 """
 function Span(
@@ -290,11 +332,12 @@ function Span(
     context::Context=current_context(),
     kind=SPAN_KIND_INTERNAL,
     attributes=Attributes(;is_mutable=true),
-    links=[],
+    links=Limited([]),
+    events=Limited([]),
     start_time=time()
 )
     parent_span_ctx = context |> current_span |> span_context
-    Span(name, span_ctx, parent_span_ctx, kind, start_time, nothing, attributes, links, [], SpanStatus(SPAN_STATUS_UNSET))
+    Span(name, span_ctx, parent_span_ctx, kind, start_time, nothing, attributes, links, events, SpanStatus(SPAN_STATUS_UNSET))
 end
 
 is_end(s::Span) = !isnothing(s.end_time)
@@ -393,7 +436,7 @@ end
 A specialized variant of `add_event!` to record exceptions. Usually used in a `try... catch...end` to capture the backtrace. If the `ex` is `rethrow`ed in the `catch...end`, `is_rethrow_followed` should be set to `true`.
 """
 function record_exception!(s::Span, ex::Exception, is_rethrow_followed=false)
-    attrs = Attributes()
+    attrs = Attributes(;is_mutable=true)
 
     attrs["exception.type"] = string(typeof(ex))
 
