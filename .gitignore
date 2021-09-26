@@ -1,1 +1,3 @@
 .vscode/
+src/proto/src/generated
+build.log
