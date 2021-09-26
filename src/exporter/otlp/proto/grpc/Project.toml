@@ -1,0 +1,4 @@
+name = "OpenTelemetryExporterOtlpProtoGRPC"
+uuid = "83e8ae56-efb3-499e-9158-b649d4f902fc"
+authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
+version = "0.0.1"
