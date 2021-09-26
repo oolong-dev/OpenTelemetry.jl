@@ -13,9 +13,9 @@ end
 
 @testset "TracerProvider" begin
     tracer = get_tracer("test")
-    with_span(tracer, "foo") do
-        with_span(tracer, "bar") do
-            with_span(tracer, "baz") do
+    with_span("foo", tracer) do
+        with_span("bar", tracer) do
+            with_span("baz", tracer) do
                 println("hello")
             end
         end

@@ -134,8 +134,8 @@ const TAttrVal = Union{
 
 struct Limited{T}
     xs::T
-    limit::UInt
-    n_dropped::Ref{UInt}
+    limit::Int
+    n_dropped::Ref{Int}
 end
 
 Base.getindex(x::Limited, args...) = getindex(x.xs, args...)
@@ -144,11 +144,11 @@ n_dropped(x::Limited) = x.n_dropped[]
 function Base.setindex!(x::Limited{<:AbstractDict}, v, k)
     if haskey(x.xs, k)
         setindex!(x.xs, v, k)
-    elseif length(x.xs) >= xs.limit
+    elseif length(x.xs) >= x.limit
         @warn "limit exceeded, dropped."
         x.n_dropped[] += 1
     else
-        setindex(x.xs, v, k)
+        setindex!(x.xs, v, k)
     end
 end
 
@@ -162,7 +162,7 @@ function Base.push!(x::Limited{<:AbstractVector}, v)
 end
 
 function Limited(xs::NamedTuple, limit=32)
-    n_dropped = Ref(UInt(0))
+    n_dropped = Ref(0)
     if length(xs) > limit
         n_dropped[] = length(xs) - limit
         xs = NamedTuple{keys(xs)[1:limit]}(values(xs)[1:limit])
@@ -170,8 +170,8 @@ function Limited(xs::NamedTuple, limit=32)
     Limited(xs, limit, n_dropped)
 end
 
-function Limited(xs::Dict, limit=32)
-    n_dropped = Ref(UInt(0))
+function Limited(xs::Union{Dict,AbstractVector}, limit=32)
+    n_dropped = Ref(0)
     if length(xs) > limit
         n_dropped[] = length(xs) - limit
         for _ in 1:(length(xs)-limit)

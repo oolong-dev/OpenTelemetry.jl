@@ -97,7 +97,7 @@ end
 
 on_start(ssp::SimpleSpanProcessor, span) = nothing
 
-function on_end(ssp::SimpleSpanProcessor, span::AbstractSpan)
+function on_end(ssp::SimpleSpanProcessor, span::API.AbstractSpan)
     if span.span_context.trace_flag.sampled
         export!(ssp.span_exporter, span)
     end

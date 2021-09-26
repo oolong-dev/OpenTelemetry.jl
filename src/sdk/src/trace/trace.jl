@@ -29,8 +29,8 @@ function API.create_span(
     context=current_context(),
     kind=SPAN_KIND_INTERNAL,
     attributes=[],
-    links=[],
-    events=[],
+    links=Link[],
+    events=API.Event[],
     start_time=time()
 )
     span_ctx = context |> current_span |> span_context
@@ -43,7 +43,7 @@ function API.create_span(
     attributes = Attributes(
         attributes...;
         count_limit=t.limit_info.span_attribute_count_limit,
-        value_length_limit=t.limit_info.span_attribute_value_length_limit;
+        value_length_limit=t.limit_info.span_attribute_value_length_limit,
         is_mutable=true
     )
 
@@ -100,7 +100,7 @@ Base.@kwdef struct TracerProvider{
     resource::Resource=Resource()
     span_processor::MultiSpanProcessor=MultiSpanProcessor()
     id_generator::IDG=RandomIdGenerator()
-    limit_info::LimitInfo
+    limit_info::LimitInfo=LimitInfo()
 end
 
 shut_down!(p::TracerProvider) = shut_down!(p.span_processor)
