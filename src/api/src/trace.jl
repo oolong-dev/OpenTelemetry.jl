@@ -4,6 +4,7 @@ export TraceFlag,
     Limited,
     n_dropped,
     Attributes,
+    SPAN_KIND_UNSPECIFIED ,
     SPAN_KIND_CLIENT,
     SPAN_KIND_SERVER,
     SPAN_KIND_PRODUCER,
@@ -77,6 +78,8 @@ end
 
 Base.getindex(s::TraceState, key::String) = s.kv[Symbol(key)]
 Base.haskey(s::TraceState, key::String) = haskey(s.kv, Symbol(key))
+
+Base.string(ts::TraceState) = join(("$k=$v" for (k,v) in ts.kv), ",")
 
 """
     SpanContext(;span_id, trace_id, is_remote, trace_flag=TraceFlag(), trace_state=TraceState())
@@ -217,7 +220,7 @@ end
 Tha value type must be either `String`, `Bool`, `Int`, `Float64` or a `Vector` of above types. By default, we use a `NamedTuple` to represent the key-value pairs. If `is_mutable` is set to `true`, we'll use a `Dict` instead internally. If the value is of type `String` or `Vector{String}`, then each entry with length bigger than `value_length_limit` will be truncated.
 """
 function Attributes(
-    kv::Pair{String,<:TAttrVal}...
+    kv::Pair{String,<:Union{TAttrVal, Attributes}}...
     ;count_limit=128,
     value_length_limit=typemax(Int),
     is_mutable=false
@@ -239,12 +242,14 @@ function Base.setindex!(d::Attributes{<:Dict}, k::String, v::TAttrVal)
     d.kv[k] = v
 end
 
+# !!! must be of the same order with https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
 @enum SpanKind begin
-    SPAN_KIND_CLIENT
+    SPAN_KIND_UNSPECIFIED 
+    SPAN_KIND_INTERNAL
     SPAN_KIND_SERVER
+    SPAN_KIND_CLIENT
     SPAN_KIND_PRODUCER
     SPAN_KIND_CONSUMER
-    SPAN_KIND_INTERNAL
 end
 
 """
@@ -266,10 +271,11 @@ Base.@kwdef struct Event
     attributes::Attributes = Attributes()
 end
 
+# !!! must be of the same order as https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
 @enum SpanStatusCode begin
     SPAN_STATUS_UNSET
-    SPAN_STATUS_ERROR
     SPAN_STATUS_OK
+    SPAN_STATUS_ERROR
 end
 
 """
