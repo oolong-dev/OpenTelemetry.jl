@@ -15,12 +15,9 @@ end
 
 for f in (:on_start, :on_end, :shutdown!)
     @eval function $f(sp::MultiSpanProcessor, args...)
-        @sync for p in sp.span_processors
-            if sp.is_spawn
-                Threads.@spawn $f(p, args...)
-            else
-                @async $f(p, args...)
-            end
+        # ??? spawn
+        for p in sp.span_processors
+            $f(p, args...)
         end
     end
 end
@@ -98,7 +95,7 @@ end
 on_start(ssp::SimpleSpanProcessor, span) = nothing
 
 function on_end(ssp::SimpleSpanProcessor, span::API.AbstractSpan)
-    if span.span_context.trace_flag.sampled
+    if span_context(span).trace_flag.sampled
         export!(ssp.span_exporter, span)
     end
 end
@@ -133,5 +130,5 @@ Base.setindex!(s::WrappedSpan, args...) = setindex!(s.span, args...)
 
 function API.end!(s::WrappedSpan)
     end!(s.span)
-    on_end(s.span_processor, s.span)
+    on_end(s.span_processor, s)
 end
