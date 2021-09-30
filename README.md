@@ -56,7 +56,7 @@ global_tracer_provider(
     TracerProvider(
         span_processor=MultiSpanProcessor(
             SimpleSpanProcessor(
-                OtlpProtoGrpcExporter()
+                OtlpProtoGrpcExporter(;url="http://localhost:4317")
             )
         )
     )
