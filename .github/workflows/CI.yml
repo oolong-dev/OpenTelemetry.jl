@@ -1,0 +1,48 @@
+name: CI
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+    tags: '*'
+jobs:
+  test:
+    name: Julia matrix.version−{{ matrix.os }} - matrix.arch−{{ github.event_name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - '1'
+        os:
+          - ubuntu-latest
+        arch:
+          - x64
+    steps:
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+      - uses: actions/cache@v1
+        env:
+          cache-name: cache-artifacts
+        with:
+          path: ~/.julia/artifacts
+          key: runner.os−test−{{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+          restore-keys: |
+            runner.os−test−{{ env.cache-name }}-
+            ${{ runner.os }}-test-
+            ${{ runner.os }}-
+      - run: |
+          julia --color=yes -e '
+            using Pkg;
+            Pkg.develop(path="src/api")
+            Pkg.develop(path="src/sdk")
+            Pkg.develop(path="src/proto")
+            Pkg.develop(path="src/exporter/otlp/proto/grpc")
+            Pkg.test("OpenTelemetryAPI")
+            Pkg.test("OpenTelemetrySDK")
+            Pkg.test("OpenTelemetryProto")
+            Pkg.test("OpenTelemetryExporterOtlpProtoGrpc")'
