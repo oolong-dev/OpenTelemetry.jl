@@ -121,7 +121,7 @@ Base.convert(::Type{Common.KeyValueList}, v::SDK.Attributes) = Common.KeyValueLi
 
 function Base.convert(::Type{Trace.Span_Event}, event::API.Event)
     Trace.Span_Event(
-        time_unix_nano = event.timestamp * 1_000,
+        time_unix_nano = event.timestamp * 10^9,
         name = event.name,
         attributes = convert(Vector{Common.KeyValue}, event.attributes),
         dropped_attributes_count = SDK.n_dropped(event.attributes)
