@@ -21,6 +21,7 @@ jobs:
         arch:
           - x64
     steps:
+      - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.version }}
@@ -42,6 +43,7 @@ jobs:
             Pkg.develop(path="src/sdk")
             Pkg.develop(path="src/proto")
             Pkg.develop(path="src/exporter/otlp/proto/grpc")
+            Pkg.build("OpenTelemetryProto")
             Pkg.test("OpenTelemetryAPI")
             Pkg.test("OpenTelemetrySDK")
             Pkg.test("OpenTelemetryProto")
