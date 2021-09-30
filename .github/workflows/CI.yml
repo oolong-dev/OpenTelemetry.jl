@@ -44,9 +44,9 @@ jobs:
             Pkg.develop(path="src/proto")
             Pkg.develop(path="src/exporter/otlp/proto/grpc")
             Pkg.build("OpenTelemetryProto")
-            Pkg.test("OpenTelemetryAPI")
-            Pkg.test("OpenTelemetrySDK")
-            Pkg.test("OpenTelemetryProto")
-            Pkg.test("OpenTelemetryExporterOtlpProtoGrpc")'
+            Pkg.test("OpenTelemetryAPI", coverage=true)
+            Pkg.test("OpenTelemetrySDK", coverage=true)
+            Pkg.test("OpenTelemetryProto", coverage=true)
+            Pkg.test("OpenTelemetryExporterOtlpProtoGrpc", coverage=true)'
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v1
