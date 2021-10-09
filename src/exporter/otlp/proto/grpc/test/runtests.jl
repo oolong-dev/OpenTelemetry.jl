@@ -4,7 +4,7 @@ using OpenTelemetrySDK
 using OpenTelemetryProto
 using OpenTelemetryExporterOtlpProtoGrpc
 
-exporter = InMemorySpanExporter()
+exporter =  InMemoryExporter()
 # exporter = OtlpProtoGrpcExporter()
 
 global_tracer_provider(

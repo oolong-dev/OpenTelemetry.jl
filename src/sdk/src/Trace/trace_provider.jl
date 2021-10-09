@@ -103,9 +103,9 @@ Base.@kwdef struct TracerProvider{
     limit_info::LimitInfo=LimitInfo()
 end
 
-shut_down!(p::TracerProvider) = shut_down!(p.span_processor)
+Common.shut_down!(p::TracerProvider) = shut_down!(p.span_processor)
 
-force_flush!(p::TracerProvider, args...) = force_flush!(p.span_processor, args...)
+Common.force_flush!(p::TracerProvider, args...) = force_flush!(p.span_processor, args...)
 
 function API.get_tracer(p::TracerProvider, instrumentation_name, instrumentation_version=nothing)
     Tracer(

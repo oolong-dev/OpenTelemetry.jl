@@ -28,7 +28,7 @@ global_tracer_provider(
     TracerProvider(
         span_processor=MultiSpanProcessor(
             SimpleSpanProcessor(
-                ConsoleSpanExporter()
+                ConsoleExporter()
             )
         )
     )

@@ -1,14 +1,9 @@
 module OpenTelemetrySDK
 
-using OpenTelemetryAPI
+using Reexport
 
-const API = OpenTelemetryAPI
-
-include("instrumentation.jl")
-include("resource.jl")
-include("trace/sampling.jl")
-include("trace/id_generator.jl")
-include("trace/span_processor.jl")
-include("trace/trace.jl")
+include("Common/Common.jl")
+include("Metric/Metric.jl")
+include("Trace/Trace.jl")
 
 end # module

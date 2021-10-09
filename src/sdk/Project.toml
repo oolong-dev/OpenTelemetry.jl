@@ -9,11 +9,12 @@ GarishPrint = "b0ab02a7-8576-43f7-aa76-eaa7c3897c54"
 OpenTelemetryAPI = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 
 [compat]
-julia = "1"
 GarishPrint = "0.2"
 OpenTelemetryAPI = "0.0.3"
+julia = "1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

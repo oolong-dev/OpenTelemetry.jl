@@ -4,7 +4,7 @@ global_tracer_provider(
     TracerProvider(
         span_processor=MultiSpanProcessor(
             SimpleSpanProcessor(
-                InMemorySpanExporter()
+                 InMemoryExporter()
             )
         )
     )
