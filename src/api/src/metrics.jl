@@ -1,17 +1,12 @@
-export global_meter_provider,
-    get_meter,
-    create_counter,
-    create_up_down_counter,
-    create_histogram,
-    create_observable_counter,
-    create_observable_gauge,
-    create_observable_up_down_counter,
-    is_sync_instrument,
-    is_valid_instrument_name,
-    is_valid_instrument_unit,
-    is_valid_instrument_description
-
-using Base.Threads
+export AbstractMeterProvider,
+    global_meter_provider,
+    Meter,
+    Counter,
+    ObservableCounter,
+    Histogram,
+    ObservableGauge,
+    UpDownCounter,
+    ObservableUpDownCounter
 
 struct Measurement{V}
     value::V
@@ -20,27 +15,34 @@ end
 
 abstract type AbstractMeterProvider end
 
-struct DefaultMeterProvider <: AbstractMeterProvider
-end
-
 const GLOBAL_METER_PROVIDER = Ref{AbstractMeterProvider}(DefaultMeterProvider())
-
 global_meter_provider() = GLOBAL_METER_PROVIDER[]
 global_meter_provider(p::AbstractMeterProvider) = GLOBAL_METER_PROVIDER[] = p
 
-get_meter(name) = get_meter(name, global_meter_provider())
-get_meter(name, ::DefaultMeterProvider) = DefaultMeter(name)
+#####
 
-abstract type AbstractMeter end
-
-struct DefaultMeter <: AbstractMeter
-    name::String
+struct DefaultMeterProvider <: AbstractMeterProvider
 end
 
-Base.nameof(m::DefaultMeter) = m.name
-version(m::DefaultMeter) = v"0.0.0-dev"
-schema_url(m::DefaultMeter) = ""
+create_meter(p::DefaultMeterProvider, name, version, schema_url) = Meter(p, name, version, schema_url, [])
 
+function Base.put!(p::DefaultMeterProvider, measurement) end
+
+#####
+
+struct Meter{P<:AbstractMeterProvider}
+    provider::P
+    name::String
+    version::VersionNumber
+    schema_url::String
+    instruments::Vector{Any}
+end
+
+Meter(name, version=v"0.0.1-dev", schema_url="") = create_meter(global_meter_provider(), name, version, schema_url)
+
+Base.put!(meter::Meter, measurement) = put!(meter.provider, measurement)
+
+#####
 
 abstract type AbstractInstrument end
 abstract type AbstractSyncInstrument <: AbstractInstrument end
@@ -49,109 +51,106 @@ abstract type AbstractAsyncInstrument <: AbstractInstrument end
 is_sync_instrument(i::AbstractSyncInstrument) = true
 is_sync_instrument(i::AbstractAsyncInstrument) = false
 
-is_valid_instrument_name(name) = !isnothing(match(r"[a-zA-Z][_0-9a-zA-Z\\.\\-]{0,62}$", name))
-is_valid_instrument_unit(unit) = length(unit) <= 63
-is_valid_instrument_description(d) = length(d) <=1024
+function examine_instrument(ins::AbstractInstrument;max_unit_length=63, max_description_length=1024)
+    !isnothing(match(r"[a-zA-Z][_0-9a-zA-Z\\.\\-]{0,62}$", ins.name)) || throw(ArgumentError("invalid name: $(ins.name)"))
+    length(ins.unit) <= max_unit_length || throw(ArgumentError("length of unit should be no more than $max_unit_length"))
+    length(ins.description) <= max_description_length || throw(ArgumentError("length of description should be no more than $max_description_length"))
+end
 
-# Default dummy implementations
+Base.put!(m::Meter, i::AbstractInstrument) = push!(m.instruments, i)
 
-struct DefaultCounter{T} <: AbstractSyncInstrument
+(ins::AbstractSyncInstrument)(amount; kw...) = ins(Measurement(amount, Attributes(kw...)))
+(ins::AbstractSyncInstrument)(amount, args...) = ins(Measurement(amount, Attributes(args...)))
+(ins::AbstractSyncInstrument)(m::Measurement) = put!(ins.meter, m)
+
+(ins::AbstractAsyncInstrument)() = put!(ins.meter, ins => ins.callback())
+
+#####
+
+struct Counter{P<:AbstractMeterProvider} <: AbstractSyncInstrument
+    meter::Meter{P}
     name::String
     unit::String
     description::String
-end
-
-function create_counter(::DefaultMeter, name; unit="", description="", value_type=Int)
-    is_valid_instrument_name(name) || throw(ArgumentError("invalid name: $name"))
-    is_valid_instrument_unit(unit) || throw(ArgumentError("invalid unit: $unit"))
-    is_valid_instrument_description(description) || throw(ArgumentError("invalid description: $description"))
-    DefaultCounter{value_type}(name, unit, description)
-end
-
-add!(c::DefaultCounter, amount;kw...) = add!(c, amount, Attributes(kw...))
-
-function add!(c::DefaultCounter, amount, attrs::Attributes)
-    if amount < 0
-        throw(ArgumentError("amount must be non-negative, got $amount"))
+    function Counter(meter, name; unit="", description="")
+        c = new(meter, name, unit, description)
+        examine_instrument(c)
+        put!(meter, c)
+        c
     end
 end
 
-struct DefaultObservableCounter{F} <: AbstractAsyncInstrument
-    name::String
-    unit::String
-    description::String
+function (c::Counter)(m::Measurement)
+    if m.value < 0
+        throw(ArgumentError("amount must be non-negative, got $amount"))
+    end
+    put!(c.meter, c => m)
+end
+
+struct ObservableCounter{F, P<:AbstractMeterProvider} <: AbstractAsyncInstrument
     callback::F
-end
-
-function create_observable_counter(::DefaultMeter, callback, name; unit="", description="")
-    is_valid_instrument_name(name) || throw(ArgumentError("invalid name: $name"))
-    is_valid_instrument_unit(unit) || throw(ArgumentError("invalid unit: $unit"))
-    is_valid_instrument_description(description) || throw(ArgumentError("invalid description: $description"))
-    DefaultObservableCounter(name, unit, description, callback)
-end
-
-(c::DefaultObservableCounter)() = c.callback()
-
-struct DefaultHistogram <: AbstractSyncInstrument
+    meter::Meter{P}
     name::String
     unit::String
     description::String
+    function ObservableCounter(callback, meter, name; unit="", description="")
+        c = new(callback, meter, name, unit, description)
+        examine_instrument(c)
+        put!(meter, c)
+        c
+    end
 end
 
-function create_histogram(::DefaultMeter, name; unit="", description="")
-    is_valid_instrument_name(name) || throw(ArgumentError("invalid name: $name"))
-    is_valid_instrument_unit(unit) || throw(ArgumentError("invalid unit: $unit"))
-    is_valid_instrument_description(description) || throw(ArgumentError("invalid description: $description"))
-    DefaultHistogram(name, unit, description)
-end
-
-record(h::DefaultHistogram, val;kw...) = record(h, val, Attributes(kw...))
-function record(h::DefaultHistogram, val, attrs) end
-
-struct DefaultObservableGauge{F} <: AbstractAsyncInstrument
+struct Histogram{P<:AbstractMeterProvider} <: AbstractSyncInstrument
+    meter::Meter{P}
     name::String
     unit::String
     description::String
+    function Histogram(meter, name; unit="", description="")
+        h = new(meter, name, unit, description)
+        examine_instrument(h)
+        put!(meter, h)
+        h
+    end
+end
+
+struct ObservableGauge{F, P<:AbstractMeterProvider} <: AbstractAsyncInstrument
     callback::F
-end
-
-function create_observable_gauge(::DefaultMeter, callback, name; unit="", description="")
-    is_valid_instrument_name(name) || throw(ArgumentError("invalid name: $name"))
-    is_valid_instrument_unit(unit) || throw(ArgumentError("invalid unit: $unit"))
-    is_valid_instrument_description(description) || throw(ArgumentError("invalid description: $description"))
-    DefaultObservableGauge(name, unit, description, callback)
-end
-
-(c::DefaultObservableGauge)() = c.callback()
-
-struct DefaultUpDownCounter{T} <: AbstractSyncInstrument
+    meter::Meter{P}
     name::String
     unit::String
     description::String
+    function ObservableGauge(callback, meter, name; unit="", description="")
+        g = new(callback, meter, name, unit, description)
+        examine_instrument(g)
+        put!(meter, g)
+        g
+    end
 end
 
-function create_up_down_counter(::DefaultMeter, name; unit="", description="", value_type=Int)
-    is_valid_instrument_name(name) || throw(ArgumentError("invalid name: $name"))
-    is_valid_instrument_unit(unit) || throw(ArgumentError("invalid unit: $unit"))
-    is_valid_instrument_description(description) || throw(ArgumentError("invalid description: $description"))
-    DefaultUpDownCounter{value_type}(name, unit, description)
-end
-
-add!(c::DefaultUpDownCounter, amount;kw...) = add!(c, amount, Attributes(kw...))
-function add!(c::DefaultUpDownCounter, amount, attrs) end
-
-struct DefaultObservableUpDownCounter{F} <: AbstractAsyncInstrument
+struct UpDownCounter{P<:AbstractMeterProvider} <: AbstractSyncInstrument
+    meter::Meter{P}
     name::String
     unit::String
     description::String
+    function UpDownCounter(meter, name; unit="", description="")
+        c = new(meter, name, unit, description)
+        examine_instrument(c)
+        put!(meter, c)
+        c
+    end
+end
+
+struct ObservableUpDownCounter{F, P<:AbstractMeterProvider} <: AbstractAsyncInstrument
     callback::F
+    meter::Meter{P}
+    name::String
+    unit::String
+    description::String
+    function ObservableUpDownCounter(callback, meter, name; unit="", description="")
+        c = new(callback, meter, name, unit, description)
+        examine_instrument(c)
+        put!(meter, c)
+        c
+    end
 end
-
-function create_observable_up_down_counter(::DefaultMeter, callback, name; unit="", description="")
-    is_valid_instrument_name(name) || throw(ArgumentError("invalid name: $name"))
-    is_valid_instrument_unit(unit) || throw(ArgumentError("invalid unit: $unit"))
-    is_valid_instrument_description(description) || throw(ArgumentError("invalid description: $description"))
-    DefaultObservableUpDownCounter(name, unit, description, callback)
-end
-
-(c::DefaultObservableUpDownCounter)() = c.callback()

@@ -10,4 +10,4 @@ struct InstrumentationInfo
 end
 
 InstrumentationInfo(name::Module) =  InstrumentationInfo(name, pkgversion(name))
-InstrumentationInfo(name::String) =  InstrumentationInfo(name, v"0.0.0-dev")
+InstrumentationInfo(name::String) =  InstrumentationInfo(name, v"0.0.1-dev")
