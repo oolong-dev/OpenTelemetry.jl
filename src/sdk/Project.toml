@@ -12,7 +12,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 
 [compat]
-GarishPrint = "0.2"
+GarishPrint = "0.2, 0.3, 0.4, 0.5"
 OpenTelemetryAPI = "0.0.3"
 julia = "1"
 
