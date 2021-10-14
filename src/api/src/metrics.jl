@@ -1,6 +1,7 @@
 export AbstractMeterProvider,
-    global_meter_provider,
+    AbstractInstrument,
     Meter,
+    Measurement,
     Counter,
     ObservableCounter,
     Histogram,
@@ -13,51 +14,60 @@ struct Measurement{V}
     attributes::Attributes
 end
 
+#####
+
 abstract type AbstractMeterProvider end
 
-const GLOBAL_METER_PROVIDER = Ref{AbstractMeterProvider}(DefaultMeterProvider())
-global_meter_provider() = GLOBAL_METER_PROVIDER[]
-global_meter_provider(p::AbstractMeterProvider) = GLOBAL_METER_PROVIDER[] = p
-
 #####
 
-struct DefaultMeterProvider <: AbstractMeterProvider
-end
-
-create_meter(p::DefaultMeterProvider, name, version, schema_url) = Meter(p, name, version, schema_url, [])
-
-function Base.put!(p::DefaultMeterProvider, measurement) end
-
-#####
-
-struct Meter{P<:AbstractMeterProvider}
-    provider::P
+struct Meter
     name::String
     version::VersionNumber
     schema_url::String
     instruments::Vector{Any}
+    instrumentation_info::InstrumentationInfo
+    provider::Ref{AbstractMeterProvider}
 end
 
-Meter(name, version=v"0.0.1-dev", schema_url="") = create_meter(global_meter_provider(), name, version, schema_url)
+struct DefaultMeterProvider <: AbstractMeterProvider
+    meters::Dict{String, Meter}
+end
 
-Base.put!(meter::Meter, measurement) = put!(meter.provider, measurement)
+Base.getindex(p::DefaultMeterProvider, m::String) = p.meters[m]
+Base.push!(p::DefaultMeterProvider, m::Meter) = p.meters[m.name] = m
+Base.put!(p::DefaultMeterProvider, x) = nothing
+
+Base.bind(m::Meter, p::AbstracterProvider) = bind(p, m)
+function Base.bind(p::AbstracterProvider, m::Meter)
+    push!(p, m)
+    m.provider[] = p
+end
+
+function Meter(
+    name;
+    version=v"0.0.1-dev",
+    schema_url="",
+    instrumentation_info=InstrumentationInfo(),
+    provider=DefaultMeterProvider()
+)
+    m = Meter(name, version, schema_url, [], instrumentation_info, Ref(provider))
+    bind(m, provider)
+    m
+end
+
+Base.put!(m::Meter, x) = put!(m.provider[], x)
 
 #####
 
-abstract type AbstractInstrument end
-abstract type AbstractSyncInstrument <: AbstractInstrument end
-abstract type AbstractAsyncInstrument <: AbstractInstrument end
-
-is_sync_instrument(i::AbstractSyncInstrument) = true
-is_sync_instrument(i::AbstractAsyncInstrument) = false
+abstract type AbstractInstrument{T} end
+abstract type AbstractSyncInstrument{T} <: AbstractInstrument{T} end
+abstract type AbstractAsyncInstrument{T} <: AbstractInstrument{T} end
 
 function examine_instrument(ins::AbstractInstrument;max_unit_length=63, max_description_length=1024)
     !isnothing(match(r"[a-zA-Z][_0-9a-zA-Z\\.\\-]{0,62}$", ins.name)) || throw(ArgumentError("invalid name: $(ins.name)"))
     length(ins.unit) <= max_unit_length || throw(ArgumentError("length of unit should be no more than $max_unit_length"))
     length(ins.description) <= max_description_length || throw(ArgumentError("length of description should be no more than $max_description_length"))
 end
-
-Base.put!(m::Meter, i::AbstractInstrument) = push!(m.instruments, i)
 
 (ins::AbstractSyncInstrument)(amount; kw...) = ins(Measurement(amount, Attributes(kw...)))
 (ins::AbstractSyncInstrument)(amount, args...) = ins(Measurement(amount, Attributes(args...)))
@@ -67,15 +77,15 @@ Base.put!(m::Meter, i::AbstractInstrument) = push!(m.instruments, i)
 
 #####
 
-struct Counter{P<:AbstractMeterProvider} <: AbstractSyncInstrument
-    meter::Meter{P}
+struct Counter{T} <: AbstractSyncInstrument
+    meter::Meter
     name::String
     unit::String
     description::String
-    function Counter(meter, name; unit="", description="")
-        c = new(meter, name, unit, description)
+    function Counter{T}(meter, name; unit="", description="") where {T}
+        c = new{T}(meter, name, unit, description)
         examine_instrument(c)
-        put!(meter, c)
+        push!(meter.instruments, c)
         c
     end
 end
@@ -87,70 +97,70 @@ function (c::Counter)(m::Measurement)
     put!(c.meter, c => m)
 end
 
-struct ObservableCounter{F, P<:AbstractMeterProvider} <: AbstractAsyncInstrument
+struct ObservableCounter{T,F} <: AbstractAsyncInstrument
     callback::F
-    meter::Meter{P}
+    meter::Meter
     name::String
     unit::String
     description::String
-    function ObservableCounter(callback, meter, name; unit="", description="")
-        c = new(callback, meter, name, unit, description)
+    function ObservableCounter{T}(callback::F, meter, name; unit="", description="") where {T,F}
+        c = new{T,F}(callback, meter, name, unit, description)
         examine_instrument(c)
-        put!(meter, c)
+        push!(meter.instruments, c)
         c
     end
 end
 
-struct Histogram{P<:AbstractMeterProvider} <: AbstractSyncInstrument
-    meter::Meter{P}
+struct Histogram{T} <: AbstractSyncInstrument
+    meter::Meter
     name::String
     unit::String
     description::String
-    function Histogram(meter, name; unit="", description="")
-        h = new(meter, name, unit, description)
+    function Histogram{T}(meter, name; unit="", description="") where T
+        h = new{T}(meter, name, unit, description)
         examine_instrument(h)
-        put!(meter, h)
+        push!(meter.instruments, h)
         h
     end
 end
 
-struct ObservableGauge{F, P<:AbstractMeterProvider} <: AbstractAsyncInstrument
+struct ObservableGauge{T,F} <: AbstractAsyncInstrument
     callback::F
-    meter::Meter{P}
+    meter::Meter
     name::String
     unit::String
     description::String
-    function ObservableGauge(callback, meter, name; unit="", description="")
-        g = new(callback, meter, name, unit, description)
+    function ObservableGauge{T}(callback::F, meter, name; unit="", description="") where {T,F}
+        g = new{T,F}(callback, meter, name, unit, description)
         examine_instrument(g)
-        put!(meter, g)
+        push!(meter.instruments, g)
         g
     end
 end
 
-struct UpDownCounter{P<:AbstractMeterProvider} <: AbstractSyncInstrument
-    meter::Meter{P}
+struct UpDownCounter{T} <: AbstractSyncInstrument
+    meter::Meter
     name::String
     unit::String
     description::String
-    function UpDownCounter(meter, name; unit="", description="")
-        c = new(meter, name, unit, description)
+    function UpDownCounter{T}(meter, name; unit="", description="") where T
+        c = new{T}(meter, name, unit, description)
         examine_instrument(c)
-        put!(meter, c)
+        push!(meter.instruments, c)
         c
     end
 end
 
-struct ObservableUpDownCounter{F, P<:AbstractMeterProvider} <: AbstractAsyncInstrument
+struct ObservableUpDownCounter{T,F} <: AbstractAsyncInstrument
     callback::F
-    meter::Meter{P}
+    meter::Meter
     name::String
     unit::String
     description::String
-    function ObservableUpDownCounter(callback, meter, name; unit="", description="")
-        c = new(callback, meter, name, unit, description)
+    function ObservableUpDownCounter{T}(callback::F, meter, name; unit="", description="") where {T, F}
+        c = new{T,F}(callback, meter, name, unit, description)
         examine_instrument(c)
-        put!(meter, c)
+        push!(meter.instruments, c)
         c
     end
 end

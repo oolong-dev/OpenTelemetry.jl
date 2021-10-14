@@ -9,5 +9,5 @@ struct InstrumentationInfo
     version::VersionNumber
 end
 
-InstrumentationInfo(name::Module) =  InstrumentationInfo(name, pkgversion(name))
-InstrumentationInfo(name::String) =  InstrumentationInfo(name, v"0.0.1-dev")
+InstrumentationInfo(name::Module) =  InstrumentationInfo(String(nameof(name)), pkgversion(name))
+InstrumentationInfo(name::String="Main") =  InstrumentationInfo(name, v"0.0.1-dev")

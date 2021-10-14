@@ -98,7 +98,7 @@ Base.@kwdef struct TracerProvider{
 } <: API.AbstractTracerProvider
     sampler::S=DEFAULT_ON
     resource::Resource=Resource()
-    span_processor::MultiSpanProcessor=MultiSpanProcessor()
+    span_processor::CompositSpanProcessor=CompositSpanProcessor()
     id_generator::IDG=RandomIdGenerator()
     limit_info::LimitInfo=LimitInfo()
 end

@@ -18,6 +18,8 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 
 ## Get Started
 
+### Traces
+
 To show traces in your console:
 
 ```julia
@@ -26,7 +28,7 @@ using OpenTelemetrySDK
 
 global_tracer_provider(
     TracerProvider(
-        span_processor=MultiSpanProcessor(
+        span_processor=CompositSpanProcessor(
             SimpleSpanProcessor(
                 ConsoleExporter()
             )
@@ -54,7 +56,7 @@ using OpenTelemetryExporterOtlpProtoGrpc
 
 global_tracer_provider(
     TracerProvider(
-        span_processor=MultiSpanProcessor(
+        span_processor=CompositSpanProcessor(
             SimpleSpanProcessor(
                 OtlpProtoGrpcExporter(;url="http://localhost:4317")
             )
@@ -71,4 +73,16 @@ with_span("foo", tracer) do
         end
     end
 end
+```
+
+### Metrics
+
+```julia
+using OpenTelemetryAPI
+using OpenTelemetrySDK
+
+p = MetricProvider()
+m = Meter(p, "my_metrics")
+c = Counter(m)
+inc!(c)
 ```

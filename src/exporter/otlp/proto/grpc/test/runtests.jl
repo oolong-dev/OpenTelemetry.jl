@@ -9,7 +9,7 @@ exporter =  InMemoryExporter()
 
 global_tracer_provider(
     TracerProvider(
-        span_processor=MultiSpanProcessor(
+        span_processor=CompositSpanProcessor(
             SimpleSpanProcessor(
                 exporter
             )

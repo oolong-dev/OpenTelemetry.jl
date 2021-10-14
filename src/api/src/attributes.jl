@@ -94,7 +94,7 @@ const TAttrVal = Union{
 """
     Attributes(kv::Pair{String,<:TAttrVal}...;count_limit=128, value_length_limit=typemax(Int), is_mutable=false)
 
-Tha value type must be either `String`, `Bool`, `Int`, `Float64` or a `Vector` of above types. By default, we use a `NamedTuple` to represent the key-value pairs. If `is_mutable` is set to `true`, we'll use a `Dict` instead internally. If the value is of type `String` or `Vector{String}`, then each entry with length bigger than `value_length_limit` will be truncated.
+Tha value type must be either `String`, `Bool`, `Int`, `Float64` or a `Vector` of above types. By default, we use a `NamedTuple` to represent the key-value pairs and they are sorted to allow for comparison. If `is_mutable` is set to `true`, we'll use a `Dict` instead internally. If the value is of type `String` or `Vector{String}`, then each entry with length bigger than `value_length_limit` will be truncated.
 """
 function Attributes(
     kv::Pair{String,<:Union{TAttrVal, Attributes}}...
@@ -106,7 +106,7 @@ function Attributes(
     if is_mutable
         data = Limited(Dict{String,TAttrVal}(kv_truncated), count_limit)
     else
-        data = Limited(NamedTuple(Symbol(k) => v for (k,v) in kv_truncated), count_limit)
+        data = Limited(NamedTuple(Symbol(k) => v for (k,v) in sort(kv_truncated)), count_limit)
     end
     Attributes(data, value_length_limit)
 end
@@ -118,3 +118,6 @@ function Base.setindex!(d::Attributes{<:Dict}, k::String, v::TAttrVal)
     v = _truncate(v, d.value_length_limit)
     d.kv[k] = v
 end
+
+Base.:(==)(a::Attributes, b::Attributes) = a.kv.xs == b.kv.xs
+Base.hash(a::Attributes, h) = hash(a.kv.xs, h)

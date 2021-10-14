@@ -1,15 +1,15 @@
-export MultiSpanProcessor, SimpleSpanProcessor
+export CompositSpanProcessor, SimpleSpanProcessor
 
 abstract type AbstractSpanProcessor end
 
-struct MultiSpanProcessor <: AbstractSpanProcessor
+struct CompositSpanProcessor <: AbstractSpanProcessor
     span_processors::Vector
     is_spawn::Bool
-    MultiSpanProcessor(ps...;is_spawn=true) = new([ps...], is_spawn)
+    CompositSpanProcessor(ps...;is_spawn=true) = new([ps...], is_spawn)
 end
 
 for f in (:on_start, :on_end, :shutdown!)
-    @eval function $f(sp::MultiSpanProcessor, args...)
+    @eval function $f(sp::CompositSpanProcessor, args...)
         # ??? spawn
         for p in sp.span_processors
             $f(p, args...)
@@ -17,7 +17,7 @@ for f in (:on_start, :on_end, :shutdown!)
     end
 end
 
-function Common.force_flush!(sp::MultiSpanProcessor, timeout_millis=30_000)
+function Common.force_flush!(sp::CompositSpanProcessor, timeout_millis=30_000)
     res = fill(false, length(sp.span_processors))
     @sync for (i,p) in enumerate(sp.span_processors)
         if sp.is_spawn
@@ -47,7 +47,7 @@ Common.force_flush!(ssp::SimpleSpanProcessor, args...) = true
 
 struct WrappedSpan <: API.AbstractSpan
     span::Span
-    span_processor::MultiSpanProcessor
+    span_processor::CompositSpanProcessor
     instrumentation_info::InstrumentationInfo
     resource::Resource
     function WrappedSpan(

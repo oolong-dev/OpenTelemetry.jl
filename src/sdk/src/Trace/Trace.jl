@@ -1,4 +1,4 @@
-@reexport module Trace
+@reexport module OpenTelemetryTrace
 
 using OpenTelemetryAPI
 

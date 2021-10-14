@@ -1,25 +1,25 @@
 export AbstractMetricReader,
-    MultiMetricReader,
+    CompositMetricReader,
     collect
 
 abstract type AbstractMetricReader end
 
-struct MultiMetricReader <: AbstractMetricReader
+struct CompositMetricReader <: AbstractMetricReader
     readers::Vector{Any}
-    function MultiMetricReader(readers...)
+    function CompositMetricReader(readers...)
         new([readers...])
     end
 end
 
-Base.push!(mr::MultiMetricReader, r::AbstractMetricReader) = push!(mr.readers, r)
+Base.push!(mr::CompositMetricReader, r::AbstractMetricReader) = push!(mr.readers, r)
 
-function collect(r::MultiMetricReader)
+function collect(r::CompositMetricReader)
     for x in r.readers
         collect(x)
     end
 end
 
-function shut_down!(r::MultiMetricReader)
+function shut_down!(r::CompositMetricReader)
     for x in r.readers
         shut_down!(x)
     end
