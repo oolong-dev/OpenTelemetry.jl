@@ -1,4 +1,4 @@
-export Attributes, Limited
+export Attributes, Limited, n_dropped
 
 struct Limited{T}
     xs::T
@@ -7,6 +7,7 @@ struct Limited{T}
 end
 
 Base.getindex(x::Limited, args...) = getindex(x.xs, args...)
+Base.length(x::Limited) = length(x.xs)
 n_dropped(x::Limited) = x.n_dropped[]
 
 function Base.setindex!(x::Limited{<:AbstractDict}, v, k)
@@ -102,22 +103,32 @@ function Attributes(
     value_length_limit=typemax(Int),
     is_mutable=false
 )
-    kv_truncated = (k=>_truncate(v, value_length_limit) for (k, v) in kv)
+    kv_truncated = [k=>_truncate(v, value_length_limit) for (k, v) in kv]
+    sort!(kv_truncated;by=string)
     if is_mutable
         data = Limited(Dict{String,TAttrVal}(kv_truncated), count_limit)
     else
-        data = Limited(NamedTuple(Symbol(k) => v for (k,v) in sort(kv_truncated)), count_limit)
+        data = Limited(NamedTuple(Symbol(k) => v for (k,v) in kv_truncated), count_limit)
     end
     Attributes(data, value_length_limit)
 end
 
-Base.getindex(d::Attributes, k::String) = getindex(d.kv, k)
-Base.getindex(d::Attributes{<:NamedTuple}, k::String) = getindex(d.kv, Symbol(k))
+function Attributes(kv::NamedTuple;value_length_limit=128)
+    kv_truncated = [k=>_truncate(v, value_length_limit) for (k, v) in pairs(kv)]
+    sort!(kv_truncated;by=string)
+    data = Limited(NamedTuple(Symbol(k) => v for (k,v) in kv_truncated), length(kv))
+    Attributes(data, value_length_limit)
+end
 
-function Base.setindex!(d::Attributes{<:Dict}, k::String, v::TAttrVal)
+Base.getindex(d::Attributes, k::String) = getindex(d.kv, k)
+Base.getindex(d::Attributes{<:NamedTuple}, k::String) = getindex(d, Symbol(k))
+Base.getindex(d::Attributes{<:NamedTuple}, k::Symbol) = getindex(d.kv, Symbol(k))
+
+function Base.setindex!(d::Attributes{<:Dict}, v::TAttrVal, k::String)
     v = _truncate(v, d.value_length_limit)
     d.kv[k] = v
 end
 
 Base.:(==)(a::Attributes, b::Attributes) = a.kv.xs == b.kv.xs
 Base.hash(a::Attributes, h) = hash(a.kv.xs, h)
+Base.length(a::Attributes) = length(a.kv)

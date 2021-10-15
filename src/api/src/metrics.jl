@@ -1,7 +1,7 @@
 export AbstractMeterProvider,
-    AbstractInstrument,
-    Meter,
+    global_meter_provider,
     Measurement,
+    Meter,
     Counter,
     ObservableCounter,
     Histogram,
@@ -9,16 +9,14 @@ export AbstractMeterProvider,
     UpDownCounter,
     ObservableUpDownCounter
 
-struct Measurement{V}
+struct Measurement{V,T}
     value::V
-    attributes::Attributes
+    attributes::Attributes{T}
 end
 
 #####
 
 abstract type AbstractMeterProvider end
-
-#####
 
 struct Meter
     name::String
@@ -26,21 +24,41 @@ struct Meter
     schema_url::String
     instruments::Vector{Any}
     instrumentation_info::InstrumentationInfo
-    provider::Ref{AbstractMeterProvider}
+    provider_ref::Ref{AbstractMeterProvider}
 end
 
-struct DefaultMeterProvider <: AbstractMeterProvider
-    meters::Dict{String, Meter}
+Base.@kwdef struct DefaultMeterProvider <: AbstractMeterProvider
+    meters::Dict{String, Meter} = Dict()
 end
 
 Base.getindex(p::DefaultMeterProvider, m::String) = p.meters[m]
+Base.haskey(p::DefaultMeterProvider, m::String) = haskey(p.meters, m)
 Base.push!(p::DefaultMeterProvider, m::Meter) = p.meters[m.name] = m
-Base.put!(p::DefaultMeterProvider, x) = nothing
+Base.delete!(p::DefaultMeterProvider, m::Meter) = delete!(p, m.name)
+Base.delete!(p::DefaultMeterProvider, m::String) = delete!(p.meters, m)
+Base.iterate(p::DefaultMeterProvider, args...) = iterate(values(p.meters), args...)
+Base.length(p::DefaultMeterProvider) = length(p.meters)
 
-Base.bind(m::Meter, p::AbstracterProvider) = bind(p, m)
-function Base.bind(p::AbstracterProvider, m::Meter)
+# put measurements into the provider
+Base.put!(p::DefaultMeterProvider, m) = nothing
+
+function Base.bind(p::AbstractMeterProvider, m::Meter)
+    p_old = m.provider_ref[]
+    delete!(p_old, m)
     push!(p, m)
-    m.provider[] = p
+    m.provider_ref[] = p
+end
+
+const GLOBAL_METER_PROVIDER = Ref(DefaultMeterProvider())
+global_meter_provider() = GLOBAL_METER_PROVIDER[]
+
+function global_meter_provider(p)
+    p_old = GLOBAL_METER_PROVIDER[]
+    # transfer ownership
+    for m in p_old
+        bind(p, m)
+    end
+    GLOBAL_METER_PROVIDER[] = p
 end
 
 function Meter(
@@ -48,14 +66,14 @@ function Meter(
     version=v"0.0.1-dev",
     schema_url="",
     instrumentation_info=InstrumentationInfo(),
-    provider=DefaultMeterProvider()
+    provider=global_meter_provider()
 )
-    m = Meter(name, version, schema_url, [], instrumentation_info, Ref(provider))
-    bind(m, provider)
+    m = Meter(name, version, schema_url, [], instrumentation_info, Ref{AbstractMeterProvider}(provider))
+    push!(provider, m)
     m
 end
 
-Base.put!(m::Meter, x) = put!(m.provider[], x)
+Base.put!(m::Meter, x) = put!(m.provider_ref[], x)
 
 #####
 
@@ -69,7 +87,7 @@ function examine_instrument(ins::AbstractInstrument;max_unit_length=63, max_desc
     length(ins.description) <= max_description_length || throw(ArgumentError("length of description should be no more than $max_description_length"))
 end
 
-(ins::AbstractSyncInstrument)(amount; kw...) = ins(Measurement(amount, Attributes(kw...)))
+(ins::AbstractSyncInstrument)(amount; kw...) = ins(Measurement(amount, Attributes(kw.data)))
 (ins::AbstractSyncInstrument)(amount, args...) = ins(Measurement(amount, Attributes(args...)))
 (ins::AbstractSyncInstrument)(m::Measurement) = put!(ins.meter, m)
 
@@ -77,7 +95,7 @@ end
 
 #####
 
-struct Counter{T} <: AbstractSyncInstrument
+struct Counter{T} <: AbstractSyncInstrument{T}
     meter::Meter
     name::String
     unit::String
@@ -97,7 +115,7 @@ function (c::Counter)(m::Measurement)
     put!(c.meter, c => m)
 end
 
-struct ObservableCounter{T,F} <: AbstractAsyncInstrument
+struct ObservableCounter{T,F} <: AbstractAsyncInstrument{T}
     callback::F
     meter::Meter
     name::String
@@ -111,7 +129,7 @@ struct ObservableCounter{T,F} <: AbstractAsyncInstrument
     end
 end
 
-struct Histogram{T} <: AbstractSyncInstrument
+struct Histogram{T} <: AbstractSyncInstrument{T}
     meter::Meter
     name::String
     unit::String
@@ -124,7 +142,7 @@ struct Histogram{T} <: AbstractSyncInstrument
     end
 end
 
-struct ObservableGauge{T,F} <: AbstractAsyncInstrument
+struct ObservableGauge{T,F} <: AbstractAsyncInstrument{T}
     callback::F
     meter::Meter
     name::String
@@ -138,7 +156,7 @@ struct ObservableGauge{T,F} <: AbstractAsyncInstrument
     end
 end
 
-struct UpDownCounter{T} <: AbstractSyncInstrument
+struct UpDownCounter{T} <: AbstractSyncInstrument{T}
     meter::Meter
     name::String
     unit::String
@@ -151,7 +169,7 @@ struct UpDownCounter{T} <: AbstractSyncInstrument
     end
 end
 
-struct ObservableUpDownCounter{T,F} <: AbstractAsyncInstrument
+struct ObservableUpDownCounter{T,F} <: AbstractAsyncInstrument{T}
     callback::F
     meter::Meter
     name::String

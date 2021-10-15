@@ -1,5 +1,6 @@
 module OpenTelemetryAPI
 
+include("instrumentation.jl")
 include("attributes.jl")
 include("context.jl")
 include("propagator.jl")
