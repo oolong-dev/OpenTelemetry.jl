@@ -1,10 +1,8 @@
 module OpenTelemetryAPI
 
-include("instrumentation.jl")
-include("attributes.jl")
-include("context.jl")
+include("common.jl")
 include("propagator.jl")
-include("trace.jl")
-include("metrics.jl")
+include("trace/trace.jl")
+# include("metric.jl")
 
 end # module

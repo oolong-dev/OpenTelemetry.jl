@@ -3,13 +3,6 @@ export TracerProvider
 using Base.Threads
 using Dates: time
 
-Base.@kwdef struct LimitInfo
-    span_attribute_count_limit::Int = 128
-    span_attribute_value_length_limit::Int = typemax(Int)
-    span_event_count_limit::Int = 128
-    span_link_count_limit::Int = 128
-end
-
 struct Tracer{
     S<:AbstractSampler,
     SP<:AbstractSpanProcessor,

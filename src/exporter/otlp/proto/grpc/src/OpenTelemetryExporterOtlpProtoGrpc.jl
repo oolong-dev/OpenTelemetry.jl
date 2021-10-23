@@ -86,8 +86,8 @@ function Base.convert(::Type{Trace.Span}, s::SDK.WrappedSpan)
         parent_span_id = isnothing(s.span.parent_span_context) ? UInt8[] : reinterpret(UInt8, [s.span.parent_span_context.span_id]),
         name = s.span.name,
         kind = Int32(s.span.kind),
-        start_time_unix_nano = s.span.start_time * 10^9,
-        end_time_unix_nano = s.span.end_time * 10^9,
+        start_time_unix_nano = s.span.start_time,
+        end_time_unix_nano = s.span.end_time,
         attributes = convert(Vector{Common.KeyValue}, s.span.attributes),
         dropped_attributes_count = UInt32(SDK.n_dropped(s.span.attributes)),
         events = [convert(Trace.Span_Event, e) for e in s.span.events.xs],
@@ -121,7 +121,7 @@ Base.convert(::Type{Common.KeyValueList}, v::SDK.Attributes) = Common.KeyValueLi
 
 function Base.convert(::Type{Trace.Span_Event}, event::API.Event)
     Trace.Span_Event(
-        time_unix_nano = event.timestamp * 10^9,
+        time_unix_nano = event.timestamp,
         name = event.name,
         attributes = convert(Vector{Common.KeyValue}, event.attributes),
         dropped_attributes_count = SDK.n_dropped(event.attributes)

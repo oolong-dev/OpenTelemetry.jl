@@ -1,12 +1,14 @@
 using OpenTelemetryAPI
 using Test
+using Base.Threads
+
+const API = OpenTelemetryAPI
 
 @testset "OpenTelemetryAPI.jl" begin
 
-include("context.jl")
+include("common.jl")
 include("propagator.jl")
 include("trace.jl")
-include("metric.jl")
-include("attributes.jl")
+# include("metric.jl")
 
 end

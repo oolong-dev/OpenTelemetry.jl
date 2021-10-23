@@ -1,4 +1,4 @@
-export add_propagator, inject!, extract
+export inject!, extract
 
 abstract type AbstractPropagator end
 
@@ -8,15 +8,7 @@ end
 
 const GLOBAL_PROPAGATOR = CompositePropagator([])
 
-"""
-    add_propagator(p::AbstractPropagator)
-
-Set a new propagator as the global composite propagator.
-"""
-add_propagator(p::AbstractPropagator) = add_propagator(GLOBAL_PROPAGATOR, p)
-add_propagator(cp::CompositePropagator, p::AbstractPropagator) = push!(cp.propagators, p)
-
-Base.keys(p::CompositePropagator) = (k for x in p.propagators for k in keys(x))
+Base.push!(cp::CompositePropagator, p::AbstractPropagator) = push!(cp.propagators, p)
 
 """
     inject(carrier, [global_propagator], [current_context])
