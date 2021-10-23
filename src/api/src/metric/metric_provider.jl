@@ -34,11 +34,10 @@ struct Meter{P<:AbstractMeterProvider}
             provider,
             version,
             schema_url,
+            AbstractInstrument[],
             instrumentation_info,
         )
         push!(provider, m)
         m
     end
 end
-
-Base.push!(m::Meter, measurement) = push!(m.provider, measurement)

@@ -4,12 +4,13 @@
     counter = Counter{Int}(m1, "counter")
     counter(1)
     counter(3, "m.a" => 1, "m.b" => "b", "m.c" => 3.)
+    @test_throws ArgumentError counter(-1)
 
     hist = Histogram{Float64}(m1, "hist")
     hist(1)
     hist(3, "m.a" => 1, "m.b" => "b", "m.c" => 3.)
 
-    up_down_counter = Histogram{Float64}(m1, "up_down_counter")
+    up_down_counter = UpDownCounter{Int}(m1, "up_down_counter")
     up_down_counter(1)
     up_down_counter(3, "m.a" => 1, "m.b" => "b", "m.c" => 3.)
 
@@ -27,8 +28,4 @@
         rand(1:10)
     end
     obs_up_down_counter()
-
-    p = global_meter_provider()
-    @test length(p) == 1
-    @test p["test"] === m1
 end

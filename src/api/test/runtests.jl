@@ -9,6 +9,6 @@ const API = OpenTelemetryAPI
 include("common.jl")
 include("propagator.jl")
 include("trace.jl")
-# include("metric.jl")
+include("metric.jl")
 
 end
