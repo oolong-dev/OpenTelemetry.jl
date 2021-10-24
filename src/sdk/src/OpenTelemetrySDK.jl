@@ -1,9 +1,9 @@
 module OpenTelemetrySDK
 
-using Reexport
+using OpenTelemetryAPI
 
-include("Common/Common.jl")
-include("Metric/Metric.jl")
-include("Trace/Trace.jl")
+include("exporter.jl")
+include("trace/trace.jl")
+# include("metric/metric.jl")
 
 end # module

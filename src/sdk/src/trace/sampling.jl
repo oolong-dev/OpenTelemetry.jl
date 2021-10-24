@@ -1,7 +1,8 @@
 export ALWAYS_ON,
     ALWAYS_OFF,
     DEFAULT_ON,
-    DEFAULT_OFF
+    DEFAULT_OFF,
+    TraceIdRatioBased
 
 abstract type AbstractSampler end
 
@@ -12,16 +13,16 @@ abstract type AbstractSampler end
 end
 
 is_sampled(d::Decision) = d === DECISION_RECORD_AND_SAMPLE
-is_recording(d::Decision) = d === DECISION_RECORD_ONLY || d === DECISION_RECORD_AND_SAMPLE
+OpenTelemetryAPI.is_recording(d::Decision) = d === DECISION_RECORD_ONLY || d === DECISION_RECORD_AND_SAMPLE
 
-struct SamplingResult{A<:StaticAttrs, T<:TraceState}
+struct SamplingResult{A<:Union{StaticAttrs,DynamicAttrs}, T<:TraceState}
     decision::Decision
     attributes::A
     trace_state::T
 end
 
 is_sampled(r::SamplingResult) = is_sampled(r.decision)
-is_recording(r::SamplingResult) = is_recording(r.decision)
+OpenTelemetryAPI.is_recording(r::SamplingResult) = is_recording(r.decision)
 
 struct StaticSampler <: AbstractSampler
     decision::Decision
@@ -49,7 +50,7 @@ function should_sample(
     trace_state=TraceState(),
 )
     if s.decision === DECISION_DROP
-        attributes = Attributes()
+        attributes = StaticAttrs()
     end
     SamplingResult(
         s.decision,

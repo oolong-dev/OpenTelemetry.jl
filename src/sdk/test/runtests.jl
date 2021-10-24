@@ -1,6 +1,7 @@
 using OpenTelemetrySDK
 using OpenTelemetryAPI
 using Test
+using Random
 using Base.Threads
 
 @testset "OpenTelemetrySDK.jl" begin

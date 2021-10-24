@@ -2,8 +2,11 @@ export current_context,
     with_context,
     Limited,
     n_dropped,
+    TAttrVal,
     DynamicAttrs,
-    StaticAttrs
+    StaticAttrs,
+    Resource,
+    InstrumentationInfo
 
 using UUIDs: uuid4
 

@@ -27,7 +27,7 @@ struct CompositSpanProcessor <: AbstractSpanProcessor
 end
 
 
-for f in (:on_start, :on_end, :shutdown!)
+for f in (:on_start, :on_end, :shut_down!)
     @eval function $f(sp::CompositSpanProcessor, args...)
         # ??? spawn
         for p in sp.span_processors
@@ -67,4 +67,4 @@ end
 
 shut_down!(ssp::SimpleSpanProcessor) = shut_down!(ssp.span_exporter)
 
-force_flush!(ssp::SimpleSpanProcessor, args...) = true
+force_flush!(ssp::SimpleSpanProcessor, args...) = force_flush!(ssp.span_exporter)
