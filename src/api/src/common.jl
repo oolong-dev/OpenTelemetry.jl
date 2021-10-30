@@ -187,8 +187,10 @@ StaticAttrs(attrs::Pair{String}...;kw...) = StaticAttrs(NamedTuple(Symbol(k) => 
 StaticAttrs(attrs::Pair{Symbol}...;kw...) = StaticAttrs(NamedTuple(attrs);kw...)
 StaticAttrs(;kw...) = StaticAttrs(NamedTuple();kw...)
 
+Base.keys(A::StaticAttrs) = keys(A.attrs)
 Base.getindex(A::StaticAttrs, k::String) = getindex(A, Symbol(k))
 Base.getindex(A::StaticAttrs, k::Symbol) = getindex(A.attrs, k)
+Base.getindex(A::StaticAttrs, k::Tuple{Vararg{Symbol}}) = StaticAttrs(NamedTuple{k}(A.attrs))
 Base.length(A::StaticAttrs) = length(A.attrs)
 
 """

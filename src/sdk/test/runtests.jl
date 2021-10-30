@@ -6,5 +6,6 @@ using Base.Threads
 
 @testset "OpenTelemetrySDK.jl" begin
     include("trace.jl")
+    include("metric.jl")
 end
 

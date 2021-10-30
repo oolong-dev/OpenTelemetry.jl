@@ -1,4 +1,5 @@
 export AbstractMeterProvider,
+    AbstractInstrument,
     global_meter_provider,
     Meter
 

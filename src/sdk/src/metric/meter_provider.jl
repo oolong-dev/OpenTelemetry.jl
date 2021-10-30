@@ -10,7 +10,7 @@ const N_MAX_POINTS_PER_METRIC = 2_000
 Base.@kwdef struct Exemplar{T}
     value::T
     time_unix_nano::Int
-    filtered_attributes::Attributes
+    filtered_attributes::StaticAttrs
     trace_id::API.TraceIdType
     span_id::API.SpanIdType
 end
@@ -55,24 +55,37 @@ end
 
 Base.@kwdef struct AggregationStore
     points::Dict{Any, Any} = Dict()
+    n_points::Atomic{Int}
     max_points::UInt = N_MAX_POINTS_PER_METRIC
     data_point_constructor::Any
 end
 
-function (agg_store::AggregationStore)(e::Exemplar)
-    m = e.value
-    if m.attributes in agg_store.points
-        agg_store[m.attributes](e)
-    elseif length(agg_store.points) >= agg_store.max_points
-        @info "Maximum number of points in aggregation store reached. Dropped!"
+function (agg_store::AggregationStore)(e::Exemplar{<:Measurement})
+    attrs = e.value.attributes
+    if attrs in agg_store.points
+        agg_store[attrs](e)
     else
-        p = agg_store.data_point_constructor()
-        p(e)
-        agg_store[m.attributes] = p
+        sorted_attrs = sort(m.attributes)
+        if sorted_attrs in agg_store.points
+            p = agg_store[sorted_attrs]
+            agg_store[attrs] = p
+            p(e)
+        else
+            # ??? lock or atomic field in Julia@v1.7
+            if agg_store.n_points[] >= agg_store.max_points
+                @info "Maximum number of points in aggregation store reached. Dropped!"
+            else
+                atomic_add!(agg_store.n_points, 1)
+                p = agg_store.data_point_constructor()
+                p(e)
+                agg_store[attrs] = p
+                agg_store[sorted_attrs] = p
+            end
+        end
     end
 end
 
-function Base.push!(agg::AggregationStore, (attr, x)::Pair{Attributes, Exemplar})
+function Base.push!(agg::AggregationStore, (attr, x)::Pair{StaticAttrs, Exemplar})
     if attr in agg.points
         agg.points[attr](x)
     else
@@ -111,7 +124,7 @@ function SumAgg(
     )
 end
 
-function (agg::SumAgg)(e::Exemplar)
+function (agg::SumAgg)(e::Exemplar{<:Measurement})
     if agg.is_monotonic && e.value.value < 0
         throw(ArgumentError("A negative exemplar is fed into a monotonic SumAgg"))
     end
@@ -152,38 +165,36 @@ end
 
 function (metric::Metric)(m::Measurement)
     if isnothing(metric.attribute_keys)
-        filtered_attributes = Attributes()
+        filtered_attributes = StaticAttrs()
     else
+        interested_keys = keys(m.attributes) ∩ metric.attribute_keys
+        filtered_keys = setdiff(keys(m.attributes), interested_keys)
         m = Measurement(
             m.value,
-            m.attributes[metric.attribute_keys]
+            m.attributes[Tuple(interested_keys)]
         )
-        # note that keys of attributes are well sorted
-        filtered_attributes = m.attributes[length(metric.attribute_keys)+1:end]
+        filtered_attributes = m.attributes[Tuple(filtered_keys)]
     end
 
     span_ctx = span_context()
     trace_id = span_ctx.trace_id
     span_id = span_ctx.span_id
-    m(
-        Exemplar(;
-            value = m,
-            time_unix_nano = UInt(time() * 10 ^ 9),
-            filtered_attributes = filtered_attributes,
-            trace_id = trace_id,
-            span_id = span_id
-        )
+    exemplar = Exemplar(;
+        value = m,
+        time_unix_nano = UInt(time() * 10 ^ 9),
+        filtered_attributes = filtered_attributes,
+        trace_id = trace_id,
+        span_id = span_id
     )
+    metric.aggregation(exemplar)
 end
-
-(m::Metric)(e::Exemplar) = m.aggregation(e)
 
 struct View{A}
     name::Union{String, Nothing}
     description::Union{String, Nothing}
     criteria::Criteria
     attribute_keys::Union{Tuple{Vararg{String}}, Nothing}
-    extra_dimensions::Attributes
+    extra_dimensions::StaticAttrs
     aggregation::A
 end
 
@@ -191,7 +202,7 @@ function View(
     ;name = nothing,
     description = nothing,
     attribute_keys = nothing,
-    extra_dimensions = Attributes(),
+    extra_dimensions = StaticAttrs(),
     aggregation = nothing,
     # criteria
     instrument_name = nothing,
@@ -227,18 +238,15 @@ end
 struct MeterProvider <: AbstractMeterProvider
     resource::Resource
     meters::Dict{String, Meter}
-    instruments::IdDict{AbstractInstrument, Vector{String}}
-    views::Vector{MeterView}
+    instrument_related_metrics::IdDict{AbstractInstrument, Vector{String}}
+    views::Vector{View}
     metrics::Dict{String, Metric}
     n_max_metrics::UInt
 end
 
 function MeterProvider(
     resource=Resource(),
-    views=[],
-    metrics = Dict{String,Metric}(),
-    meters = Dict{String,Meter}(),
-    instruments = IdDict{AbstractInstrument, Vector{String}}(),
+    views=View[],
     n_max_metrics = N_MAX_METRICS
 )
     if isempty(views)
@@ -247,24 +255,34 @@ function MeterProvider(
 
     MeterProvider(
         resource,
-        meters,
-        instruments,
+        Dict{String,Meter}(),
+        IdDict{AbstractInstrument, Vector{String}}(),
         views,
-        metrics,
+        Dict{String,Metric}(),
         n_max_metrics
     )
 end
 
 function Base.push!(p::MeterProvider, m::Meter)
-    p[m.name] = m
+    p.meters[m.name] = m
     for ins in m.instruments
-        if !haskey(p.instruments, ins)
-            for v in p.views
-                if length(metrics) >= p.n_max_metrics
-                    @warn "Maximum number of metrics [$(p.n_max_metrics)] reached. Instrument [$(ins.name)] related metrics are dropped!"
-                elseif v.aggregation === DROP
+        push!(p, ins)
+    end
+end
+
+function Base.push!(p::MeterProvider, ins::AbstractInstrument)
+    if !haskey(p.meters, ins.meter.name)
+        p.meters[ins.meter.name] = ins.meter
+    end
+
+    if !haskey(p.instruments, ins)
+        for v in p.views
+            if occursin(ins, v.criteria)
+                if v.aggregation === DROP
                     @info "Metric won't be created since the view for the instrument [$(ins.name)] is configured to DROP."
-                elseif occursin(ins, v.criteria)
+                elseif length(metrics) >= p.n_max_metrics
+                    @warn "Maximum number of metrics [$(p.n_max_metrics)] reached. Instrument [$(ins.name)] related metrics are dropped!"
+                else
                     metric_name = something(v.name, ins.name)
                     if haskey(p.metrics, metric_name)
                         @info "Found a duplicate metric [$metric_name]. The original one will be reused."
