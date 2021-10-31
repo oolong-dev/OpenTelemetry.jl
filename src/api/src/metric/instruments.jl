@@ -50,6 +50,8 @@ struct Counter{T} <: AbstractSyncInstrument{T}
     end
 end
 
+(c::Counter{T})(;kw...) where T = c(one(T);kw...)
+
 function (c::Counter)(m::Measurement)
     if m.value < 0
         throw(ArgumentError("amount must be non-negative, got $(m.value)"))

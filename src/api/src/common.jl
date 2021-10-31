@@ -193,6 +193,9 @@ Base.getindex(A::StaticAttrs, k::Symbol) = getindex(A.attrs, k)
 Base.getindex(A::StaticAttrs, k::Tuple{Vararg{Symbol}}) = StaticAttrs(NamedTuple{k}(A.attrs))
 Base.length(A::StaticAttrs) = length(A.attrs)
 
+# ??? a more efficient approach?
+Base.sort(A::StaticAttrs) = A[keys(A) |> collect |> sort |> Tuple]
+
 """
     DynamicAttrs(attrs::Dict{String, TAttrVal};count_limit=128, value_length_limit=nothing)
     DynamicAttrs(attrs::Pair{String, TAttrVal}...;count_limit=128, value_length_limit=nothing)

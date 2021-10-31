@@ -1,6 +1,5 @@
 export AbstractMetricReader,
-    CompositMetricReader,
-    collect
+    CompositMetricReader
 
 abstract type AbstractMetricReader end
 
@@ -13,7 +12,7 @@ end
 
 Base.push!(mr::CompositMetricReader, r::AbstractMetricReader) = push!(mr.readers, r)
 
-function collect(r::CompositMetricReader)
+function Base.collect(r::CompositMetricReader)
     for x in r.readers
         collect(x)
     end

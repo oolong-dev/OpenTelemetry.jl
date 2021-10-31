@@ -1,6 +1,6 @@
 export TraceIdType,
     SpanIdType,
-    INVALID_SPAN_ID,
+    INVALID_TRACE_ID,
     INVALID_SPAN_ID,
     current_span,
     TraceFlag,

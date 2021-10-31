@@ -48,7 +48,7 @@ function OpenTelemetryAPI.Span(
     kind=SPAN_KIND_INTERNAL,
     attributes=Dict{String, TAttrVal}(),
     links=Link[],
-    events=Event[],
+    events=OpenTelemetryAPI.Event[],
     start_time=UInt(time() * 10^9),
     is_remote=false
 )

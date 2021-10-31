@@ -9,10 +9,10 @@ const N_MAX_POINTS_PER_METRIC = 2_000
 
 Base.@kwdef struct Exemplar{T}
     value::T
-    time_unix_nano::Int
+    time_unix_nano::UInt
     filtered_attributes::StaticAttrs
-    trace_id::API.TraceIdType
-    span_id::API.SpanIdType
+    trace_id::TraceIdType
+    span_id::SpanIdType
 end
 
 abstract type AbstractExemplarReservoir end
@@ -37,24 +37,24 @@ const DELTA = Delta()
 
 abstract type AbstractDataPoint end
 
-Base.@kwdef mutable struct SumDataPoint{T,V,E} <: AbstractDataPoint
-    value::Atomic{V} = Atomic{UInt}(0)
+Base.@kwdef struct SumDataPoint{T,V,E} <: AbstractDataPoint
+    value::Atomic{V} = Atomic{UInt}()
     temporality::T = CUMULATIVE
     start_time_unix_nano::UInt = UInt(time() * 10^9)
-    time_unix_nano::UInt = start_time_unix_nano
+    time_unix_nano::Ref{UInt} = Ref(start_time_unix_nano)
     exemplar_reservoir::E = nothing
 end
 
-function (p::SumDataPointValue{Cumulative})(x::Exemplar)
-    atomic_add!(p.value, x.value)
-    p.time_unix_nano = x.time_unix_nano
+function (p::SumDataPoint{Cumulative})(x::Exemplar{<:Measurement})
+    atomic_add!(p.value, x.value.value)
+    p.time_unix_nano[] = x.time_unix_nano
     if !isnothing(p.exemplar_reservoir)
         push!(p.exemplar_reservoir, x)
     end
 end
 
 Base.@kwdef struct AggregationStore
-    points::Dict{Any, Any} = Dict()
+    points::Dict{StaticAttrs, AbstractDataPoint} = Dict{StaticAttrs, AbstractDataPoint}()
     n_points::Atomic{Int}
     max_points::UInt = N_MAX_POINTS_PER_METRIC
     data_point_constructor::Any
@@ -62,11 +62,11 @@ end
 
 function (agg_store::AggregationStore)(e::Exemplar{<:Measurement})
     attrs = e.value.attributes
-    if attrs in agg_store.points
-        agg_store[attrs](e)
+    if haskey(agg_store.points, attrs)
+        agg_store.points[attrs](e)
     else
-        sorted_attrs = sort(m.attributes)
-        if sorted_attrs in agg_store.points
+        sorted_attrs = sort(attrs)
+        if haskey(agg_store.points, sorted_attrs)
             p = agg_store[sorted_attrs]
             agg_store[attrs] = p
             p(e)
@@ -78,8 +78,8 @@ function (agg_store::AggregationStore)(e::Exemplar{<:Measurement})
                 atomic_add!(agg_store.n_points, 1)
                 p = agg_store.data_point_constructor()
                 p(e)
-                agg_store[attrs] = p
-                agg_store[sorted_attrs] = p
+                agg_store.points[attrs] = p
+                agg_store.points[sorted_attrs] = p
             end
         end
     end
@@ -115,8 +115,9 @@ function SumAgg(
     SumAgg(
         is_monotonic,
         AggregationStore(
-            ;data_point_constructor = () -> SumDataPoint(
-                ;value = zero(data_type),
+            ;n_points = Atomic{Int}(),
+            data_point_constructor = () -> SumDataPoint(
+                ;value = Atomic{data_type}(),
                 temporality = temporality,
                 exemplar_reservoir = exemplar_reservoir_constructor()
             )
@@ -146,21 +147,50 @@ struct Criteria
     instrument_type::Union{DataType, Nothing}
     instrument_name::Union{Glob.FilenameMatch{String}, Nothing}
     meter_name::Union{String, Nothing}
-    meter_version_bound::Union{Tuple{VersionNumber,VersionNumber}, Nothing}
+    meter_version::Union{VersionNumber, Nothing}
     meter_schema_url::Union{String, Nothing}
 end
 
-mutable struct Metric{A<:AbstractAggregation}
+function Base.occursin(ins::AbstractInstrument, c::Criteria)
+    if !isnothing(c.instrument_type)
+        if !(typeof(ins) isa c.instrument_type)
+            return false
+        end
+    end
+
+    if !isnothing(c.instrument_name)
+        if !occursin(c.instrument_name, ins.name)
+            return false
+        end
+    end
+
+    if !isnothing(c.meter_name)
+        if ins.meter.name != c.meter_name
+            return false
+        end
+    end
+
+    if !isnothing(c.meter_version)
+        if ins.meter.version != c.meter_version
+            return false
+        end
+    end
+
+    if !isnothing(c.meter_schema_url)
+        if ins.meter.schema_url != c.meter_schema_url
+            return false
+        end
+    end
+
+    return true
+end
+
+Base.@kwdef mutable struct Metric{A<:AbstractAggregation}
     name::String
     description::Union{String, Nothing}
     attribute_keys::Union{Tuple{Vararg{String}}, Nothing}
     aggregation::A
     criteria::Criteria
-end
-
-function Metric(;name, description, attribute_keys, aggregation, criteria)
-    attribute_keys = isnothing(attribute_keys) ? nothing : Tuple(sort(collect(attribute_keys)))
-    Metric(;name, description, attribute_keys, aggregation, criteria)
 end
 
 function (metric::Metric)(m::Measurement)
@@ -177,8 +207,14 @@ function (metric::Metric)(m::Measurement)
     end
 
     span_ctx = span_context()
-    trace_id = span_ctx.trace_id
-    span_id = span_ctx.span_id
+    if isnothing(span_ctx)
+        trace_id = INVALID_TRACE_ID
+        span_id = INVALID_SPAN_ID
+    else
+        trace_id = span_ctx.trace_id
+        span_id = span_ctx.span_id
+    end
+
     exemplar = Exemplar(;
         value = m,
         time_unix_nano = UInt(time() * 10 ^ 9),
@@ -237,8 +273,8 @@ end
 
 struct MeterProvider <: AbstractMeterProvider
     resource::Resource
-    meters::Dict{String, Meter}
-    instrument_related_metrics::IdDict{AbstractInstrument, Vector{String}}
+    meters::IdDict{Meter, Nothing}
+    instrument_associated_metric_names::IdDict{AbstractInstrument, Set{String}}
     views::Vector{View}
     metrics::Dict{String, Metric}
     n_max_metrics::UInt
@@ -250,7 +286,7 @@ function MeterProvider(
     n_max_metrics = N_MAX_METRICS
 )
     if isempty(views)
-        push!(views, View(;instrumentation_name="*"))
+        push!(views, View(;instrument_name="*"))
     end
 
     MeterProvider(
@@ -264,23 +300,23 @@ function MeterProvider(
 end
 
 function Base.push!(p::MeterProvider, m::Meter)
-    p.meters[m.name] = m
+    p.meters[m] = nothing
     for ins in m.instruments
         push!(p, ins)
     end
 end
 
 function Base.push!(p::MeterProvider, ins::AbstractInstrument)
-    if !haskey(p.meters, ins.meter.name)
-        p.meters[ins.meter.name] = ins.meter
+    if !haskey(p.meters, ins.meter)
+        p.meters[ins.meter] = nothing
     end
 
-    if !haskey(p.instruments, ins)
+    if !haskey(p.instrument_associated_metric_names, ins)
         for v in p.views
             if occursin(ins, v.criteria)
                 if v.aggregation === DROP
                     @info "Metric won't be created since the view for the instrument [$(ins.name)] is configured to DROP."
-                elseif length(metrics) >= p.n_max_metrics
+                elseif length(p.metrics) >= p.n_max_metrics
                     @warn "Maximum number of metrics [$(p.n_max_metrics)] reached. Instrument [$(ins.name)] related metrics are dropped!"
                 else
                     metric_name = something(v.name, ins.name)
@@ -295,7 +331,7 @@ function Base.push!(p::MeterProvider, ins::AbstractInstrument)
                             criteria = v.criteria
                         )
                     end
-                    push!(get!(p.instruments, ins, String[]), metric_name)
+                    push!(get!(p.instrument_associated_metric_names, ins, Set{String}()), metric_name)
                 end
             end
         end
@@ -303,11 +339,10 @@ function Base.push!(p::MeterProvider, ins::AbstractInstrument)
 end
 
 function Base.push!(p::MeterProvider, (instrument, measurement))
-    if instrument in p.instruments
-        for metric_name in p.instruments[instrument]
-            for m in p.metrics[metric_name]
-                m(measurement)
-            end
+    if haskey(p.instrument_associated_metric_names, instrument)
+        for metric_name in p.instrument_associated_metric_names[instrument]
+            metric = p.metrics[metric_name]
+            metric(measurement)
         end
     else
         @debug "Instrument [$(instrument.name)] is not registered in the meter provider."
