@@ -1,7 +1,7 @@
 @testset "metric" begin
     p = MeterProvider()
     m = Meter("test";provider=p)
-    c = Counter{Int}(m, "fruit counter")
+    c = Counter{Int}("fruit counter", m)
 
     c(;name="apple", color="red")
     c(2;name="lemon", color="yellow")
