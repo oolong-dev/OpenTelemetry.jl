@@ -1,7 +1,7 @@
 name = "OpenTelemetrySDK"
 uuid = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
 authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
-version = "0.0.2"
+version = "0.0.3"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
@@ -12,7 +12,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
 GarishPrint = "0.2, 0.3, 0.4, 0.5"
-OpenTelemetryAPI = "0.0.3"
+OpenTelemetryAPI = "0.0.4"
 julia = "1"
 
 [extras]

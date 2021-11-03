@@ -42,7 +42,7 @@ struct Counter{T} <: AbstractSyncInstrument{T}
     name::String
     unit::String
     description::String
-    function Counter{T}(meter, name; unit="", description="") where {T}
+    function Counter{T}(name, meter; unit="", description="") where {T}
         c = new{T}(meter, name, unit, description)
         examine_instrument(c)
         push!(meter.provider, c)
@@ -66,7 +66,7 @@ struct ObservableCounter{T,F} <: AbstractAsyncInstrument{T}
     unit::String
     description::String
     function ObservableCounter{T}(
-        callback::F, meter, name; unit="", description=""
+        callback::F, name, meter; unit="", description=""
     ) where {T,F}
         c = new{T,F}(callback, meter, name, unit, description)
         examine_instrument(c)
@@ -80,7 +80,7 @@ struct Histogram{T} <: AbstractSyncInstrument{T}
     name::String
     unit::String
     description::String
-    function Histogram{T}(meter, name; unit="", description="") where {T}
+    function Histogram{T}(name, meter; unit="", description="") where {T}
         h = new{T}(meter, name, unit, description)
         examine_instrument(h)
         push!(meter.provider, h)
@@ -95,7 +95,7 @@ struct ObservableGauge{T,F} <: AbstractAsyncInstrument{T}
     unit::String
     description::String
     function ObservableGauge{T}(
-        callback::F, meter, name; unit="", description=""
+        callback::F, name, meter; unit="", description=""
     ) where {T,F}
         g = new{T,F}(callback, meter, name, unit, description)
         examine_instrument(g)
@@ -109,7 +109,7 @@ struct UpDownCounter{T} <: AbstractSyncInstrument{T}
     name::String
     unit::String
     description::String
-    function UpDownCounter{T}(meter, name; unit="", description="") where {T}
+    function UpDownCounter{T}(name, meter; unit="", description="") where {T}
         c = new{T}(meter, name, unit, description)
         examine_instrument(c)
         push!(meter.provider, c)
@@ -124,7 +124,7 @@ struct ObservableUpDownCounter{T,F} <: AbstractAsyncInstrument{T}
     unit::String
     description::String
     function ObservableUpDownCounter{T}(
-        callback::F, meter, name; unit="", description=""
+        callback::F,name, meter; unit="", description=""
     ) where {T,F}
         c = new{T,F}(callback, meter, name, unit, description)
         examine_instrument(c)
