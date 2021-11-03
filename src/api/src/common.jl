@@ -68,6 +68,7 @@ The following methods from `Base` are defined on `Limited` which are then forwar
 
 - `Base.getindex`
 - `Base.setindex!`
+- `Base.iterate`
 - `Base.length`
 - `Base.haskey`
 - `Base.push!`. Only defined on containers of `AbstractVector`.
@@ -92,6 +93,8 @@ end
 Base.getindex(x::Limited, args...) = getindex(x.xs, args...)
 Base.haskey(x::Limited, k) = haskey(x.xs, k)
 Base.length(x::Limited) = length(x.xs)
+Base.iterate(x::Limited, args...) = iterate(x.xs, args...)
+Base.pairs(A::Limited) = pairs(A.xs)
 
 "Return the total number of dropped elements since creation."
 n_dropped(x::Limited) = x.n_dropped[]
@@ -187,11 +190,15 @@ StaticAttrs(attrs::Pair{String}...;kw...) = StaticAttrs(NamedTuple(Symbol(k) => 
 StaticAttrs(attrs::Pair{Symbol}...;kw...) = StaticAttrs(NamedTuple(attrs);kw...)
 StaticAttrs(;kw...) = StaticAttrs(NamedTuple();kw...)
 
+n_dropped(a::StaticAttrs) = 0
+
 Base.keys(A::StaticAttrs) = keys(A.attrs)
 Base.getindex(A::StaticAttrs, k::String) = getindex(A, Symbol(k))
 Base.getindex(A::StaticAttrs, k::Symbol) = getindex(A.attrs, k)
 Base.getindex(A::StaticAttrs, k::Tuple{Vararg{Symbol}}) = StaticAttrs(NamedTuple{k}(A.attrs))
 Base.length(A::StaticAttrs) = length(A.attrs)
+Base.iterate(A::StaticAttrs, args...) = iterate(A.attrs, args...)
+Base.pairs(A::StaticAttrs) = pairs(A.attrs)
 
 # ??? a more efficient approach?
 Base.sort(A::StaticAttrs) = A[keys(A) |> collect |> sort |> Tuple]
@@ -224,6 +231,8 @@ DynamicAttrs(attrs::Pair{String}...;kw...) = DynamicAttrs(Dict{String, TAttrVal}
 Base.getindex(A::DynamicAttrs, k::String) = getindex(A.attrs, k)
 Base.haskey(A::DynamicAttrs, k::String) = haskey(A.attrs, k)
 Base.length(A::DynamicAttrs) = length(A.attrs)
+Base.iterate(A::DynamicAttrs, args...) = iterate(A.attrs, args...)
+Base.pairs(A::DynamicAttrs) = pairs(A.attrs)
 
 function Base.setindex!(d::DynamicAttrs, v::TAttrVal, k::String)
     if !isnothing(d.value_length_limit)
