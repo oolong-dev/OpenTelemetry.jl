@@ -20,13 +20,12 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 
 - API
     - [x] Tracing
-    - [ ] Baggage
     - [x] Metrics
     - [ ] Logging
 
 - SDK
     - [x] Tracing
-    - [x] Resource
+    - [x] Metric
 
 - Instrumentation
     - [ ] HTTP.jl
@@ -68,10 +67,9 @@ using OpenTelemetrySDK
 using OpenTelemetryExporterOtlpProtoGrpc
 
 provider = TracerProvider(
-        span_processor=CompositSpanProcessor(
-            SimpleSpanProcessor(
-                OtlpProtoGrpcExporter(;url="http://localhost:4317")
-            )
+    span_processor=CompositSpanProcessor(
+        SimpleSpanProcessor(
+            OtlpProtoGrpcExporter(;url="http://localhost:4317")
         )
     )
 )
