@@ -9,7 +9,7 @@ on:
     tags: '*'
 jobs:
   test:
-    name: Julia matrix.version−{{ matrix.os }} - matrix.arch−{{ github.event_name }}
+    name: Julia ${{ matrix.version }} − ${{ matrix.os }} - ${{ matrix.arch }} − ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -18,6 +18,8 @@ jobs:
           - '1'
         os:
           - ubuntu-latest
+          # - windows-latest # https://github.com/JuliaIO/ProtoBuf.jl/issues/178
+          - macOS-latest
         arch:
           - x64
     steps:
@@ -31,22 +33,24 @@ jobs:
           cache-name: cache-artifacts
         with:
           path: ~/.julia/artifacts
-          key: runner.os−test−{{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+          key: runner.os−test−${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
           restore-keys: |
-            runner.os−test−{{ env.cache-name }}-
+            runner.os−test−
+            ${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
       - run: |
           julia --code-coverage=user --color=yes -e '
             using Pkg;
-            Pkg.develop(path="src/api")
-            Pkg.develop(path="src/sdk")
-            Pkg.develop(path="src/proto")
-            Pkg.develop(path="src/exporter/otlp/proto/grpc")
+            Pkg.develop(path=joinpath("src", "api"))
+            Pkg.develop(path=joinpath("src", "sdk"))
+            Pkg.develop(path=joinpath("src", "proto"))
+            Pkg.develop(path=joinpath("src", "exporter", "otlp", "proto", "grpc"))
             Pkg.build("OpenTelemetryProto")
             Pkg.test("OpenTelemetryAPI", coverage=true)
             Pkg.test("OpenTelemetrySDK", coverage=true)
             Pkg.test("OpenTelemetryProto", coverage=true)
             Pkg.test("OpenTelemetryExporterOtlpProtoGrpc", coverage=true)'
+        shell: bash
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v1

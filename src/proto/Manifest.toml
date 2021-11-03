@@ -85,9 +85,9 @@ uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[ProtoBuf]]
 deps = ["Logging", "protoc_jll"]
-git-tree-sha1 = "3142e13697a7f6363798d1241daf3e6cead83008"
+git-tree-sha1 = "37585d8c037352f23dce4b5bb9c2de2a17a76b71"
 uuid = "3349acd9-ac6a-5e09-bcdb-63829b23a429"
-version = "0.11.2"
+version = "0.11.3"
 
 [[REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]

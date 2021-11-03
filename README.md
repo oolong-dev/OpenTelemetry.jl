@@ -1,22 +1,38 @@
 # OpenTelemetry.jl
 
+[![CI](https://github.com/oolong-dev/OpenTelemetry.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/oolong-dev/OpenTelemetry.jl/actions/workflows/CI.yml)
+[![codecov](https://codecov.io/gh/oolong-dev/OpenTelemetry.jl/branch/master/graph/badge.svg?token=A3DMIK8K58)](https://codecov.io/gh/oolong-dev/OpenTelemetry.jl)
+[![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
+
+
 An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in Julia.
+
+## Packages
+
+| Package | Latest Version | Status |
+|:--------|:---------------|:-------|
+|`OpenTelemetryAPI` | [![version](https://juliahub.com/docs/OpenTelemetryAPI/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryAPI/p4SiN) | [![pkgeval](https://juliahub.com/docs/OpenTelemetryAPI/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetryAPI/p4SiN) |
+| `OpenTelemetrySDK` | [![version](https://juliahub.com/docs/OpenTelemetrySDK/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetrySDK/NFHPX) | [![pkgeval](https://juliahub.com/docs/OpenTelemetrySDK/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetrySDK/NFHPX) |
+| `OpenTelemetryProto` | [![version](https://juliahub.com/docs/OpenTelemetryProto/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryProto/l1kB4) | [![pkgeval](https://juliahub.com/docs/OpenTelemetryProto/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetryProto/l1kB4) |
+| `OpenTelemetryExporterOtlpProtoGrpc` | [![version](https://juliahub.com/docs/OpenTelemetryExporterOtlpProtoGrpc/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterOtlpProtoGrpc/S0kTL) | [![pkgeval](https://juliahub.com/docs/OpenTelemetryExporterOtlpProtoGrpc/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterOtlpProtoGrpc/S0kTL) |
 
 ## Progress
 
 - API
     - [x] Tracing
-    - [ ] Baggage
-    - [ ] Metrics
+    - [x] Metrics
+    - [ ] Logging
 
 - SDK
     - [x] Tracing
-    - [x] Resource
+    - [x] Metric
 
 - Instrumentation
     - [ ] HTTP.jl
 
 ## Get Started
+
+### Traces
 
 To show traces in your console:
 
@@ -24,21 +40,19 @@ To show traces in your console:
 using OpenTelemetryAPI
 using OpenTelemetrySDK
 
-global_tracer_provider(
-    TracerProvider(
-        span_processor=MultiSpanProcessor(
-            SimpleSpanProcessor(
-                ConsoleSpanExporter()
-            )
+provider = TracerProvider(
+    span_processor=CompositSpanProcessor(
+        SimpleSpanProcessor(
+            ConsoleExporter()
         )
     )
 )
 
-tracer = get_tracer("test")
+tracer = Tracer(provider=provider)
 
-with_span("foo", tracer) do
-    with_span("bar", tracer) do
-        with_span("baz", tracer) do
+with_span(Span("foo", tracer)) do
+    with_span(Span("bar", tracer)) do
+        with_span(Span("baz", tracer)) do
             println("Hello world!")
         end
     end
@@ -52,23 +66,34 @@ using OpenTelemetryAPI
 using OpenTelemetrySDK
 using OpenTelemetryExporterOtlpProtoGrpc
 
-global_tracer_provider(
-    TracerProvider(
-        span_processor=MultiSpanProcessor(
-            SimpleSpanProcessor(
-                OtlpProtoGrpcExporter(;url="http://localhost:4317")
-            )
+provider = TracerProvider(
+    span_processor=CompositSpanProcessor(
+        SimpleSpanProcessor(
+            OtlpProtoGrpcExporter(;url="http://localhost:4317")
         )
     )
 )
 
-tracer = get_tracer("test")
+tracer = Tracer(provider=provider)
 
-with_span("foo", tracer) do
-    with_span("bar", tracer) do
-        with_span("baz", tracer) do
+with_span(Span("foo", tracer)) do
+    with_span(Span("bar", tracer)) do
+        with_span(Span("baz", tracer)) do
             println("Hello world!")
         end
     end
 end
+```
+
+### Metrics
+
+```julia
+using OpenTelemetryAPI
+using OpenTelemetrySDK
+
+provider = MeterProvider()
+meter = Meter("my_metrics"; provider=provider)
+counter = Counter{Int}("counter", m1)
+counter(1)
+counter(3, "m.a" => 1, "m.b" => "b", "m.c" => 3.)
 ```

@@ -1,10 +1,11 @@
 name = "OpenTelemetryAPI"
 uuid = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
 authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
-version = "0.0.3"
+version = "0.0.4"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
 [compat]
