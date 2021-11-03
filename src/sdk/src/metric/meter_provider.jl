@@ -1,13 +1,13 @@
 export MeterProvider
 
-using Dates:time
+using Dates: time
 
 const N_MAX_METRICS = 1_000
 
 Base.@kwdef mutable struct Metric{A<:AbstractAggregation}
     name::String
-    description::Union{String, Nothing}
-    attribute_keys::Union{Tuple{Vararg{String}}, Nothing}
+    description::Union{String,Nothing}
+    attribute_keys::Union{Tuple{Vararg{String}},Nothing}
     aggregation::A
     criteria::Criteria
 end
@@ -18,10 +18,7 @@ function (metric::Metric)(m::Measurement)
     else
         interested_keys = keys(m.attributes) ∩ metric.attribute_keys
         filtered_keys = setdiff(keys(m.attributes), interested_keys)
-        m = Measurement(
-            m.value,
-            m.attributes[Tuple(interested_keys)]
-        )
+        m = Measurement(m.value, m.attributes[Tuple(interested_keys)])
         filtered_attributes = m.attributes[Tuple(filtered_keys)]
     end
 
@@ -36,39 +33,35 @@ function (metric::Metric)(m::Measurement)
 
     exemplar = Exemplar(;
         value = m,
-        time_unix_nano = UInt(time() * 10 ^ 9),
+        time_unix_nano = UInt(time() * 10^9),
         filtered_attributes = filtered_attributes,
         trace_id = trace_id,
-        span_id = span_id
+        span_id = span_id,
     )
     metric.aggregation(exemplar)
 end
 
 struct MeterProvider <: AbstractMeterProvider
     resource::Resource
-    meters::IdDict{Meter, Nothing}
-    instrument_associated_metric_names::IdDict{AbstractInstrument, Set{String}}
+    meters::IdDict{Meter,Nothing}
+    instrument_associated_metric_names::IdDict{AbstractInstrument,Set{String}}
     views::Vector{View}
-    metrics::Dict{String, Metric}
+    metrics::Dict{String,Metric}
     n_max_metrics::UInt
 end
 
-function MeterProvider(
-    resource=Resource(),
-    views=View[],
-    n_max_metrics = N_MAX_METRICS
-)
+function MeterProvider(resource = Resource(), views = View[], n_max_metrics = N_MAX_METRICS)
     if isempty(views)
-        push!(views, View(;instrument_name="*"))
+        push!(views, View(; instrument_name = "*"))
     end
 
     MeterProvider(
         resource,
         Dict{String,Meter}(),
-        IdDict{AbstractInstrument, Vector{String}}(),
+        IdDict{AbstractInstrument,Vector{String}}(),
         views,
         Dict{String,Metric}(),
-        n_max_metrics
+        n_max_metrics,
     )
 end
 
@@ -100,11 +93,18 @@ function Base.push!(p::MeterProvider, ins::AbstractInstrument)
                             name = metric_name,
                             description = something(v.description, ins.description),
                             attribute_keys = v.attribute_keys,
-                            aggregation = isnothing(v.aggregation) ? default_aggregation(ins) : v.aggregation,
-                            criteria = v.criteria
+                            aggregation = if isnothing(v.aggregation)
+                                default_aggregation(ins)
+                            else
+                                v.aggregation
+                            end,
+                            criteria = v.criteria,
                         )
                     end
-                    push!(get!(p.instrument_associated_metric_names, ins, Set{String}()), metric_name)
+                    push!(
+                        get!(p.instrument_associated_metric_names, ins, Set{String}()),
+                        metric_name,
+                    )
                 end
             end
         end

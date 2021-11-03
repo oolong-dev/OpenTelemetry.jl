@@ -5,8 +5,8 @@ using Random
 """
 Customized id generators must implement the following two methods:
 
-- `generate_span_id(::AbstractIdGenerator)`
-- `generate_trace_id(::AbstractIdGenerator)`
+  - `generate_span_id(::AbstractIdGenerator)`
+  - `generate_trace_id(::AbstractIdGenerator)`
 """
 abstract type AbstractIdGenerator end
 

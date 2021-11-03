@@ -1,11 +1,11 @@
 using Glob
 
 struct Criteria
-    instrument_type::Union{DataType, Nothing}
-    instrument_name::Union{Glob.FilenameMatch{String}, Nothing}
-    meter_name::Union{String, Nothing}
-    meter_version::Union{VersionNumber, Nothing}
-    meter_schema_url::Union{String, Nothing}
+    instrument_type::Union{DataType,Nothing}
+    instrument_name::Union{Glob.FilenameMatch{String},Nothing}
+    meter_name::Union{String,Nothing}
+    meter_version::Union{VersionNumber,Nothing}
+    meter_schema_url::Union{String,Nothing}
 end
 
 function Base.occursin(ins::AbstractInstrument, c::Criteria)
@@ -43,47 +43,40 @@ function Base.occursin(ins::AbstractInstrument, c::Criteria)
 end
 
 struct View{A}
-    name::Union{String, Nothing}
-    description::Union{String, Nothing}
+    name::Union{String,Nothing}
+    description::Union{String,Nothing}
     criteria::Criteria
-    attribute_keys::Union{Tuple{Vararg{String}}, Nothing}
+    attribute_keys::Union{Tuple{Vararg{String}},Nothing}
     extra_dimensions::StaticAttrs
     aggregation::A
 end
 
-function View(
-    ;name = nothing,
+function View(;
+    name = nothing,
     description = nothing,
     attribute_keys = nothing,
     extra_dimensions = StaticAttrs(),
     aggregation = nothing,
     # criteria
     instrument_name = nothing,
-    instrument_type=nothing,
+    instrument_type = nothing,
     meter_name = nothing,
     meter_version_bound = nothing,
-    meter_schema_url = nothing
+    meter_schema_url = nothing,
 )
     something(
         instrument_name,
         instrument_type,
         meter_name,
         meter_version_bound,
-        meter_schema_url
+        meter_schema_url,
     )
     criteria = Criteria(
         instrument_type,
         isnothing(instrument_name) ? nothing : Glob.FilenameMatch(instrument_name),
         meter_name,
         meter_version_bound,
-        meter_schema_url
+        meter_schema_url,
     )
-    View(
-        name,
-        description,
-        criteria,
-        attribute_keys,
-        extra_dimensions,
-        aggregation
-    )
+    View(name, description, criteria, attribute_keys, extra_dimensions, aggregation)
 end

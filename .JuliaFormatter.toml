@@ -1,0 +1,7 @@
+always_for_in = true
+remove_extra_newlines = true
+format_docstrings = true
+align_assignment = true
+align_struct_field = true
+align_pair_arrow = true
+conditional_to_if = true

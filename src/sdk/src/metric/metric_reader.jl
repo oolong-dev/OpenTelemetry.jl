@@ -1,5 +1,4 @@
-export AbstractMetricReader,
-    CompositMetricReader
+export AbstractMetricReader, CompositMetricReader
 
 abstract type AbstractMetricReader end
 
@@ -34,10 +33,10 @@ end
 
 PeriodicExportingMetricReader(
     e;
-    export_interval_milliseconds=60_000,
-    export_timeout_milliseconds=30_000
+    export_interval_milliseconds = 60_000,
+    export_timeout_milliseconds = 30_000,
 ) = PeriodicExportingMetricReader(
     e,
     export_interval_milliseconds,
-    export_timeout_milliseconds
+    export_timeout_milliseconds,
 )

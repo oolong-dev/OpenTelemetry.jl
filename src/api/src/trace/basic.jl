@@ -43,10 +43,12 @@ Base.@kwdef struct TraceFlag
 end
 
 const MAXIMUM_TRACESTATE_KEYS = 32
-const TRACESTATE_KEY_PATTERN = r"^[a-z][_0-9a-z\\-\\*\\/]{0,255}|[a-z0-9][_0-9a-z\\-\\*\\/]{0,240}@[a-z][_0-9a-z\\-\\*\\/]{0,13}$"
-const TRACESTATE_VAL_PATTERN = r"^[\x20-\x2b\x2d-\x3c\x3e-\x7e]{0,255}[\x21-\x2b\x2d-\x3c\x3e-\x7e]$"
+const TRACESTATE_KEY_PATTERN =
+    r"^[a-z][_0-9a-z\\-\\*\\/]{0,255}|[a-z0-9][_0-9a-z\\-\\*\\/]{0,240}@[a-z][_0-9a-z\\-\\*\\/]{0,13}$"
+const TRACESTATE_VAL_PATTERN =
+    r"^[\x20-\x2b\x2d-\x3c\x3e-\x7e]{0,255}[\x21-\x2b\x2d-\x3c\x3e-\x7e]$"
 
-function is_valid_trace_state_kv(k,v)
+function is_valid_trace_state_kv(k, v)
     if isnothing(match(TRACESTATE_KEY_PATTERN, k))
         @warn "Invalid key $k found"
         false
@@ -69,7 +71,9 @@ struct TraceState{T<:NamedTuple}
         if length(entries) > MAXIMUM_TRACESTATE_KEYS
             @warn "There can't be more than $MAXIMUM_TRACESTATE_KEYS key/value pairs"
         else
-            kv = NamedTuple(Symbol(k) => v for (k,v) in entries if is_valid_trace_state_kv(k,v))
+            kv = NamedTuple(
+                Symbol(k) => v for (k, v) in entries if is_valid_trace_state_kv(k, v)
+            )
             new{typeof(kv)}(kv)
         end
     end
@@ -81,7 +85,7 @@ Base.haskey(s::TraceState, key::String) = haskey(s, Symbol(key))
 Base.length(s::TraceState) = length(s.kv)
 
 function Base.show(io::IO, ts::TraceState)
-    for (i, (k,v)) in enumerate(pairs(ts.kv))
+    for (i, (k, v)) in enumerate(pairs(ts.kv))
         print(io, k)
         print(io, '=')
         print(io, v)
@@ -125,11 +129,8 @@ Base.@kwdef struct SpanContext{TS<:TraceState}
     trace_state::TS = TraceState()
 end
 
-const INVALID_SPAN_CONTEXT = SpanContext(;
-    trace_id = INVALID_TRACE_ID,
-    span_id = INVALID_SPAN_ID,
-    is_remote=false,
-)
+const INVALID_SPAN_CONTEXT =
+    SpanContext(; trace_id = INVALID_TRACE_ID, span_id = INVALID_SPAN_ID, is_remote = false)
 
 """
     span_context([s::Span])
@@ -142,7 +143,7 @@ span_context() = span_context(current_span())
 
 # !!! must be of the same order with https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
 @enum SpanKind begin
-    SPAN_KIND_UNSPECIFIED 
+    SPAN_KIND_UNSPECIFIED
     SPAN_KIND_INTERNAL
     SPAN_KIND_SERVER
     SPAN_KIND_CLIENT
@@ -157,14 +158,14 @@ Used in [`TracerProvider`](@ref) to configure generated [`Tracer`](@ref).
 
 # Keyword arguments:
 
-- `span_attribute_count_limit::Int` = 128
-- `span_attribute_value_length_limit::Union{Nothing,Int}` = nothing
-- `span_event_count_limit::Int` = 128
-- `span_link_count_limit::Int` = 128
+  - `span_attribute_count_limit::Int` = 128
+  - `span_attribute_value_length_limit::Union{Nothing,Int}` = nothing
+  - `span_event_count_limit::Int` = 128
+  - `span_link_count_limit::Int` = 128
 """
 Base.@kwdef struct LimitInfo
     span_attribute_count_limit::Int = 128
-    span_attribute_value_length_limit::Union{Nothing, Int} = nothing
+    span_attribute_value_length_limit::Union{Nothing,Int} = nothing
     span_event_count_limit::Int = 128
     span_link_count_limit::Int = 128
 end
@@ -202,16 +203,16 @@ end
 
 Possible codes are:
 
-- `SPAN_STATUS_UNSET`
-- `SPAN_STATUS_ERROR`
-- `SPAN_STATUS_OK`
+  - `SPAN_STATUS_UNSET`
+  - `SPAN_STATUS_ERROR`
+  - `SPAN_STATUS_OK`
 
 `description` is required when `code` is `SPAN_STATUS_ERROR`.
 """
 struct SpanStatus
     code::SpanStatusCode
     description::Union{String,Nothing}
-    function SpanStatus(code::SpanStatusCode, description=nothing)
+    function SpanStatus(code::SpanStatusCode, description = nothing)
         if code === SPAN_STATUS_ERROR
             isnothing(description) && @error "description not provided"
             new(code, description)

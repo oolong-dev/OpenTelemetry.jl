@@ -27,7 +27,9 @@ function export!(e::AbstractExporter, batch::AbstractVector)
     res
 end
 
-function force_flush!(::AbstractExporter) true end
+function force_flush!(::AbstractExporter)
+    true
+end
 
 shut_down!(e::AbstractExporter) = force_flush!(e)
 

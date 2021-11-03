@@ -1,26 +1,25 @@
 @testset "trace" begin
+    @testset "basic" begin
+        @test isnothing(current_span())
+        @test isnothing(span_context())
 
-@testset "basic" begin
-    @test isnothing(current_span())
-    @test isnothing(span_context())
+        @testset "TraceState" begin
+            ts = TraceState(
+                "1a-2f@foo"    => "bar1",
+                "1a-_*/2b@foo" => "bar2",
+                "foo"          => "bar3",
+                "foo-_*/bar"   => "bar4",
+                "^foo-_*/bar"  => "bar5",
+                "hello"        => "世界！",
+            )
 
-    @testset "TraceState" begin
-        ts = TraceState(
-            "1a-2f@foo"    => "bar1",
-            "1a-_*/2b@foo" => "bar2",
-            "foo"          => "bar3",
-            "foo-_*/bar"   => "bar4",
-            "^foo-_*/bar"  => "bar5",
-            "hello"        => "世界！",
-        )
-
-        @test string(ts) == "1a-2f@foo=bar1,1a-_*/2b@foo=bar2,foo=bar3,foo-_*/bar=bar4"
-        @test length(ts) == 4
-        @test haskey(ts, :foo)
-        @test !haskey(ts, "^foo-_*/bar")
-        @test ts[:foo] == "bar3"
+            @test string(ts) == "1a-2f@foo=bar1,1a-_*/2b@foo=bar2,foo=bar3,foo-_*/bar=bar4"
+            @test length(ts) == 4
+            @test haskey(ts, :foo)
+            @test !haskey(ts, "^foo-_*/bar")
+            @test ts[:foo] == "bar3"
+        end
     end
-end
 
     @testset "TracerProvider" begin
         tracer = Tracer()
@@ -30,7 +29,7 @@ end
 
         @testset "non recording behaviors" begin
             s["foo"] = "bar"
-            push!(s, API.Event(;name="test"))
+            push!(s, API.Event(; name = "test"))
             push!(s, Link(INVALID_SPAN_CONTEXT, StaticAttrs()))
             set_status!(s, SPAN_STATUS_OK)
 
@@ -39,12 +38,12 @@ end
             @test length(s.links) == 0
             @test s.status[].code == SPAN_STATUS_UNSET
         end
-        
+
         s.end_time[] = nothing # !!! for test only
 
         @test_throws ErrorException with_span(s) do
             s["foo"] = "bar"
-            push!(s, API.Event(;name="test"))
+            push!(s, API.Event(; name = "test"))
             push!(s, Link(INVALID_SPAN_CONTEXT, StaticAttrs()))
             throw(ErrorException("!!!"))
         end
@@ -66,5 +65,4 @@ end
             end
         end
     end
-
 end

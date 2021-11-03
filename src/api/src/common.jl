@@ -17,7 +17,7 @@ struct Context{T<:NamedTuple}
     kv::T
 end
 
-Context(;kw...) = Context(kw.data)
+Context(; kw...) = Context(kw.data)
 
 Base.merge(c1::Context, c2::Context) = Context(merge(c1.kv, c2.kv))
 
@@ -35,7 +35,7 @@ with_context(f, kv::Pair{Symbol}...) = with_context(f, current_context(), kv...)
 Run function `f` in the `context`. If extra `kv` pairs are provided, they will be merged with the `context` to form a new context. When `context` is not provided, the [`current_context`](@ref) will be used.
 """
 function with_context(f, ctx::Context, kv::Pair{Symbol}...)
-    task_local_storage(CONTEXT_KEY, merge(ctx,Context(;kv...))) do
+    task_local_storage(CONTEXT_KEY, merge(ctx, Context(; kv...))) do
         f()
     end
 end
@@ -61,17 +61,17 @@ end
 
 Create a container wrapper with limited elements. It supports the following common containers:
 
-- `AbstractDict`. If the length of the dict contains more elements than `limit`. Then `pop!` will be called repeatedly until the length is equal to `limit`. Further new key-value pair insertions will be ignored. If the key already exists in the dict, then the corresponding value will always be updated. `n_dropped` will return the number of dropped insertions.
-- `AbstractVector`. Similar to `AbstractDict`.
+  - `AbstractDict`. If the length of the dict contains more elements than `limit`. Then `pop!` will be called repeatedly until the length is equal to `limit`. Further new key-value pair insertions will be ignored. If the key already exists in the dict, then the corresponding value will always be updated. `n_dropped` will return the number of dropped insertions.
+  - `AbstractVector`. Similar to `AbstractDict`.
 
 The following methods from `Base` are defined on `Limited` which are then forwarded to the inner `container`. Feel free to create a PR if you find any method you need is missing:
 
-- `Base.getindex`
-- `Base.setindex!`
-- `Base.iterate`
-- `Base.length`
-- `Base.haskey`
-- `Base.push!`. Only defined on containers of `AbstractVector`.
+  - `Base.getindex`
+  - `Base.setindex!`
+  - `Base.iterate`
+  - `Base.length`
+  - `Base.haskey`
+  - `Base.push!`. Only defined on containers of `AbstractVector`.
 """
 struct Limited{T}
     xs::T
@@ -79,7 +79,7 @@ struct Limited{T}
     n_dropped::Ref{Int}
 end
 
-function Limited(xs::Union{Dict,AbstractVector}; limit=32)
+function Limited(xs::Union{Dict,AbstractVector}; limit = 32)
     n_dropped = Ref(0)
     if length(xs) > limit
         n_dropped[] = length(xs) - limit
@@ -96,7 +96,9 @@ Base.length(x::Limited) = length(x.xs)
 Base.iterate(x::Limited, args...) = iterate(x.xs, args...)
 Base.pairs(A::Limited) = pairs(A.xs)
 
-"Return the total number of dropped elements since creation."
+"""
+Return the total number of dropped elements since creation.
+"""
 n_dropped(x::Limited) = x.n_dropped[]
 
 function Base.setindex!(x::Limited{<:AbstractDict}, v, k)
@@ -130,13 +132,13 @@ function _truncate(s::String, limit)
         s
     else
         @warn "value is truncated to length $limit"
-        s[1:min(end,limit)]
+        s[1:min(end, limit)]
     end
 end
 
 function _truncate(xs::Vector{String}, limit)
     is_truncated = false
-    for (i,s) in enumerate(xs)
+    for (i, s) in enumerate(xs)
         if length(s) > limit
             xs[i] = s[1:limit]
             is_truncated = true
@@ -154,7 +156,7 @@ const TAttrVal = Union{
     Vector{String},
     Vector{Bool},
     Vector{Int64},
-    Vector{Float64}
+    Vector{Float64},
 }
 
 is_valid_attr_val(nt::NamedTuple) = is_valid_attr_val(values(nt))
@@ -174,7 +176,7 @@ See also [`DynamicAttrs`](@ref).
 """
 struct StaticAttrs{T<:NamedTuple}
     attrs::T
-    function StaticAttrs(attrs::T; value_length_limit=nothing) where T<:NamedTuple
+    function StaticAttrs(attrs::T; value_length_limit = nothing) where {T<:NamedTuple}
         if is_valid_attr_val(attrs)
             if !isnothing(value_length_limit)
                 attrs = map(x -> _truncate(x, value_length_limit), attrs)
@@ -186,22 +188,24 @@ struct StaticAttrs{T<:NamedTuple}
     end
 end
 
-StaticAttrs(attrs::Pair{String}...;kw...) = StaticAttrs(NamedTuple(Symbol(k) => v for (k,v) in attrs);kw...)
-StaticAttrs(attrs::Pair{Symbol}...;kw...) = StaticAttrs(NamedTuple(attrs);kw...)
-StaticAttrs(;kw...) = StaticAttrs(NamedTuple();kw...)
+StaticAttrs(attrs::Pair{String}...; kw...) =
+    StaticAttrs(NamedTuple(Symbol(k) => v for (k, v) in attrs); kw...)
+StaticAttrs(attrs::Pair{Symbol}...; kw...) = StaticAttrs(NamedTuple(attrs); kw...)
+StaticAttrs(; kw...) = StaticAttrs(NamedTuple(); kw...)
 
 n_dropped(a::StaticAttrs) = 0
 
 Base.keys(A::StaticAttrs) = keys(A.attrs)
 Base.getindex(A::StaticAttrs, k::String) = getindex(A, Symbol(k))
 Base.getindex(A::StaticAttrs, k::Symbol) = getindex(A.attrs, k)
-Base.getindex(A::StaticAttrs, k::Tuple{Vararg{Symbol}}) = StaticAttrs(NamedTuple{k}(A.attrs))
+Base.getindex(A::StaticAttrs, k::Tuple{Vararg{Symbol}}) =
+    StaticAttrs(NamedTuple{k}(A.attrs))
 Base.length(A::StaticAttrs) = length(A.attrs)
 Base.iterate(A::StaticAttrs, args...) = iterate(A.attrs, args...)
 Base.pairs(A::StaticAttrs) = pairs(A.attrs)
 
 # ??? a more efficient approach?
-Base.sort(A::StaticAttrs) = A[keys(A) |> collect |> sort |> Tuple]
+Base.sort(A::StaticAttrs) = A[keys(A)|>collect|>sort|>Tuple]
 
 """
     DynamicAttrs(attrs::Dict{String, TAttrVal};count_limit=128, value_length_limit=nothing)
@@ -210,23 +214,24 @@ Base.sort(A::StaticAttrs) = A[keys(A) |> collect |> sort |> Tuple]
 Here we use a `Dict` internally to represent the mutable version of the [`Attributes`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes) specification. If the `value_length_limit` is set to a positive int, the value of `String` or each element in a value of `Vector{String}` will be truncated to a maximum length of `value_length_limit`. By default we do not do the truncation. When adding new pairs into it, if the number of attributes exceeds the `count_limit`, it will be dropped. You can get the number of dropped pairs via `n_dropped`.
 """
 struct DynamicAttrs
-    attrs::Limited{Dict{String, TAttrVal}}
-    value_length_limit::Union{Int, Nothing}
+    attrs::Limited{Dict{String,TAttrVal}}
+    value_length_limit::Union{Int,Nothing}
     function DynamicAttrs(
-        d::Dict{String, TAttrVal};
+        d::Dict{String,TAttrVal};
         count_limit = 128,
-        value_length_limit=nothing
+        value_length_limit = nothing,
     )
         if !isnothing(value_length_limit)
             for k in keys(d)
                 d[k] = _truncate(d[k], value_length_limit)
             end
         end
-        new(Limited(d;limit=count_limit), value_length_limit)
+        new(Limited(d; limit = count_limit), value_length_limit)
     end
 end
 
-DynamicAttrs(attrs::Pair{String}...;kw...) = DynamicAttrs(Dict{String, TAttrVal}(attrs...);kw...)
+DynamicAttrs(attrs::Pair{String}...; kw...) =
+    DynamicAttrs(Dict{String,TAttrVal}(attrs...); kw...)
 
 Base.getindex(A::DynamicAttrs, k::String) = getindex(A.attrs, k)
 Base.haskey(A::DynamicAttrs, k::String) = haskey(A.attrs, k)
@@ -242,7 +247,6 @@ function Base.setindex!(d::DynamicAttrs, v::TAttrVal, k::String)
 end
 
 n_dropped(a::DynamicAttrs) = n_dropped(a.attrs)
-
 
 #####
 

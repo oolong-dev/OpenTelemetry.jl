@@ -1,6 +1,6 @@
 @testset "Limited" begin
     @testset "Limited Array" begin
-        L1 = Limited([1,2,3]; limit=5)
+        L1 = Limited([1, 2, 3]; limit = 5)
 
         @test n_dropped(L1) == 0
 
@@ -16,7 +16,7 @@
     end
 
     @testset "Limited Dict" begin
-        L1 = Limited(Dict("a" => 1, "b" =>2); limit=1)
+        L1 = Limited(Dict("a" => 1, "b" => 2); limit = 1)
 
         @test n_dropped(L1) == 1
 
@@ -31,18 +31,18 @@ end
     A = StaticAttrs()
     @test length(A) == 0
 
-    A1 = StaticAttrs("m.x" => 1, "m.y" => -2., "m.z" => "abcdefg"; value_length_limit=3)
+    A1 = StaticAttrs("m.x" => 1, "m.y" => -2.0, "m.z" => "abcdefg"; value_length_limit = 3)
     @test A1["m.x"] == 1
     @test A1["m.z"] == "abc"
 
-    A2 = StaticAttrs(:x => 1, :y => -2., :z => "0")
+    A2 = StaticAttrs(:x => 1, :y => -2.0, :z => "0")
     @test A2[:z] == "0"
 
     @test_throws ArgumentError StaticAttrs("abc" => nothing)
 end
 
 @testset "DynamicAttrs" begin
-    d = DynamicAttrs("a" => 1;count_limit=4,value_length_limit=5)
+    d = DynamicAttrs("a" => 1; count_limit = 4, value_length_limit = 5)
     d["b"] = "bbbbb"
     d["c"] = "ccccc" * "extra"
     d["d"] = ["ddddd" * "extra", "dd"]
@@ -65,7 +65,7 @@ end
 @testset "context" begin
     @test isnothing(get(current_context(), :say, nothing))
 
-    with_context(:say=>"foo") do
+    with_context(:say => "foo") do
         @test current_context()[:say] == "foo"
         with_context(:say => "bar") do
             @test current_context()[:say] == "bar"

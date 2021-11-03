@@ -1,12 +1,8 @@
-export AbstractMeterProvider,
-    AbstractInstrument,
-    global_meter_provider,
-    Meter
+export AbstractMeterProvider, AbstractInstrument, global_meter_provider, Meter
 
 abstract type AbstractMeterProvider end
 
-Base.@kwdef struct DummyMeterProvider <: AbstractMeterProvider
-end
+Base.@kwdef struct DummyMeterProvider <: AbstractMeterProvider end
 
 Base.push!(p::DummyMeterProvider, x) = nothing
 
@@ -24,12 +20,12 @@ struct Meter{P<:AbstractMeterProvider}
     instruments::Vector{AbstractInstrument}
     instrumentation_info::InstrumentationInfo
     function Meter(
-        name::String
-        ;provider::P=global_meter_provider(),
-        version=v"0.0.1-dev",
-        schema_url="",
-        instrumentation_info=InstrumentationInfo(),
-    ) where P <: AbstractMeterProvider
+        name::String;
+        provider::P = global_meter_provider(),
+        version = v"0.0.1-dev",
+        schema_url = "",
+        instrumentation_info = InstrumentationInfo(),
+    ) where {P<:AbstractMeterProvider}
         m = new{P}(
             name,
             provider,

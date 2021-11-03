@@ -6,13 +6,11 @@ const N_MAX_POINTS_PER_METRIC = 2_000
 
 abstract type AbstractTemporality end
 
-struct Cumulative <: AbstractTemporality
-end
+struct Cumulative <: AbstractTemporality end
 
 const CUMULATIVE = Cumulative()
 
-struct Delta <: AbstractTemporality
-end
+struct Delta <: AbstractTemporality end
 
 const DELTA = Delta()
 
@@ -28,11 +26,9 @@ end
 
 abstract type AbstractExemplarReservoir end
 
-struct SimpleFixedSizeExemplarReservoir <: AbstractExemplarReservoir
-end
+struct SimpleFixedSizeExemplarReservoir <: AbstractExemplarReservoir end
 
-struct AlignedHistogramBucketExemplarReservoir <: AbstractExemplarReservoir
-end
+struct AlignedHistogramBucketExemplarReservoir <: AbstractExemplarReservoir end
 
 #####
 
@@ -57,7 +53,7 @@ end
 #####
 
 Base.@kwdef struct AggregationStore
-    points::Dict{StaticAttrs, AbstractDataPoint} = Dict{StaticAttrs, AbstractDataPoint}()
+    points::Dict{StaticAttrs,AbstractDataPoint} = Dict{StaticAttrs,AbstractDataPoint}()
     n_points::Atomic{Int}
     max_points::UInt = N_MAX_POINTS_PER_METRIC
     data_point_constructor::Any
@@ -88,7 +84,7 @@ function (agg_store::AggregationStore)(e::Exemplar{<:Measurement})
     end
 end
 
-function Base.push!(agg::AggregationStore, (attr, x)::Pair{StaticAttrs, Exemplar})
+function Base.push!(agg::AggregationStore, (attr, x)::Pair{StaticAttrs,Exemplar})
     if attr in agg.points
         agg.points[attr](x)
     else
@@ -111,22 +107,22 @@ struct SumAgg <: AbstractAggregation
     aggregation_store::AggregationStore
 end
 
-function SumAgg(
-    ;temporality=CUMULATIVE,
-    is_monotonic=true,
-    data_type=Int,
-    exemplar_reservoir_constructor=()->nothing
+function SumAgg(;
+    temporality = CUMULATIVE,
+    is_monotonic = true,
+    data_type = Int,
+    exemplar_reservoir_constructor = () -> nothing,
 )
     SumAgg(
         is_monotonic,
-        AggregationStore(
-            ;n_points = Atomic{Int}(),
-            data_point_constructor = () -> SumDataPoint(
-                ;value = Atomic{data_type}(),
+        AggregationStore(;
+            n_points = Atomic{Int}(),
+            data_point_constructor = () -> SumDataPoint(;
+                value = Atomic{data_type}(),
                 temporality = temporality,
-                exemplar_reservoir = exemplar_reservoir_constructor()
-            )
-        )
+                exemplar_reservoir = exemplar_reservoir_constructor(),
+            ),
+        ),
     )
 end
 
@@ -139,13 +135,12 @@ end
 
 #####
 
-struct Drop <: AbstractAggregation
-end
+struct Drop <: AbstractAggregation end
 
 const DROP = Drop()
 
 #####
 
-function default_aggregation(ins::Counter{T}) where T
-    SumAgg(;is_monotonic=true, temporality=CUMULATIVE)
+function default_aggregation(ins::Counter{T}) where {T}
+    SumAgg(; is_monotonic = true, temporality = CUMULATIVE)
 end

@@ -1,25 +1,22 @@
 export AbstractTracerProvider,
-    global_tracer_provider,
-    Tracer,
-    Span,
-    with_span,
-    is_recording,
-    set_status!,
-    end!
+    global_tracer_provider, Tracer, Span, with_span, is_recording, set_status!, end!
 
 using Random
 
 abstract type AbstractTracerProvider end
 
-struct DummyTracerProvider <: AbstractTracerProvider
-end
+struct DummyTracerProvider <: AbstractTracerProvider end
 
 const GLOBAL_TRACER_PROVIDER = Ref{AbstractTracerProvider}(DummyTracerProvider())
 
-"get the global tracer provider"
+"""
+get the global tracer provider
+"""
 global_tracer_provider() = GLOBAL_TRACER_PROVIDER[]
 
-"set the global tracer provider to `p`"
+"""
+set the global tracer provider to `p`
+"""
 global_tracer_provider(p) = GLOBAL_TRACER_PROVIDER[] = p
 
 """
@@ -32,11 +29,11 @@ Base.@kwdef struct Tracer{P<:AbstractTracerProvider}
     provider::P = global_tracer_provider()
 end
 
-struct Span{T<:Tracer, SC<:SpanContext}
+struct Span{T<:Tracer,SC<:SpanContext}
     name::Ref{String}
     tracer::T
     span_context::SC
-    parent_span_context::Union{Nothing, SpanContext}
+    parent_span_context::Union{Nothing,SpanContext}
     kind::SpanKind
     start_time::UInt
     end_time::Ref{Union{Nothing,UInt}}
@@ -48,14 +45,26 @@ end
 
 function Span(
     name::String,
-    tracer::Tracer{DummyTracerProvider}
-    ;context=current_context(),
-    start_time = UInt(time()*10^9)
+    tracer::Tracer{DummyTracerProvider};
+    context = current_context(),
+    start_time = UInt(time() * 10^9),
 )
     parent_span = current_span(context)
     parent_span_ctx = span_context(parent_span)
     if isnothing(parent_span_ctx)
-        Span(Ref(name), tracer, INVALID_SPAN_CONTEXT, parent_span_ctx, SPAN_KIND_INTERNAL, start_time, Ref{Union{Nothing, UInt}}(start_time), DynamicAttrs(), Limited(Link[]), Limited(Event[]), Ref(SpanStatus(SPAN_STATUS_UNSET)))
+        Span(
+            Ref(name),
+            tracer,
+            INVALID_SPAN_CONTEXT,
+            parent_span_ctx,
+            SPAN_KIND_INTERNAL,
+            start_time,
+            Ref{Union{Nothing,UInt}}(start_time),
+            DynamicAttrs(),
+            Limited(Link[]),
+            Limited(Event[]),
+            Ref(SpanStatus(SPAN_STATUS_UNSET)),
+        )
     else
         parent_span
     end
@@ -68,16 +77,16 @@ Call function `f` with the current span set to `s`.
 
 # Keyword arguments
 
-- `end_on_exit=true`, controls whether to call [`end!`](@ref) after `f` or not.
-- `record_exception=true`, controls whether to record the exception.
-- `set_status_on_exception=true`, decides whether to set status to [`SPAN_STATUS_ERROR`](@ref) automatically when an exception is caught.
+  - `end_on_exit=true`, controls whether to call [`end!`](@ref) after `f` or not.
+  - `record_exception=true`, controls whether to record the exception.
+  - `set_status_on_exception=true`, decides whether to set status to [`SPAN_STATUS_ERROR`](@ref) automatically when an exception is caught.
 """
 function with_span(
     f,
-    s::Span
-    ;end_on_exit=true,
-    record_exception=true,
-    set_status_on_exception=true
+    s::Span;
+    end_on_exit = true,
+    record_exception = true,
+    set_status_on_exception = true,
 )
     with_context(SPAN_KEY_IN_CONTEXT => s) do
         try
@@ -92,7 +101,7 @@ function with_span(
                 end
             end
             rethrow(ex)
-        finally 
+        finally
             if end_on_exit
                 end!(s)
             end
@@ -144,7 +153,7 @@ end
 
 Update the status of span `s` by following the original specification. `description` is only considered when the `code` is `SPAN_STATUS_ERROR`. Only valid when the span is not ended yet.
 """
-function set_status!(s::Span, code::SpanStatusCode, description=nothing)
+function set_status!(s::Span, code::SpanStatusCode, description = nothing)
     if is_recording(s)
         if s.status[].code === SPAN_STATUS_OK
             # no further updates
@@ -165,7 +174,7 @@ end
 
 Set the end time of the span and trigger span processors.
 """
-function end!(s::Span{Tracer{DummyTracerProvider}}, t=UInt(time()*10^9))
+function end!(s::Span{Tracer{DummyTracerProvider}}, t = UInt(time() * 10^9))
     if is_recording(s)
         s.end_time[] = t
     else
@@ -176,7 +185,7 @@ end
 """
 A specialized variant of `add_event!` to record exceptions. Usually used in a `try... catch...end` to capture the backtrace. If the `ex` is `rethrow`ed in the `catch...end`, `is_rethrow_followed` should be set to `true`.
 """
-function Base.push!(s::Span, ex::Exception; is_rethrow_followed=false)
+function Base.push!(s::Span, ex::Exception; is_rethrow_followed = false)
     msg_io = IOBuffer()
     showerror(msg_io, ex)
     msg = String(take!(msg_io))
@@ -188,10 +197,10 @@ function Base.push!(s::Span, ex::Exception; is_rethrow_followed=false)
     attrs = StaticAttrs(
         "exception.type" => string(typeof(ex)),
         "exception.type" => string(typeof(ex)),
-        "exception.message" => msg, 
-        "exception.stacktrace" => st, 
-        "exception.escaped" => is_rethrow_followed
+        "exception.message" => msg,
+        "exception.stacktrace" => st,
+        "exception.escaped" => is_rethrow_followed,
     )
 
-    push!(s, Event(name="exception", attributes=attrs))
+    push!(s, Event(name = "exception", attributes = attrs))
 end

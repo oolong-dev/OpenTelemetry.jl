@@ -15,13 +15,13 @@ Base.push!(cp::CompositePropagator, p::AbstractPropagator) = push!(cp.propagator
 
 Injects the value into a carrier. For example, into the headers of an HTTP request.
 """
-function inject!(carrier, propagator::AbstractPropagator=GLOBAL_PROPAGATOR, ctx::Context=current_context()) end
-
 function inject!(
     carrier,
-    propagator::CompositePropagator,
-    ctx::Context
-)
+    propagator::AbstractPropagator = GLOBAL_PROPAGATOR,
+    ctx::Context = current_context(),
+) end
+
+function inject!(carrier, propagator::CompositePropagator, ctx::Context)
     for p in propagator.propagators
         inject!(carrier, p, ctx)
     end
@@ -32,13 +32,13 @@ end
 
 Extracts the value from an incoming request. For example, from the headers of an HTTP request.
 """
-function extract(carrier, propagator::AbstractPropagator=global_propagator(), ctx::Context=current_context()) end
-
 function extract(
     carrier,
-    propagator::CompositePropagator,
-    ctx::Context
-)
+    propagator::AbstractPropagator = global_propagator(),
+    ctx::Context = current_context(),
+) end
+
+function extract(carrier, propagator::CompositePropagator, ctx::Context)
     for p in propagator.propagators
         ctx = extract(carrier, p, ctx)
     end

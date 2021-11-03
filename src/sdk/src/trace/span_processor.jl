@@ -1,14 +1,12 @@
-export AbstractSpanProcessor,
-    CompositSpanProcessor,
-    SimpleSpanProcessor
+export AbstractSpanProcessor, CompositSpanProcessor, SimpleSpanProcessor
 
 """
 Each span processor must implements the following methods:
 
-- `on_start(span_processor, span)`
-- `on_end(span_processor, span)`
-- `shut_down!(span_processor)`
-- `force_flush!(span_processor)`
+  - `on_start(span_processor, span)`
+  - `on_end(span_processor, span)`
+  - `shut_down!(span_processor)`
+  - `force_flush!(span_processor)`
 """
 abstract type AbstractSpanProcessor end
 
@@ -26,7 +24,6 @@ struct CompositSpanProcessor <: AbstractSpanProcessor
     end
 end
 
-
 for f in (:on_start, :on_end, :shut_down!)
     @eval function $f(sp::CompositSpanProcessor, args...)
         # ??? spawn
@@ -36,15 +33,16 @@ for f in (:on_start, :on_end, :shut_down!)
     end
 end
 
-function force_flush!(sp::CompositSpanProcessor, timeout_millis=30_000)
+function force_flush!(sp::CompositSpanProcessor, timeout_millis = 30_000)
     res = fill(false, length(sp.span_processors))
-    @sync for (i,p) in enumerate(sp.span_processors)
+    @sync for (i, p) in enumerate(sp.span_processors)
         @async res[i] = force_flush!(p, timeout_millis)
     end
     all(res)
 end
 
-Base.push!(sp::CompositSpanProcessor, p::AbstractSpanProcessor) = push!(sp.span_processors, p)
+Base.push!(sp::CompositSpanProcessor, p::AbstractSpanProcessor) =
+    push!(sp.span_processors, p)
 
 #####
 

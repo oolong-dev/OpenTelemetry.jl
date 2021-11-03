@@ -3,16 +3,16 @@
 
     counter = Counter{Int}("counter", m1)
     counter(1)
-    counter(3, "m.a" => 1, "m.b" => "b", "m.c" => 3.)
+    counter(3, "m.a" => 1, "m.b" => "b", "m.c" => 3.0)
     @test_throws ArgumentError counter(-1)
 
     hist = Histogram{Float64}("hist", m1)
     hist(1)
-    hist(3, "m.a" => 1, "m.b" => "b", "m.c" => 3.)
+    hist(3, "m.a" => 1, "m.b" => "b", "m.c" => 3.0)
 
     up_down_counter = UpDownCounter{Int}("up_down_counter", m1)
     up_down_counter(1)
-    up_down_counter(3, "m.a" => 1, "m.b" => "b", "m.c" => 3.)
+    up_down_counter(3, "m.a" => 1, "m.b" => "b", "m.c" => 3.0)
 
     obs_counter = ObservableCounter{Int}("obs_counter", m1) do
         rand(1:10)
