@@ -9,7 +9,7 @@ on:
     tags: '*'
 jobs:
   test:
-    name: Julia matrix.version−{{ matrix.os }} - matrix.arch−{{ github.event_name }}
+    name: Julia ${{ matrix.version }} − ${{ matrix.os }} - ${{ matrix.arch }} − ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -41,10 +41,10 @@ jobs:
       - run: |
           julia --code-coverage=user --color=yes -e '
             using Pkg;
-            Pkg.develop(path="src/api")
-            Pkg.develop(path="src/sdk")
-            Pkg.develop(path="src/proto")
-            Pkg.develop(path="src/exporter/otlp/proto/grpc")
+            Pkg.develop(path=joinpath("src", "api"))
+            Pkg.develop(path=joinpath("src", "sdk"))
+            Pkg.develop(path=joinpath("src", "proto"))
+            Pkg.develop(path=joinpath("src", "exporter", "otlp", "proto", "grpc"))
             Pkg.build("OpenTelemetryProto")
             Pkg.test("OpenTelemetryAPI", coverage=true)
             Pkg.test("OpenTelemetrySDK", coverage=true)
