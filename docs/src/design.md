@@ -40,40 +40,54 @@ extract
 The relationship between trace provider, tracer, span context and span is depicted below:
 
 ```
- ┌──────────────────────────────────┐
- │Span                              │
- │ ┌──────────────────────────────┐ │
- │ │ Tracer                       │ │
- │ │   ┌────────────────────────┐ │ │
- │ │   │ AbstractTracerProvider │ │ │
- │ │   └────────────────────────┘ │ │
- │ │                              │ │
- │ └──────────────────────────────┘ │
- │ span_context                     │
- │   ┌────────────────────────────┐ │
- │   │ trace_id                   │ │
- │   │ span_id                    │ │
- │   │ is_remote                  │ │
- │   │ trace_flag                 │ │
- │   │ trace_state                │ │
- │   └────────────────────────────┘ │
- │ parent_span_context              │
- │ kind                             │
- │ start_time                       │
- │ end_time                         │
- │ attributes                       │
- │ links                            │
- │ events                           │
- │ status                           │
- └──────────────────────────────────┘
+┌────────────────────────────┐
+│Span                        │
+│                            │
+│ tracer                     │
+│   ┌──────────────────────┐ │
+│   │Tracer                │ │
+│   │                      │ │
+│   │  provider            │ │
+│   │   ┌────────────────┐ │ │
+│   │   │    Abstract    │ │ │
+│   │   │ TracerProvider │ │ │
+│   │   └────────────────┘ │ │
+│   │  instrumentation     │ │
+│   │   ┌────────────────┐ │ │
+│   │   │ name           │ │ │
+│   │   │ version        │ │ │
+│   │   └────────────────┘ │ │
+│   │                      │ │
+│   └──────────────────────┘ │
+│ span_context               │
+│   ┌──────────────────────┐ │
+│   │ trace_id             │ │
+│   │ span_id              │ │
+│   │ is_remote            │ │
+│   │ trace_flag           │ │
+│   │ trace_state          │ │
+│   └──────────────────────┘ │
+│ parent_span_context        │
+│ kind                       │
+│ start_time                 │
+│ end_time                   │
+│ attributes                 │
+│ links                      │
+│ events                     │
+│ status                     │
+└────────────────────────────┘
 ```
 
-- In `OpenTelemetryAPI.jl`, only a `DummyTracerProvider` is provided and is set to the [`global_tracer_provider`](@ref)
+- In `OpenTelemetryAPI.jl`, only one `AbstractTracerProvider` (`DummyTracerProvider`) is provided and is set as the [`global_tracer_provider`](@ref).
 - `Span` is immutable. Modifiable fields like `status`, `end_time` are set to `Ref`.
 - To add [`Event`](@ref)s and [`Link`](@ref)s, users can call `push!(span, event_or_link)`.
 - The `attributes` in the [`Span`](@ref) is a [`DynamicAttrs`](@ref), and can be updated with the syntax like `span[key]=value`.
 - `end_time` will be set by default after the call to [`with_span`](@ref).
 - Always use `set_status!` to update the status of span.
+
+!!! note
+    In some other languages, only a dummy span is defined in API and the concrete span is defined in SDK. Personally I
+    prefer to defined it in API, otherwise we need to define many *getter* methods.
 
 ```@docs
 global_tracer_provider
@@ -121,3 +135,134 @@ SpanStatu
 ```
 
 ### Metric
+
+The relationship between `MeterProvider`, `Meter` and different instruments are depicted below:
+
+```
+ ┌─────────────────────────────┐
+ │AbstractInstrument           │
+ │                             │
+ │  name                       │
+ │  unit                       │
+ │  description                │
+ │                             │
+ │  meter                      │
+ │   ┌───────────────────────┐ │
+ │   │Meter                  │ │
+ │   │                       │ │
+ │   │  provider             │ │
+ │   │   ┌────────────────┐  │ │
+ │   │   │   Abstract     │  │ │
+ │   │   │ MeterProvider  │  │ │
+ │   │   └────────────────┘  │ │
+ │   │  name                 │ │
+ │   │  version              │ │
+ │   │  schema_url           │ │
+ │   │                       │ │
+ │   │  instrumentation      │ │
+ │   │   ┌────────────────┐  │ │
+ │   │   │ name           │  │ │
+ │   │   │ version        │  │ │
+ │   │   └────────────────┘  │ │
+ │   │  instruments          │ │
+ │   │                       │ │
+ │   │    * Counter          │ │
+ │   │    * Histogram        │ │
+ │   │    * UpDownCounter    │ │
+ │   │    * ObservableCounter│ │
+ │   │    * Observable       │ │
+ │   │      UpDownCounter    │ │
+ │   └───────────────────────┘ │
+ │                             │
+ └─────────────────────────────┘
+```
+
+- An `Instrument` belongs to a `Meter`, each `Meter` may contain many different `Instrument`s. Similarly, a `Meter`
+  belongs to a `MeterProvider` and a `MeterProvider` may contain many different `Meter`s.
+
+```@docs
+global_meter_provider
+Meter
+Measurement
+Counter
+ObservableCounter
+Histogram
+ObservableGauge
+UpDownCounter
+ObservableUpDownCounter
+```
+
+## SDK
+
+Two common exporters are provided to for debugging:
+
+```@docs
+InMemoryExporter
+ConsoleExporter
+```
+
+### Trace
+
+In SDK, a dedicated [`TraceProvider`](@ref) is provided.
+
+```@docs
+TraceProvider
+CompositSpanProcessor
+ALWAYS_ON
+ALWAYS_OFF
+DEFAULT_ON
+DEFAULT_OFF
+TraceIdRatioBased
+```
+
+### Metric
+
+The current implementation of metrics in SDK is mainly inspired by the [dotnet
+sdk](https://github.com/open-telemetry/opentelemetry-dotnet).
+
+```
+┌──────────────────────────────────────────┐
+│MeterProvider                             │
+│                                          │
+│  meters                                  │
+│  views                                   │
+│                                          │
+│  instrument_associated_metric_names      │
+│    instrument =>  Set{metric_name}       │
+│                                          │
+│  metrics                                 │
+│    name => metric                        │
+│    ┌───────────────────────────────────┐ │
+│    │Metric                             │ │
+│    │                                   │ │
+│    │  name                             │ │
+│    │  description                      │ │
+│    │  criteria                         │ │
+│    │  aggregation                      │ │
+│    │    ┌──────────────────────────┐   │ │
+│    │    │AggregationStore          │   │ │
+│    │    │                          │   │ │
+│    │    │  attributes => data_point│   │ │
+│    │    │   ┌─────────────────┐    │   │ │
+│    │    │   │AbstractDataPoint│    │   │ │
+│    │    │   │                 │    │   │ │
+│    │    │   │  value          │    │   │ │
+│    │    │   │  start_time     │    │   │ │
+│    │    │   │  end_time       │    │   │ │
+│    │    │   │  exemplars      │    │   │ │
+│    │    │   │ ┌────────────┐  │    │   │ │
+│    │    │   │ │Exemplar    │  │    │   │ │
+│    │    │   │ │            │  │    │   │ │
+│    │    │   │ │ value      │  │    │   │ │
+│    │    │   │ │ trace_id   │  │    │   │ │
+│    │    │   │ │ span_id    │  │    │   │ │
+│    │    │   │ └────────────┘  │    │   │ │
+│    │    │   │                 │    │   │ │
+│    │    │   └─────────────────┘    │   │ │
+│    │    │                          │   │ │
+│    │    └──────────────────────────┘   │ │
+│    │                                   │ │
+│    └───────────────────────────────────┘ │
+│                                          │
+└──────────────────────────────────────────┘
+```
