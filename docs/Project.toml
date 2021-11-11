@@ -1,2 +1,6 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+OpenTelemetryAPI = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
+OpenTelemetryExporterOtlpProtoGrpc = "83e8ae56-efb3-499e-9158-b649d4f902fc"
+OpenTelemetryProto = "cc651e92-2989-4f95-bcc3-32e6fb6ac025"
+OpenTelemetrySDK = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
