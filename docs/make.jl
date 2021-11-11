@@ -30,6 +30,9 @@ makedocs(
     linkcheck = !("skiplinks" in ARGS),
     pages = [
         "Home" => "index.md",
-        "Design" => "design.md",
+        "Design" => Any[
+            "API" => "design_api.md",
+            "SDK" => "design_sdk.md"
+        ]
     ]
 )
