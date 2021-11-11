@@ -1,21 +1,31 @@
 # Design
 
-The content in this page is organized in the same order as the [OpenTelemetry Specification](https://github.com/open-telemetry/opentelemetry-specification).
+The content in this page is organized in the same order as the [OpenTelemetry
+Specification](https://github.com/open-telemetry/opentelemetry-specification).
+
+```@setup api
+using OpenTelemetryAPI
+```
 
 ## API
 
 ### Context
 
-`Context` is implemented as a wrapper of `NamedTuple`, which means it is immutable. Each `Task` has exactly **ONE** `Context` instance, which is injected in the `task_local_storage` of the `current_task` by the parent task.
+`Context` is implemented as a wrapper of `NamedTuple`, which means it is immutable. Each `Task` has exactly **ONE**
+`Context` instance, which is injected into the `task_local_storage` of the `current_task` by the parent task automatically.
 
 !!! warning
     [Type piracy](https://docs.julialang.org/en/v1/manual/style-guide/#Avoid-type-piracy) is used to the propagate context between tasks.
 
 `create_key` is used to create a context key. But it is not exported yet because it seems to be only used internally until now.
 
-`Base.getindex(::Context, key)` is implemented so to get a value in a `Context`, one can simply call `ctx[key]`.
+`Base.getindex(::Context, key)` is implemented so to get a value in a `Context`, one can simply call `ctx[key]` to get
+the associated value of a key in a `ctx`.
 
-Setting value of a `Context` is not directly supported. Given that `Context` is immutable, updating an immutable object in Julia seems strange. We provide the [`with_context`](@ref) function to create a new context based on the key-value pairs in the [`current_context`](@ref). This syntax is more common than the attach/detach operations in the original specification.
+Setting value of a `Context` is not directly supported. Given that `Context` is immutable, updating an immutable object
+in Julia seems strange. We provide the [`with_context`](@ref) function to create a new context based on the key-value
+pairs in the [`current_context`](@ref). This syntax is more common than the attach/detach operations in the original
+specification.
 
 ```@docs
 with_context
@@ -26,9 +36,12 @@ current_context
 
 [`inject!`](@ref) and [`extract`](@ref) are provided to 
 
-The global propagator can be set to a `CompositePropagator`, with multiple dispatch, each inner propagator can be customized to handle different contexts and carriers.
+The global propagator can be set to a `CompositePropagator`, with multiple dispatch, each inner propagator can be
+customized to handle different contexts and carriers.
 
-`TextMapPropagator` is not implemented yet! Personally I feel that every propagator may depends on a third party package. To minimize the dependencies of `OpenTelemetryAPI.jl`, those specialized propagators can be registered as independent packages.
+`TextMapPropagator` is not implemented yet! Personally I feel that every propagator may depends on a third party
+package. To minimize the dependencies of `OpenTelemetryAPI.jl`, those specialized propagators can be registered as
+independent packages.
 
 ```@docs
 inject!
@@ -265,4 +278,26 @@ sdk](https://github.com/open-telemetry/opentelemetry-dotnet).
 │    └───────────────────────────────────┘ │
 │                                          │
 └──────────────────────────────────────────┘
+```
+
+A [`View`](@ref) specifies which instruments are grouped together through [`Criteria`](@ref). For each view, a
+[`Metric`](@ref) is created to store the [`Measurement`](@ref)s. Each metric may have many different dimensions
+configured by [`StaticAttrs`](@ref) in a [`Measurement`](@ref). For each dimension, we may also collect those
+[`Exemplar`]s in the mean while.
+
+#### Design decisions
+
+- For each registered instrument, we have stored the associated metrics configured by views into the
+  `instrument_associated_metric_names` field. So that for each pair of `instrument => measurement`, we can quickly
+  determine which metrics to update.
+- The make sure that measurements with the same attribute key-values but with different order can be updated in the same
+  dimension in the [`AggregationStore`](@ref), a design from
+  [opentelemetry-dotnet#2374](https://github.com/open-telemetry/opentelemetry-dotnet/issues/2374) is borrowed here.
+
+
+```@docs
+MeterProvider
+View
+Metric
+AggregationStore
 ```
