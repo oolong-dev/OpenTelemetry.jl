@@ -54,3 +54,25 @@ jobs:
         shell: bash
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v1
+
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: '1'
+      - name: Build docs
+        run: |
+          cd docs
+          julia --project --color=yes -e '
+            using Pkg; Pkg.instantiate();
+            include("make.jl")'
+      - name: Deploy to the main repo
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.event_name == 'push' }}
+        with:
+          force_orphan: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/build
