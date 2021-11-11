@@ -67,7 +67,9 @@ jobs:
         run: |
           cd docs
           julia --project --color=yes -e '
-            using Pkg; Pkg.instantiate();
+            using Pkg;
+            Pkg.instantiate();
+            Pkg.build("OpenTelemetryProto");
             include("make.jl")'
       - name: Deploy to the main repo
         uses: peaceiris/actions-gh-pages@v3
