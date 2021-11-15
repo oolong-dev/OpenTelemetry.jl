@@ -21,7 +21,7 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 - API
     - [x] Tracing
     - [x] Metrics
-    - [ ] Logging
+    - [x] Logging
 
 - SDK
     - [x] Tracing
