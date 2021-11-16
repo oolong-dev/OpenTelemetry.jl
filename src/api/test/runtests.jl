@@ -4,7 +4,6 @@ using Base.Threads
 using LoggingExtras
 using Logging
 
-
 const API = OpenTelemetryAPI
 
 @testset "OpenTelemetryAPI.jl" begin
