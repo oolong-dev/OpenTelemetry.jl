@@ -8,7 +8,7 @@ using Dates
 
 A Julia representation of the [Log Data Model](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#log-and-event-record-definition).
 """
-Base.@kwdef struct LogRecord{B, R<:Resource}
+Base.@kwdef struct LogRecord{B,R<:Resource}
     timestamp::UInt
     trace_id::TraceIdType
     span_id::SpanIdType
@@ -38,30 +38,30 @@ function (L::LogTransformer)(log)
     merge(
         log,
         (
-            message = LogRecord(
-                ;timestamp = UInt(time() * 10^9),
+            message = LogRecord(;
+                timestamp = UInt(time() * 10^9),
                 trace_id = isnothing(span_ctx) ? INVALID_TRACE_ID : span_ctx.trace_id,
                 span_id = isnothing(span_ctx) ? INVALID_SPAN_ID : span_ctx.span_id,
                 trace_flags = isnothing(span_ctx) ? TraceFlag() : span_ctx.trace_flag,
                 severity_text = uppercase(string(log.level)),
                 # https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#field-severitynumber
                 severity_number = if log.level >= Logging.Error
-                        17
-                    elseif log.level >= Logging.Warn
-                        13
-                    elseif log.level >= Logging.Info
-                        9
-                    elseif  log.level >= Logging.Debug
-                        5
-                    else
-                        1
-                    end,
+                    17
+                elseif log.level >= Logging.Warn
+                    13
+                elseif log.level >= Logging.Info
+                    9
+                elseif log.level >= Logging.Debug
+                    5
+                else
+                    1
+                end,
                 name = "",
                 body = log.message,
                 resource = L.resource,
-                attributes = StaticAttrs(NamedTuple(log.kwargs))
+                attributes = StaticAttrs(NamedTuple(log.kwargs)),
             ),
-            kwargs = NamedTuple()
-        )
+            kwargs = NamedTuple(),
+        ),
     )
 end
