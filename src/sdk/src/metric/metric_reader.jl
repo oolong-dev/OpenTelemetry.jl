@@ -30,6 +30,11 @@ end
 Base.@kwdef struct MetricReader{P<:MeterProvider,E} <: AbstractMetricReader
     provider::P
     exporter::E
+    function MetericReader(provider::P, exporter::E) where {P,E}
+        r = new{P,E}(provider, exporter)
+        r()
+        r
+    end
 end
 
 function (r::MetricReader)()

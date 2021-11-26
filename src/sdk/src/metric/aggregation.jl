@@ -1,4 +1,7 @@
-export Exemplar
+export Exemplar,
+    SumAgg,
+    LastValueAgg,
+    HistogramAgg
 
 using Base.Threads
 
