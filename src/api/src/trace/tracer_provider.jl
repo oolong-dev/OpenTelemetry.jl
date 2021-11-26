@@ -170,7 +170,7 @@ function set_status!(s::Span, code::SpanStatusCode, description = nothing)
 end
 
 """
-    end!(s::Span, t=time()*10^9)
+    end!(s::Span, t=UInt(time()*10^9))
 
 Set the end time of the span and trigger span processors.
 """

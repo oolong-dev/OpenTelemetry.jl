@@ -26,8 +26,11 @@ git-tree-sha1 = "4df9f7e06108728ebf00a0a11edee4b29a482bb2"
 uuid = "c27321d9-0574-5035-807b-f59d2c89b15c"
 version = "1.3.0"
 
+[[Logging]]
+uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
+
 [[OpenTelemetryAPI]]
-deps = ["Dates", "Random", "UUIDs"]
+deps = ["Dates", "Logging", "Random", "UUIDs"]
 path = "../api"
 uuid = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
 version = "0.0.4"
@@ -48,7 +51,7 @@ deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[Random]]
-deps = ["Serialization"]
+deps = ["SHA", "Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [[SHA]]

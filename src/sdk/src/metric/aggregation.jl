@@ -1,18 +1,8 @@
+export Exemplar
+
 using Base.Threads
 
 const N_MAX_POINTS_PER_METRIC = 2_000
-
-#####
-
-abstract type AbstractTemporality end
-
-struct Cumulative <: AbstractTemporality end
-
-const CUMULATIVE = Cumulative()
-
-struct Delta <: AbstractTemporality end
-
-const DELTA = Delta()
 
 #####
 
@@ -26,75 +16,82 @@ end
 
 abstract type AbstractExemplarReservoir end
 
+# TODO
 struct SimpleFixedSizeExemplarReservoir <: AbstractExemplarReservoir end
 
+# TODO
 struct AlignedHistogramBucketExemplarReservoir <: AbstractExemplarReservoir end
 
 #####
 
-abstract type AbstractDataPoint end
-
-Base.@kwdef struct SumDataPoint{T,V,E} <: AbstractDataPoint
-    value::Atomic{V} = Atomic{UInt}()
-    temporality::T = CUMULATIVE
-    start_time_unix_nano::UInt = UInt(time() * 10^9)
-    time_unix_nano::Ref{UInt} = Ref(start_time_unix_nano)
-    exemplar_reservoir::E = nothing
+mutable struct DataPoint{T,E}
+    @atomic value::T
+    start_time_unix_nano::UInt
+    time_unix_nano::UInt
+    exemplar_reservoir::E
 end
 
-function (p::SumDataPoint{Cumulative})(x::Exemplar{<:Measurement})
-    atomic_add!(p.value, x.value.value)
-    p.time_unix_nano[] = x.time_unix_nano
-    if !isnothing(p.exemplar_reservoir)
-        push!(p.exemplar_reservoir, x)
-    end
+function DataPoint{T}(exemplar_reservoir) where {T}
+    t = UInt(time() * 10^9)
+    DataPoint(zero(T), t, t, exemplar_reservoir)
 end
 
-#####
-
-Base.@kwdef struct AggregationStore
-    points::Dict{StaticAttrs,AbstractDataPoint} = Dict{StaticAttrs,AbstractDataPoint}()
-    n_points::Atomic{Int}
-    max_points::UInt = N_MAX_POINTS_PER_METRIC
-    data_point_constructor::Any
+struct AggregationStore{D<:DataPoint}
+    points::Dict{StaticAttrs,D}
+    unique_points::Dict{StaticAttrs, D}
+    n_max_points::UInt
+    n_max_attrs::UInt
+    lock::ReentrantLock
 end
 
-function (agg_store::AggregationStore)(e::Exemplar{<:Measurement})
-    attrs = e.value.attributes
-    if haskey(agg_store.points, attrs)
-        agg_store.points[attrs](e)
-    else
+function AggregationStore{D}(
+    ; n_max_points = N_MAX_POINTS_PER_METRIC,
+    n_max_attrs = 2 * N_MAX_POINTS_PER_METRIC
+) where {D}
+    AggregationStore{D}(
+        Dict{StaticAttrs,D}(),
+        Dict{StaticAttrs,D}(),
+        Ref(UInt(0)),
+        n_max_points,
+        n_max_attrs,
+        ReentrantLock()
+    )
+end
+
+function Base.get!(f, agg::AggregationStore, attrs)
+    point = get(agg.points, attrs, nothing)
+    if isnothing(point)
         sorted_attrs = sort(attrs)
-        if haskey(agg_store.points, sorted_attrs)
-            p = agg_store[sorted_attrs]
-            agg_store[attrs] = p
-            p(e)
-        else
-            # ??? lock or atomic field in Julia@v1.7
-            if agg_store.n_points[] >= agg_store.max_points
-                @info "Maximum number of points in aggregation store reached. Dropped!"
+        point = get(agg.points, sorted_attrs, nothing)
+        if isnothing(point)
+            if length(agg.unique_points) < agg.n_max_points
+                lock(agg.lock) do
+                    if haskey(agg.points, attrs)
+                        agg.points[attrs]
+                    elseif haskey(agg.points, sorted_attrs)
+                        agg.points[sorted_attrs]
+                    else
+                        p = f()
+                        agg.points[attrs] = p
+                        agg.points[sorted_attrs] = p
+                        agg.unique_points[sorted_attrs] = p
+                        p
+                    end
+                end
             else
-                atomic_add!(agg_store.n_points, 1)
-                p = agg_store.data_point_constructor()
-                p(e)
-                agg_store.points[attrs] = p
-                agg_store.points[sorted_attrs] = p
+                @warn "maximum number of attributes reached, dropped."
+                nothing
             end
-        end
-    end
-end
-
-function Base.push!(agg::AggregationStore, (attr, x)::Pair{StaticAttrs,Exemplar})
-    if attr in agg.points
-        agg.points[attr](x)
-    else
-        if length(agg.points) >= agg.max_points
-            @warn "Max number ($(agg.max_points)) of points per aggregation reached. Dropped!"
         else
-            p = agg.data_point_constructor()
-            p(x)
-            agg.points[attr] = p
+            if length(agg.points) < agg.n_max_attrs
+                agg.points[attrs] = point
+            else
+                @warn "maximum cached keys in agg store reached, please consider increase `n_max_points`"
+            end
+            point
         end
+    else
+        point
     end
 end
 
@@ -102,35 +99,129 @@ end
 
 abstract type AbstractAggregation end
 
-struct SumAgg <: AbstractAggregation
-    is_monotonic::Bool
-    aggregation_store::AggregationStore
+struct SumAgg{T,E,F} <: AbstractAggregation
+    agg_store::AggregationStore{DataPoint{T,E}}
+    exemplar_reservoir_factory::F
 end
 
-function SumAgg(;
-    temporality = CUMULATIVE,
-    is_monotonic = true,
-    data_type = Int,
-    exemplar_reservoir_constructor = () -> nothing,
-)
-    SumAgg(
-        is_monotonic,
-        AggregationStore(;
-            n_points = Atomic{Int}(),
-            data_point_constructor = () -> SumDataPoint(;
-                value = Atomic{data_type}(),
-                temporality = temporality,
-                exemplar_reservoir = exemplar_reservoir_constructor(),
-            ),
-        ),
+SumAgg{T}() where {T} = SumAgg(AggregationStore{DataPoint{T,Nothing}}(), () -> nothing)
+
+function (agg::SumAgg{T,E})(e::Exemplar{<:Measurement}) where {T,E}
+    point = get!(agg.agg_store, e.value.attributes) do
+        DataPoint{T}(agg.exemplar_reservoir_factory())
+    end
+    if !isnothing(point)
+        @atomic point.value += e.value.value
+        point.time_unix_nano = e.time_unix_nano
+    end
+end
+
+#####
+
+struct LastValueAgg{T,E,F} <: AbstractAggregation
+    agg_store::AggregationStore{DataPoint{T,E}}
+    exemplar_reservoir_factory::F
+end
+
+LastValueAgg{T}() where {T} = LastValueAgg(AggregationStore{DataPoint{T,Nothing}}(), () -> nothing)
+
+function (agg::LastValueAgg{T,E})(e::Exemplar{<:Measurement}) where {T,E}
+    point = get!(agg.agg_store, e.measurement.attributes) do
+        DataPoint{T}(agg.exemplar_reservoir_factory())
+    end
+    if !isnothing(point)
+        @atomic point.value = e.value.value
+    end
+end
+
+#####
+
+const DEFAULT_HISTOGRAM_BOUNDARIES = (0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0)
+
+struct HistogramValue{T,M,N}
+    boundaries::NTuple{M,Float64}
+    counts::NTuple{N,UInt}
+    sum::Union{T,Nothing}
+    min::Union{T,Nothing}
+    max::Union{T,Nothing}
+end
+
+function HistogramValue{T}(;
+    boundaries = DEFAULT_HISTOGRAM_BOUNDARIES,
+    is_record_sum = true,
+    is_record_min = true,
+    is_record_max = true
+) where {T}
+    M = length(boundaries)
+    N = M + 1
+    HistogramValue{T,M,N}(
+        boundaries,
+        ntuple(i -> UInt(0), N),
+        is_record_sum ? zero(T) : nothing,
+        is_record_min ? typemax(T) : nothing,
+        is_record_max ? typemin(T) : nothing,
     )
 end
 
-function (agg::SumAgg)(e::Exemplar{<:Measurement})
-    if agg.is_monotonic && e.value.value < 0
-        throw(ArgumentError("A negative exemplar is fed into a monotonic SumAgg"))
+function Base.:(+)(v::HistogramValue, x)
+    n = 0
+    for (i, b) in enumerate(v.boundaries)
+        if x <= b
+            n = i
+            break
+        end
     end
-    agg.aggregation_store(e)
+    if n == 0
+        n = length(v.boundaries) + 1
+    end
+
+    HistogramValue(
+        v.boundaries,
+        (v.counts[1:n-1]..., v.counts[n] + x, v.counts[n+1:end]...),
+        v.sum + x,
+        isnothing(v.min) ? nothing : min(v.min, x),
+        isnothing(v.max) ? nothing : max(v.max, x),
+    )
+end
+
+struct HistogramAgg{T,E,F,N} <: AbstractAggregation
+    boundaries::NTuple{N,Float64}
+    is_record_min::Bool
+    is_record_max::Bool
+    agg_store::AggregationStore{DataPoint{HistogramValue{T},E}}
+    exemplar_reservoir_factory::F
+end
+
+HistogramAgg{T}(
+    ; boundaries = DEFAULT_HISTOGRAM_BOUNDARIES,
+    is_record_min = true,
+    is_record_max = true
+) where {T} = HistogramAgg(
+    boundaries,
+    is_record_min,
+    is_record_max,
+    AggregationStore{DataPoint{HistogramValue{T},Nothing}}(),
+    () -> nothing
+)
+
+function (agg::HistogramAgg{T,E})(e::Exemplar{<:Measurement}) where {T,E}
+    point = get!(agg.agg_store, e.measurement.attributes) do
+        t = UInt(time() * 10^9)
+        DataPoint(
+            HistogramValue{T}(
+                ; boundaries = agg.boundaries,
+                is_record_min = agg.is_record_min,
+                is_record_max = agg.is_record_max
+            ),
+            t,
+            t,
+            agg.exemplar_reservoir_factory()
+        )
+    end
+    if !isnothing(point)
+        @atomic point.value += e.value.value
+        point.time_unix_nano = e.time_unix_nano
+    end
 end
 
 #####
@@ -141,6 +232,9 @@ const DROP = Drop()
 
 #####
 
-function default_aggregation(ins::Counter{T}) where {T}
-    SumAgg(; is_monotonic = true, temporality = CUMULATIVE)
-end
+default_aggregation(ins::Counter{T}) where {T} = SumAgg{T}()
+default_aggregation(ins::ObservableCounter{T}) where {T} = SumAgg{T}()
+default_aggregation(ins::UpDownCounter{T}) where {T} = SumAgg{T}()
+default_aggregation(ins::ObservableUpDownCounter{T}) where {T} = SumAgg{T}()
+default_aggregation(ins::ObservableGauge{T}) where {T} = LastValueAgg{T}()
+default_aggregation(ins::Histogram{T}) where {T} = HistogramAgg{T}()

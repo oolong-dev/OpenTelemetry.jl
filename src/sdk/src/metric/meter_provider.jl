@@ -36,7 +36,7 @@ function (metric::Metric)(m::Measurement)
         time_unix_nano = UInt(time() * 10^9),
         filtered_attributes = filtered_attributes,
         trace_id = trace_id,
-        span_id = span_id,
+        span_id = span_id
     )
     metric.aggregation(exemplar)
 end
@@ -45,6 +45,7 @@ struct MeterProvider <: AbstractMeterProvider
     resource::Resource
     meters::IdDict{Meter,Nothing}
     instrument_associated_metric_names::IdDict{AbstractInstrument,Set{String}}
+    async_instruments::IdDict{AbstractAsyncInstrument,Nothing}
     views::Vector{View}
     metrics::Dict{String,Metric}
     n_max_metrics::UInt
@@ -59,6 +60,7 @@ function MeterProvider(resource = Resource(), views = View[], n_max_metrics = N_
         resource,
         Dict{String,Meter}(),
         IdDict{AbstractInstrument,Vector{String}}(),
+        IdDict{AbstractAsyncInstrument,Nothing}(),
         views,
         Dict{String,Metric}(),
         n_max_metrics,
@@ -105,6 +107,10 @@ function Base.push!(p::MeterProvider, ins::AbstractInstrument)
                         get!(p.instrument_associated_metric_names, ins, Set{String}()),
                         metric_name,
                     )
+
+                    if ins isa AbstractAsyncInstrument
+                        p.async_instruments[ins] = nothing
+                    end
                 end
             end
         end

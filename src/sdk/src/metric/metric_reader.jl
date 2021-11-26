@@ -1,4 +1,6 @@
-export AbstractMetricReader, CompositMetricReader
+export AbstractMetricReader,
+    CompositMetricReader,
+    MetricReader
 
 abstract type AbstractMetricReader end
 
@@ -11,9 +13,9 @@ end
 
 Base.push!(mr::CompositMetricReader, r::AbstractMetricReader) = push!(mr.readers, r)
 
-function Base.collect(r::CompositMetricReader)
+function (r::CompositMetricReader)()
     for x in r.readers
-        collect(x)
+        x()
     end
 end
 
@@ -25,18 +27,46 @@ end
 
 #####
 
-struct PeriodicExportingMetricReader{E<:AbstractExporter}
+Base.@kwdef struct MetricReader{P<:MeterProvider,E} <: AbstractMetricReader
+    provider::P
     exporter::E
-    export_interval_milliseconds::Int
-    export_timeout_milliseconds::Int
 end
 
-PeriodicExportingMetricReader(
-    e;
-    export_interval_milliseconds = 60_000,
-    export_timeout_milliseconds = 30_000,
-) = PeriodicExportingMetricReader(
-    e,
-    export_interval_milliseconds,
-    export_timeout_milliseconds,
-)
+function (r::MetricReader)()
+    for ins in r.provider.async_instruments
+        ins()
+    end
+    export!(r.exporter, (d for m in values(r.provider.metrics) for d in m.aggregation.agg_store.unique_points))
+end
+
+#####
+
+struct PeriodicMetricReader <: AbstractMetricReader
+    reader::MetricReader
+    export_interval_seconds::Int
+    export_timeout_seconds::Int
+    timer::Timer
+    function PeriodicMetricReader(
+        reader;
+        export_interval_seconds = 60,
+        export_timeout_seconds = 30,
+    )
+        timer = Timer(0;interval=export_interval_seconds) do t
+            res = timedwait(export_timeout_seconds;pollint=1) do
+                reader()
+                true
+            end
+            if res == :timed_out
+                @warn "timed out when exporting metrics"
+                # how to stop exporting?
+            end
+        end
+
+        new(
+            reader,
+            export_interval_seconds,
+            export_timeout_seconds,
+            timer,
+        )
+    end
+end

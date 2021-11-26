@@ -1,4 +1,6 @@
-export Measurement,
+export AbstractAsyncInstrument,
+    AbstractSyncInstrument,
+    Measurement,
     Counter,
     ObservableCounter,
     Histogram,
@@ -33,7 +35,7 @@ end
 (ins::AbstractSyncInstrument)(amount, args...) =
     ins(Measurement(amount, StaticAttrs(args...)))
 (ins::AbstractSyncInstrument)(amount; kw...) =
-    ins(Measurement(amount, StaticAttrs(kw.data)))
+    ins(Measurement(amount, StaticAttrs(values(kw))))
 (ins::AbstractSyncInstrument)(m::Measurement) = push!(ins.meter.provider, ins => m)
 (ins::AbstractAsyncInstrument)() = push!(ins.meter.provider, ins => ins.callback())
 
