@@ -16,17 +16,6 @@ end
 
 abstract type AbstractExporter end
 
-function export!(e::AbstractExporter, batch::AbstractVector)
-    res = EXPORT_SUCCESS
-    for x in batch
-        r = export!(e, x)
-        if r === EXPORT_FAILURE
-            res = EXPORT_FAILURE
-        end
-    end
-    res
-end
-
 function force_flush!(::AbstractExporter)
     true
 end
@@ -57,7 +46,7 @@ function export!(e::InMemoryExporter, x)
     if e.is_shut_down[]
         EXPORT_FAILURE
     else
-        push!(e.pool, x)
+        append!(e.pool, x)
         EXPORT_SUCCESS
     end
 end
@@ -68,8 +57,10 @@ Base.@kwdef struct ConsoleExporter <: AbstractExporter
     io::IO = stdout
 end
 
-function export!(ce::ConsoleExporter, x)
-    pprint(ce.io, x)
-    println(ce.io)
+function export!(ce::ConsoleExporter, batch)
+    for x in batch
+        pprint(ce.io, x)
+        println(ce.io)
+    end
     EXPORT_SUCCESS
 end

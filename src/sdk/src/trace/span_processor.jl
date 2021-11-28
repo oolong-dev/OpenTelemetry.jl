@@ -59,7 +59,7 @@ on_start(ssp::SimpleSpanProcessor, span) = nothing
 
 function on_end(ssp::SimpleSpanProcessor, span)
     if span_context(span).trace_flag.sampled
-        export!(ssp.span_exporter, span)
+        export!(ssp.span_exporter, [span])
     end
 end
 

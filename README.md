@@ -92,8 +92,11 @@ using OpenTelemetryAPI
 using OpenTelemetrySDK
 
 provider = MeterProvider()
+exporter = ConsoleExporter()
+reader = MetricReader(provider, exporter)
+
 meter = Meter("my_metrics"; provider=provider)
-counter = Counter{Int}("counter", m1)
+counter = Counter{Int}("counter", meter)
 counter(1)
 counter(3, "m.a" => 1, "m.b" => "b", "m.c" => 3.)
 ```

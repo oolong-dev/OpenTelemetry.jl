@@ -1,5 +1,4 @@
 include("aggregation.jl")
 include("view.jl")
-include("metric_exporter.jl")
 include("meter_provider.jl")
 include("metric_reader.jl")
