@@ -28,16 +28,10 @@ struct AlignedHistogramBucketExemplarReservoir <: AbstractExemplarReservoir end
 
 #####
 
-mutable struct DataPoint{T,E}
-    @atomic value::T
-    start_time_unix_nano::UInt
-    time_unix_nano::UInt
-    exemplar_reservoir::E
-end
-
-function DataPoint{T}(exemplar_reservoir=nothing) where {T}
-    t = UInt(time() * 10^9)
-    DataPoint(zero(T), t, t, exemplar_reservoir)
+if VERSION >= v"1.7.0-rc3"
+    include("datapoint_atomic.jl")
+else
+    include("datapoint_lock.jl")
 end
 
 struct AggregationStore{D<:DataPoint}
@@ -114,8 +108,7 @@ function (agg::SumAgg{T,E})(e::Exemplar{<:Measurement}) where {T,E}
         DataPoint{T}(agg.exemplar_reservoir_factory())
     end
     if !isnothing(point)
-        @atomic point.value += e.value.value
-        point.time_unix_nano = e.time_unix_nano
+        _add_to_datapoint!(point, e.value.value, e.time_unix_nano)
     end
 end
 
@@ -133,7 +126,7 @@ function (agg::LastValueAgg{T,E})(e::Exemplar{<:Measurement}) where {T,E}
         DataPoint{T}(agg.exemplar_reservoir_factory())
     end
     if !isnothing(point)
-        @atomic point.value = e.value.value
+        _update_to_datapoint!(point, e.value.value, e.time_unix_nano)
     end
 end
 
@@ -222,8 +215,7 @@ function (agg::HistogramAgg{T,E})(e::Exemplar{<:Measurement}) where {T,E}
         )
     end
     if !isnothing(point)
-        @atomic point.value += e.value.value
-        point.time_unix_nano = e.time_unix_nano
+        _add_to_datapoint!(point, e.value.value, e.time_unix_nano)
     end
 end
 
