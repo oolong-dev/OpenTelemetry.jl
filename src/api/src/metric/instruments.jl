@@ -13,6 +13,8 @@ struct Measurement{V,T<:StaticAttrs}
     attributes::T
 end
 
+Measurement(v) = Measurement(v, StaticAttrs())
+
 abstract type AbstractSyncInstrument{T} <: AbstractInstrument{T} end
 abstract type AbstractAsyncInstrument{T} <: AbstractInstrument{T} end
 

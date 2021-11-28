@@ -38,6 +38,7 @@ function (r::MetricReader{<:MeterProvider, <:PrometheusExporter})()
     end
 end
 
+# TODO: support exemplars
 function text_based_format(io, provider::MeterProvider)
     for m in values(provider.metrics)
         write(io, "# HELP $(m.name) $(m.description)")

@@ -1,7 +1,9 @@
+export View
+
 using Glob
 
 struct Criteria
-    instrument_type::Union{DataType,Nothing}
+    instrument_type::Union{DataType,UnionAll,Nothing}
     instrument_name::Union{Glob.FilenameMatch{String},Nothing}
     meter_name::Union{String,Nothing}
     meter_version::Union{VersionNumber,Nothing}
@@ -10,7 +12,7 @@ end
 
 function Base.occursin(ins::AbstractInstrument, c::Criteria)
     if !isnothing(c.instrument_type)
-        if !(typeof(ins) isa c.instrument_type)
+        if !(ins isa c.instrument_type)
             return false
         end
     end
@@ -51,9 +53,9 @@ struct View{A}
     aggregation::A
 end
 
-function View(;
-    name = nothing,
-    description = nothing,
+function View(
+    name = nothing
+    ; description = nothing,
     attribute_keys = nothing,
     extra_dimensions = StaticAttrs(),
     aggregation = nothing,
@@ -61,21 +63,31 @@ function View(;
     instrument_name = nothing,
     instrument_type = nothing,
     meter_name = nothing,
-    meter_version_bound = nothing,
-    meter_schema_url = nothing,
+    meter_version = nothing,
+    meter_schema_url = nothing
 )
+    if !isnothing(name)
+        if isnothing(instrument_name)
+            instrument_name = name
+            if occursin(r"[*?\[\]]", name)
+                # name contains wildcard
+                name = nothing  # so that the name will be instrument name automatically
+            end
+        end
+    end
+
     something(
         instrument_name,
         instrument_type,
         meter_name,
-        meter_version_bound,
+        meter_version,
         meter_schema_url,
     )
     criteria = Criteria(
         instrument_type,
         isnothing(instrument_name) ? nothing : Glob.FilenameMatch(instrument_name),
         meter_name,
-        meter_version_bound,
+        meter_version,
         meter_schema_url,
     )
     View(name, description, criteria, attribute_keys, extra_dimensions, aggregation)
