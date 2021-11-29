@@ -54,8 +54,8 @@ struct View{A}
 end
 
 function View(
-    name = nothing
-    ; description = nothing,
+    name = nothing;
+    description = nothing,
     attribute_keys = nothing,
     extra_dimensions = StaticAttrs(),
     aggregation = nothing,
@@ -64,7 +64,7 @@ function View(
     instrument_type = nothing,
     meter_name = nothing,
     meter_version = nothing,
-    meter_schema_url = nothing
+    meter_schema_url = nothing,
 )
     if !isnothing(name)
         if isnothing(instrument_name)
@@ -76,13 +76,7 @@ function View(
         end
     end
 
-    something(
-        instrument_name,
-        instrument_type,
-        meter_name,
-        meter_version,
-        meter_schema_url,
-    )
+    something(instrument_name, instrument_type, meter_name, meter_version, meter_schema_url)
     criteria = Criteria(
         instrument_type,
         isnothing(instrument_name) ? nothing : Glob.FilenameMatch(instrument_name),
