@@ -42,7 +42,7 @@ function (metric::Metric)(m::Measurement)
         time_unix_nano = UInt(time() * 10^9),
         filtered_attributes = filtered_attributes,
         trace_id = trace_id,
-        span_id = span_id
+        span_id = span_id,
     )
     metric.aggregation(exemplar)
 end
@@ -57,7 +57,11 @@ struct MeterProvider <: AbstractMeterProvider
     n_max_metrics::UInt
 end
 
-function MeterProvider(;resource = Resource(), views = View[], n_max_metrics = N_MAX_METRICS)
+function MeterProvider(;
+    resource = Resource(),
+    views = View[],
+    n_max_metrics = N_MAX_METRICS,
+)
     if isempty(views)
         push!(views, View(; instrument_name = "*"))
     end

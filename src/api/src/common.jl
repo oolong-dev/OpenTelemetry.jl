@@ -83,7 +83,7 @@ function Limited(xs::Union{Dict,AbstractVector}; limit = 32)
     n_dropped = Ref(0)
     if length(xs) > limit
         n_dropped[] = length(xs) - limit
-        for _ = 1:(length(xs)-limit)
+        for _ in 1:(length(xs)-limit)
             pop!(xs)
         end
     end
@@ -219,7 +219,7 @@ struct DynamicAttrs
     function DynamicAttrs(
         d::Dict{String,TAttrVal};
         count_limit = 128,
-        value_length_limit = nothing
+        value_length_limit = nothing,
     )
         if !isnothing(value_length_limit)
             for k in keys(d)

@@ -5,15 +5,11 @@ using Sockets
 
 mutable struct PrometheusExporter <: AbstractExporter
     server::Sockets.TCPServer
-    provider::Union{MeterProvider, Nothing}
-    function PrometheusExporter(
-        ;host="127.0.0.1",
-        port=9966,
-        kw...
-    )
+    provider::Union{MeterProvider,Nothing}
+    function PrometheusExporter(; host = "127.0.0.1", port = 9966, kw...)
         server = Sockets.listen(Sockets.InetAddr(parse(IPAddr, host), port))
         exporter = new(server, nothing)
-        @async HTTP.listen(host, port;server=server, kw...) do http
+        @async HTTP.listen(host, port; server = server, kw...) do http
             HTTP.setstatus(http, 200)
             HTTP.setheader(http, "Content-Type" => "text/plain")
 
@@ -30,7 +26,7 @@ mutable struct PrometheusExporter <: AbstractExporter
     end
 end
 
-function (r::MetricReader{<:MeterProvider, <:PrometheusExporter})()
+function (r::MetricReader{<:MeterProvider,<:PrometheusExporter})()
     if isnothing(r.exporter.provider)
         r.exporter.provider = r.provider
     else
@@ -46,7 +42,7 @@ function text_based_format(io, provider::MeterProvider)
         for (attrs, point) in m.aggregation.agg_store.unique_points
             if point isa DataPoint{<:OpenTelemetrySDK.HistogramValue}
                 val = point.value
-                for (i,c) in enumerate(Iterators.accumulate(+, val.counts))
+                for (i, c) in enumerate(Iterators.accumulate(+, val.counts))
                     if i == length(val.counts)
                         write(io, "$(m.name)_bucket{le=\"+Inf\"} $c")
                         write(io, "$(m.name)_count $c")
@@ -61,7 +57,7 @@ function text_based_format(io, provider::MeterProvider)
             else
                 write(io, "$(m.name){")
                 # TODO: escape
-                join(io, ("$k=\"$v\"" for (k,v) in pairs(attrs)), ",")
+                join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
                 write(io, "} $(point.value) $(point.time_unix_nano) \n")
             end
         end
