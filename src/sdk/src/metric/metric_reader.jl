@@ -1,7 +1,4 @@
-export AbstractMetricReader,
-    CompositMetricReader,
-    MetricReader,
-    PeriodicMetricReader
+export AbstractMetricReader, CompositMetricReader, MetricReader, PeriodicMetricReader
 
 abstract type AbstractMetricReader end
 
@@ -29,18 +26,23 @@ end
 struct MetricReader{P,E} <: AbstractMetricReader
     provider::P
     exporter::E
-    function MetricReader(; provider::P, exporter::E) where {P,E}
+    function MetricReader(provider::P, exporter::E) where {P,E}
         r = new{P,E}(provider, exporter)
         r()
         r
     end
 end
 
+MetricReader(; provider, exporter) = MetricReader(provider, exporter)
+
 function (r::MetricReader)()
     for ins in keys(r.provider.async_instruments)
         ins()
     end
-    export!(r.exporter, (m => d for m in values(r.provider.metrics) for d in m.aggregation.agg_store.unique_points))
+    export!(
+        r.exporter,
+        (m for m in values(r.provider.metrics)),
+    )
 end
 
 # ??? shut_down! provider?
@@ -69,12 +71,7 @@ struct PeriodicMetricReader{R<:AbstractMetricReader} <: AbstractMetricReader
             end
         end
 
-        new{typeof(reader)}(
-            reader,
-            export_interval_seconds,
-            export_timeout_seconds,
-            timer,
-        )
+        new{typeof(reader)}(reader, export_interval_seconds, export_timeout_seconds, timer)
     end
 end
 

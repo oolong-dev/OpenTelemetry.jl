@@ -55,6 +55,35 @@ function AggregationStore{D}(
     )
 end
 
+function GarishPrint.pprint_struct(io::GarishPrint.GarishIO, mime::MIME"text/plain", a::AggregationStore)
+    GarishPrint.print_token(io, :type, AggregationStore)
+    print(io.bland_io, "(")
+    io.compact || println(io.bland_io)
+
+    GarishPrint.within_nextlevel(io) do
+        f = :unique_points
+        GarishPrint.print_indent(io)
+        GarishPrint.print_token(io, :fieldname, f)
+
+        if io.compact
+            print(io.bland_io, "=")
+        else
+            print(io.bland_io, " = ")
+            io.state.offset = 3 + length(string(f))
+        end
+
+        pprint(io, mime, a.unique_points)
+    end
+
+    io.compact || println(io.bland_io)
+    GarishPrint.print_indent(io)
+    print(io.bland_io, ")")
+end
+
+Base.iterate(a::AggregationStore, args...) = iterate(a.unique_points, args...)
+Base.getindex(m::AggregationStore, k) = getindex(m.unique_points, k)
+Base.length(m::AggregationStore) = length(m.unique_points)
+
 function Base.get!(f, agg::AggregationStore, attrs)
     point = get(agg.points, attrs, nothing)
     if isnothing(point)
@@ -95,6 +124,10 @@ end
 #####
 
 abstract type AbstractAggregation end
+
+Base.iterate(a::AbstractAggregation, args...) = iterate(a.agg_store, args...)
+Base.getindex(m::AbstractAggregation, k) = getindex(m.agg_store, k)
+Base.length(m::AbstractAggregation) = length(m.agg_store)
 
 struct SumAgg{T,E,F} <: AbstractAggregation
     agg_store::AggregationStore{DataPoint{T,E}}

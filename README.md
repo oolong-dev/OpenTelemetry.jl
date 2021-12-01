@@ -56,37 +56,10 @@ with_span(Span("foo", tracer)) do
 end
 ```
 
-To send traces to OpenTelemetry Collector:
-
-```julia
-using OpenTelemetryAPI
-using OpenTelemetrySDK
-using OpenTelemetryExporterOtlpProtoGrpc
-
-provider = TracerProvider(
-    span_processor=CompositSpanProcessor(
-        SimpleSpanProcessor(
-            OtlpProtoGrpcExporter(;url="http://localhost:4317")
-        )
-    )
-)
-
-tracer = Tracer(provider=provider)
-
-with_span(Span("foo", tracer)) do
-    with_span(Span("bar", tracer)) do
-        with_span(Span("baz", tracer)) do
-            println("Hello world!")
-        end
-    end
-end
-```
-
 ### Metrics
 
 ```julia
-using OpenTelemetryAPI
-using OpenTelemetrySDK
+using OpenTelemetry
 
 provider = MeterProvider()
 exporter = ConsoleExporter()
@@ -95,5 +68,7 @@ reader = MetricReader(provider, exporter)
 meter = Meter("my_metrics"; provider=provider)
 counter = Counter{Int}("counter", meter)
 counter(1)
-counter(3, "m.a" => 1, "m.b" => "b", "m.c" => 3.)
+counter(3; a = 1, b = "b", c = 3.)
+
+reader()
 ```

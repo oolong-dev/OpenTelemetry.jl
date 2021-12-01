@@ -188,6 +188,15 @@ struct StaticAttrs{T<:NamedTuple}
     end
 end
 
+function Base.show(io::IO, s::StaticAttrs)
+    print(io, "StaticAttrs")
+    if isempty(s.attrs)
+        print(io, "()")
+    else
+        print(io, s.attrs)
+    end
+end
+
 StaticAttrs(; kw...) = StaticAttrs(NamedTuple(); kw...)
 
 n_dropped(a::StaticAttrs) = 0

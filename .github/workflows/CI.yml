@@ -15,8 +15,8 @@ jobs:
       fail-fast: false
       matrix:
         version:
+          - '1.6'  # LTS
           - '1'
-          - '1.7.0-rc3'
         os:
           - ubuntu-latest
           # - windows-latest # https://github.com/JuliaIO/ProtoBuf.jl/issues/178
