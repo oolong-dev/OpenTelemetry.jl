@@ -3,8 +3,16 @@ uuid = "c1912aec-9d41-432b-84fe-e17fd97255be"
 authors = ["Jun Tian <tianjun.cpp@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+OpenTelemetryAPI = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
+OpenTelemetrySDK = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
+Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
+
 [compat]
 julia = "1"
+OpenTelemetryAPI = "0.1"
+OpenTelemetrySDK = "0.1"
+Reexport = "1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

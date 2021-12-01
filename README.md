@@ -37,14 +37,11 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 To show traces in your console:
 
 ```julia
-using OpenTelemetryAPI
-using OpenTelemetrySDK
+using OpenTelemetry
 
 provider = TracerProvider(
-    span_processor=CompositSpanProcessor(
-        SimpleSpanProcessor(
-            ConsoleExporter()
-        )
+    span_processor= SimpleSpanProcessor(
+        ConsoleExporter()
     )
 )
 

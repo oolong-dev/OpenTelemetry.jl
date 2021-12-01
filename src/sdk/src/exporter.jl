@@ -7,8 +7,6 @@ export AbstractExporter,
     shut_down!,
     force_flush!
 
-using GarishPrint: pprint
-
 @enum ExportResult begin
     EXPORT_SUCCESS
     EXPORT_FAILURE
@@ -60,6 +58,8 @@ end
 function export!(ce::ConsoleExporter, batch)
     for x in batch
         pprint(ce.io, x)
+        println(ce.io)
+        print(ce.io, repeat("-", displaysize(ce.io)[2]))
         println(ce.io)
     end
     EXPORT_SUCCESS

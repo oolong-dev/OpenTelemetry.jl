@@ -1,5 +1,8 @@
 module OpenTelemetry
 
-# Write your package code here.
+using Reexport
+
+@reexport using OpenTelemetryAPI
+@reexport using OpenTelemetrySDK
 
 end

@@ -86,9 +86,9 @@ function with_span(
     s::Span;
     end_on_exit = true,
     record_exception = true,
-    set_status_on_exception = true,
+    set_status_on_exception = true
 )
-    with_context(SPAN_KEY_IN_CONTEXT => s) do
+    with_context(; SPAN_KEY_IN_CONTEXT => s) do
         try
             f()
         catch ex
@@ -194,12 +194,13 @@ function Base.push!(s::Span, ex::Exception; is_rethrow_followed = false)
     showerror(st_io, CapturedException(ex, catch_backtrace()))
     st = String(take!(st_io))
 
-    attrs = StaticAttrs(
-        "exception.type" => string(typeof(ex)),
-        "exception.type" => string(typeof(ex)),
-        "exception.message" => msg,
-        "exception.stacktrace" => st,
-        "exception.escaped" => is_rethrow_followed,
+    attrs = StaticAttrs((
+        ; Symbol("exception.type") => string(typeof(ex)),
+        Symbol("exception.type") => string(typeof(ex)),
+        Symbol("exception.message") => msg,
+        Symbol("exception.stacktrace") => st,
+        Symbol("exception.escaped") => is_rethrow_followed
+    )
     )
 
     push!(s, Event(name = "exception", attributes = attrs))
