@@ -65,9 +65,9 @@ end
 @testset "context" begin
     @test isnothing(get(current_context(), :say, nothing))
 
-    with_context(:say => "foo") do
+    with_context(; say = "foo") do
         @test current_context()[:say] == "foo"
-        with_context(:say => "bar") do
+        with_context(; say = "bar") do
             @test current_context()[:say] == "bar"
         end
         @test current_context()[:say] == "foo"
@@ -75,9 +75,9 @@ end
 
     @test isnothing(get(current_context(), :say, nothing))
 
-    with_context(:a => "foo") do
+    with_context(; a = "foo") do
         Threads.@spawn begin
-            with_context(:b => "bar") do
+            with_context(; b = "bar") do
                 Threads.@spawn begin
                     @test current_context()[:a] == "foo"
                     @test current_context()[:b] == "bar"

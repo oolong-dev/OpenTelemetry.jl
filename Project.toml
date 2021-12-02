@@ -9,13 +9,15 @@ OpenTelemetrySDK = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 
 [compat]
-julia = "1"
 OpenTelemetryAPI = "0.1"
 OpenTelemetrySDK = "0.1"
 Reexport = "1"
+julia = "1"
 
 [extras]
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+LoggingExtras = "e6f89c97-d47a-5376-807f-9c37f3926c36"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Test", "Logging", "LoggingExtras"]

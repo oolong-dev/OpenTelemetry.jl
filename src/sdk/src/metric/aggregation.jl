@@ -4,8 +4,6 @@ export Exemplar,
     HistogramAgg,
     DROP
 
-using Base.Threads
-
 const N_MAX_POINTS_PER_METRIC = 2_000
 
 #####

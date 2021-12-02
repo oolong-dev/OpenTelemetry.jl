@@ -10,6 +10,7 @@ open(joinpath(@__DIR__, "..", "README.md"), "r") do f_src
         s_dest = read(f_src, String)
         s_dest = replace(s_dest, "<!-- ```@raw html -->" => "```@raw html")
         s_dest = replace(s_dest, "<!-- ``` -->" => "```")
+        s_dest = replace(s_dest, "```julia" => "```@example")
         write(f_dest, s_dest)
     end
 end

@@ -152,6 +152,7 @@ const TAttrVal = Union{
     String,
     Bool,
     Int64,
+    Int128,
     Float64,
     Vector{String},
     Vector{Bool},
