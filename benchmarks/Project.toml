@@ -1,0 +1,4 @@
+[deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+OpenTelemetry = "c1912aec-9d41-432b-84fe-e17fd97255be"
