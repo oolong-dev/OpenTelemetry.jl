@@ -6,6 +6,11 @@ Logging.disable_logging(Logging.Error)
 
 suite = BenchmarkGroup()
 
+#####
+
+trace_suite = BenchmarkGroup()
+suite["Trace"] = trace_suite
+
 const TRACER = Tracer(
     provider = TracerProvider(;
         sampler = DEFAULT_ON,
@@ -31,8 +36,44 @@ function create_span(t)
     end
 end
 
-suite["Create Span"] = @benchmarkable create_span($TRACER)
+trace_suite["Create Span"] = @benchmarkable create_span($TRACER)
+
+#####
+
+meter_suite = BenchmarkGroup()
+suite["Meter"] = meter_suite
+
+const PROVIDER = MeterProvider(
+    ;views = [
+        View("benchmark_counter"),
+        View(
+            "benchmark_histogram";
+            aggregation=HistogramAgg{Int}(;
+                boundaries = Tuple(100.:100.:900.)
+            )
+        )
+    ]
+)
+const METER = Meter("benchmark_meter"; provider=PROVIDER)
+const COUNTER = Counter{Int}("benchmark_counter", METER)
+
+function update_counter(c, n)
+    c(n; name="a", code=2, msg = "hi")
+end
+
+meter_suite["Update Counter"] = @benchmarkable update_counter(c, n) setup=(c=$COUNTER;n=rand(1:100))
+
+const HISTOGRAM = Histogram{Int}("benchmark_histogram", METER)
+
+function update_histogram(h, n)
+    h(n; name="a", code=2, msg = "hi")
+end
+
+meter_suite["Update Histogram"] = @benchmarkable update_histogram(h, n) setup=(h=$HISTOGRAM; n=rand(1:1_000))
+
+#####
 
 tune!(suite)
 results = run(suite)
+println(results)
 BenchmarkTools.save(joinpath(@__DIR__, "output.json"), median(results))
