@@ -1,6 +1,6 @@
 module OpenTelemetryExporterOtlpProtoGrpc
 
-export OtlpProtoGrpcExporter
+export OtlpProtoGrpcTraceExporter
 
 using gRPCClient
 
@@ -15,20 +15,20 @@ const Trace = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.trace.
 const Resource = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.resource.v1
 const Common = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.common.v1
 
-struct OtlpProtoGrpcExporter{T} <: SDK.AbstractExporter
+struct OtlpProtoGrpcTraceExporter{T} <: SDK.AbstractExporter
     client::T
 end
 
-function OtlpProtoGrpcExporter(; url = "http://localhost:4317", is_blocking = true, kw...)
+function OtlpProtoGrpcTraceExporter(; url = "http://localhost:4317", is_blocking = true, kw...)
     if is_blocking
         client = Otlp.TraceServiceBlockingClient(url; kw...)
     else
         client = Otlp.TraceServiceClient(url; kw...)
     end
-    OtlpProtoGrpcExporter(client)
+    OtlpProtoGrpcTraceExporter(client)
 end
 
-function SDK.export!(se::OtlpProtoGrpcExporter, sp)
+function SDK.export!(se::OtlpProtoGrpcTraceExporter, sp)
     res, status = Otlp.Export(se.client, convert(Otlp.ExportTraceServiceRequest, sp))
     if gRPCClient.gRPCCheck(status; throw_error = false)
         SDK.EXPORT_SUCCESS

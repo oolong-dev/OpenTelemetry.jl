@@ -5,12 +5,12 @@
 
         @testset "TraceState" begin
             ts = TraceState(
-                "1a-2f@foo"    => "bar1",
+                "1a-2f@foo" => "bar1",
                 "1a-_*/2b@foo" => "bar2",
-                "foo"          => "bar3",
-                "foo-_*/bar"   => "bar4",
-                "^foo-_*/bar"  => "bar5",
-                "hello"        => "世界！",
+                "foo" => "bar3",
+                "foo-_*/bar" => "bar4",
+                "^foo-_*/bar" => "bar5",
+                "hello" => "世界！",
             )
 
             @test string(ts) == "1a-2f@foo=bar1,1a-_*/2b@foo=bar2,foo=bar3,foo-_*/bar=bar4"

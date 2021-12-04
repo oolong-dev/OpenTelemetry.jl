@@ -37,66 +37,51 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 To show traces in your console:
 
 ```julia
-using OpenTelemetryAPI
-using OpenTelemetrySDK
+using OpenTelemetry
 
-provider = TracerProvider(
-    span_processor=CompositSpanProcessor(
-        SimpleSpanProcessor(
+tracer = Tracer(
+    provider = TracerProvider(
+        span_processor = SimpleSpanProcessor(
             ConsoleExporter()
         )
     )
-)
+);
 
-tracer = Tracer(provider=provider)
-
-with_span(Span("foo", tracer)) do
-    with_span(Span("bar", tracer)) do
-        with_span(Span("baz", tracer)) do
-            println("Hello world!")
-        end
-    end
-end
-```
-
-To send traces to OpenTelemetry Collector:
-
-```julia
-using OpenTelemetryAPI
-using OpenTelemetrySDK
-using OpenTelemetryExporterOtlpProtoGrpc
-
-provider = TracerProvider(
-    span_processor=CompositSpanProcessor(
-        SimpleSpanProcessor(
-            OtlpProtoGrpcExporter(;url="http://localhost:4317")
-        )
-    )
-)
-
-tracer = Tracer(provider=provider)
-
-with_span(Span("foo", tracer)) do
-    with_span(Span("bar", tracer)) do
-        with_span(Span("baz", tracer)) do
-            println("Hello world!")
-        end
-    end
+with_span(Span("Hello", tracer)) do
+    println("World!")
 end
 ```
 
 ### Metrics
 
 ```julia
-using OpenTelemetryAPI
-using OpenTelemetrySDK
+using OpenTelemetry
 
-provider = MeterProvider()
-exporter = ConsoleExporter()
-reader = MetricReader(provider, exporter)
+p = MeterProvider();
+e = ConsoleExporter();
+r = MetricReader(p, e);
 
-meter = Meter("my_metrics"; provider=provider)
-counter = Counter{Int}("counter", meter)
-counter(1)
-counter(3, "m.a" => 1, "m.b" => "b", "m.c" => 3.)
+m = Meter("my_metrics"; provider=p);
+c = Counter{Int}("fruit_counter", m);
+
+c(; name = "apple", color = "red")
+c(2; name = "lemon", color = "yellow")
+c(1; name = "lemon", color = "yellow")
+c(2; name = "apple", color = "green")
+c(5; name = "apple", color = "red")
+c(4; name = "lemon", color = "yellow")
+
+r()
+```
+
+### Logging
+
+```julia
+using OpenTelemetry
+using Logging
+using LoggingExtras
+
+with_logger(TransformerLogger(LogTransformer(), global_logger())) do
+    @info "hello world!"
+end
 ```

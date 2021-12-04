@@ -17,7 +17,7 @@ struct Context{T<:NamedTuple}
     kv::T
 end
 
-Context(; kw...) = Context(values(kw))
+Context() = Context(NamedTuple())
 
 Base.merge(c1::Context, c2::Context) = Context(merge(c1.kv, c2.kv))
 
@@ -27,15 +27,15 @@ for f in (:getindex, :haskey, :get)
     @eval Base.$f(ctx::Context, args...) = $f(ctx.kv, args...)
 end
 
-with_context(f, kv::Pair{Symbol}...) = with_context(f, current_context(), kv...)
+with_context(f; kv...) = with_context(f, current_context(); kv...)
 
 """
-    with_context(f, [context], [k=>v]...)
+    with_context(f, [context]; kv...)
 
 Run function `f` in the `context`. If extra `kv` pairs are provided, they will be merged with the `context` to form a new context. When `context` is not provided, the [`current_context`](@ref) will be used.
 """
-function with_context(f, ctx::Context, kv::Pair{Symbol}...)
-    task_local_storage(CONTEXT_KEY, merge(ctx, Context(; kv...))) do
+function with_context(f, ctx::Context; kw...)
+    task_local_storage(CONTEXT_KEY, merge(ctx, Context(values(kw)))) do
         f()
     end
 end
@@ -152,6 +152,7 @@ const TAttrVal = Union{
     String,
     Bool,
     Int64,
+    Int128,
     Float64,
     Vector{String},
     Vector{Bool},
@@ -188,9 +189,15 @@ struct StaticAttrs{T<:NamedTuple}
     end
 end
 
-StaticAttrs(attrs::Pair{String}...; kw...) =
-    StaticAttrs(NamedTuple(Symbol(k) => v for (k, v) in attrs); kw...)
-StaticAttrs(attrs::Pair{Symbol}...; kw...) = StaticAttrs(NamedTuple(attrs); kw...)
+function Base.show(io::IO, s::StaticAttrs)
+    print(io, "StaticAttrs")
+    if isempty(s.attrs)
+        print(io, "()")
+    else
+        print(io, s.attrs)
+    end
+end
+
 StaticAttrs(; kw...) = StaticAttrs(NamedTuple(); kw...)
 
 n_dropped(a::StaticAttrs) = 0

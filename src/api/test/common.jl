@@ -4,7 +4,7 @@
 
         @test n_dropped(L1) == 0
 
-        for i in 4:8
+        for i = 4:8
             push!(L1, i)
         end
 
@@ -31,14 +31,14 @@ end
     A = StaticAttrs()
     @test length(A) == 0
 
-    A1 = StaticAttrs("m.x" => 1, "m.y" => -2.0, "m.z" => "abcdefg"; value_length_limit = 3)
-    @test A1["m.x"] == 1
-    @test A1["m.z"] == "abc"
+    A1 = StaticAttrs((x = 1, y = -2.0, z = "abcdefg"); value_length_limit = 3)
+    @test A1["x"] == 1
+    @test A1["z"] == "abc"
 
-    A2 = StaticAttrs(:x => 1, :y => -2.0, :z => "0")
+    A2 = StaticAttrs((; :x => 1, :y => -2.0, :z => "0"))
     @test A2[:z] == "0"
 
-    @test_throws ArgumentError StaticAttrs("abc" => nothing)
+    @test_throws MethodError StaticAttrs("abc" => nothing)
 end
 
 @testset "DynamicAttrs" begin
@@ -65,9 +65,9 @@ end
 @testset "context" begin
     @test isnothing(get(current_context(), :say, nothing))
 
-    with_context(:say => "foo") do
+    with_context(; say = "foo") do
         @test current_context()[:say] == "foo"
-        with_context(:say => "bar") do
+        with_context(; say = "bar") do
             @test current_context()[:say] == "bar"
         end
         @test current_context()[:say] == "foo"
@@ -75,9 +75,9 @@ end
 
     @test isnothing(get(current_context(), :say, nothing))
 
-    with_context(:a => "foo") do
+    with_context(; a = "foo") do
         Threads.@spawn begin
-            with_context(:b => "bar") do
+            with_context(; b = "bar") do
                 Threads.@spawn begin
                     @test current_context()[:a] == "foo"
                     @test current_context()[:b] == "bar"

@@ -43,15 +43,13 @@
 
     r()
 
-    c_points =
-        Dict(attrs => point for (m, (attrs, point)) in e.pool if m.name == "fruit_counter")
+    c_points = first(m for m in e if m.name == "fruit_counter")
     @test length(c_points) == 3
     @test c_points[StaticAttrs((color = "red", name = "apple"))].value == 6
     @test c_points[StaticAttrs((color = "yellow", name = "lemon"))].value == 7
     @test c_points[StaticAttrs((color = "green", name = "apple"))].value == 2
 
-    h_points =
-        Dict(attrs => point for (m, (attrs, point)) in e.pool if m.name == "n_requests")
+    h_points = first(m for m in e if m.name == "n_requests")
     @test length(h_points) == 1
     hist = h_points[StaticAttrs()].value.counts
     @test hist[1] == 0
@@ -61,23 +59,16 @@
     @test hist[end] == 1
     @test sum(hist) == 6
 
-    udc_points = Dict(attrs => point for (m, (attrs, point)) in e.pool if m.name == "stock")
+    udc_points = first(m for m in e if m.name == "stock")
     @test udc_points[StaticAttrs()].value == 300
 
-    oc_points = Dict(
-        attrs => point for (m, (attrs, point)) in e.pool if m.name == "observable_counter"
-    )
+    oc_points = first(m for m in e if m.name == "observable_counter")
     @test oc_points[StaticAttrs()].value == 0
 
-    oudc_points = Dict(
-        attrs => point for
-        (m, (attrs, point)) in e.pool if m.name == "observable_up_down_counter"
-    )
+    oudc_points = first(m for m in e if m.name == "observable_up_down_counter")
     @test oudc_points[StaticAttrs()].value == -4
 
-    og_points = Dict(
-        attrs => point for (m, (attrs, point)) in e.pool if m.name == "observable_gauge"
-    )
+    og_points = first(m for m in e if m.name == "observable_gauge")
     @test og_points[StaticAttrs()].value == -6
 
     # observe again!
@@ -86,15 +77,13 @@
     empty!(e)
     r()
 
-    c_points =
-        Dict(attrs => point for (m, (attrs, point)) in e.pool if m.name == "fruit_counter")
+    c_points = first(m for m in e if m.name == "fruit_counter")
     @test length(c_points) == 3
     @test c_points[StaticAttrs((color = "red", name = "apple"))].value == 6
     @test c_points[StaticAttrs((color = "yellow", name = "lemon"))].value == 7
     @test c_points[StaticAttrs((color = "green", name = "apple"))].value == 2
 
-    h_points =
-        Dict(attrs => point for (m, (attrs, point)) in e.pool if m.name == "n_requests")
+    h_points = first(m for m in e if m.name == "n_requests")
     @test length(h_points) == 1
     hist = h_points[StaticAttrs()].value.counts
     @test hist[1] == 0
@@ -104,48 +93,34 @@
     @test hist[end] == 1
     @test sum(hist) == 6
 
-    udc_points = Dict(attrs => point for (m, (attrs, point)) in e.pool if m.name == "stock")
+    udc_points = first(m for m in e if m.name == "stock")
     @test udc_points[StaticAttrs()].value == 300
 
-    oc_points = Dict(
-        attrs => point for (m, (attrs, point)) in e.pool if m.name == "observable_counter"
-    )
+    oc_points = first(m for m in e if m.name == "observable_counter")
     @test oc_points[StaticAttrs()].value == 0 + 2
 
-    oudc_points = Dict(
-        attrs => point for
-        (m, (attrs, point)) in e.pool if m.name == "observable_up_down_counter"
-    )
+    oudc_points = first(m for m in e if m.name == "observable_up_down_counter")
     @test oudc_points[StaticAttrs()].value == -4 + (-2)
 
-    og_points = Dict(
-        attrs => point for (m, (attrs, point)) in e.pool if m.name == "observable_gauge"
-    )
+    og_points = first(m for m in e if m.name == "observable_gauge")
     @test og_points[StaticAttrs()].value == -4 # the last value
 
     # observe again
     empty!(e)
     r()
 
-    oc_points = Dict(
-        attrs => point for (m, (attrs, point)) in e.pool if m.name == "observable_counter"
-    )
+    oc_points = first(m for m in e if m.name == "observable_counter")
     @test oc_points[StaticAttrs()].value == 0 + 2 + 4
 
-    oudc_points = Dict(
-        attrs => point for
-        (m, (attrs, point)) in e.pool if m.name == "observable_up_down_counter"
-    )
+    oudc_points = first(m for m in e if m.name == "observable_up_down_counter")
     @test oudc_points[StaticAttrs()].value == -4 + (-2) + 0
 
-    og_points = Dict(
-        attrs => point for (m, (attrs, point)) in e.pool if m.name == "observable_gauge"
-    )
+    og_points = first(m for m in e if m.name == "observable_gauge")
     @test og_points[StaticAttrs()].value == -2 # the last value
 
     periodic_reader = PeriodicMetricReader(
         CompositMetricReader(r, MetricReader(; provider = p, exporter = ConsoleExporter()));
-        export_interval_seconds = 1,
+        export_interval_seconds = 1
     )
 
     sleep(3)
@@ -155,7 +130,7 @@ end
 @testset "AggregationStore" begin
     store = OpenTelemetrySDK.AggregationStore{OpenTelemetrySDK.DataPoint{Int,Nothing}}(;
         n_max_points = 3,
-        n_max_attrs = 4,
+        n_max_attrs = 4
     )
     init_data = () -> OpenTelemetrySDK.DataPoint{Int}()
 
@@ -187,7 +162,7 @@ end
             View(
                 "Bar";
                 instrument_name = "Y",
-                aggregation = HistogramAgg{Int}(boundaries = b),
+                aggregation = HistogramAgg{Int}(boundaries = b)
             ),
         ],
     )
@@ -215,9 +190,9 @@ end
 
     @test length(e.pool) == 3
 
-    @test first(data.value for (m, (attr, data)) in e.pool if m.name == "X") == 2 + 3 + 1
+    @test first(m for m in e if m.name == "X")[StaticAttrs()].value == 2 + 3 + 1
 
-    foo = first(data.value.counts for (m, (attr, data)) in e.pool if m.name == "Foo")
+    foo = first(m for m in e if m.name == "Foo")[StaticAttrs()].value.counts
     # DEFAULT_HISTOGRAM_BOUNDARIES = (0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0)
     @test foo[1] == 1
     @test foo[2] == 1
@@ -225,7 +200,7 @@ end
     @test foo[end] == 1
     @test sum(foo) == 4
 
-    bar = first(data.value.counts for (m, (attr, data)) in e.pool if m.name == "Bar")
+    bar = first(m for m in e if m.name == "Bar")[StaticAttrs()].value.counts
     # b = (5.0, 10.0, 25.0, 50.0, 100.0)
     @test bar[1] == 2
     @test bar[end] == 2
@@ -240,7 +215,7 @@ end
                 instrument_type = Counter,
                 meter_name = "test",
                 meter_version = v"0.0.1-dev",
-                meter_schema_url = "",
+                meter_schema_url = ""
             ),
             View("X"; aggregation = DROP),
         ],
@@ -261,8 +236,6 @@ end
 
     r()
 
-    @test length(e.pool) == 1
-    (m, (attr, data)) = e.pool[1]
-
-    @test m.name == "Y"
+    @test length(e) == 1
+    @test e.pool[1].name == "Y"
 end

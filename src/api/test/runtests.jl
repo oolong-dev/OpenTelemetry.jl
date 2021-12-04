@@ -1,6 +1,5 @@
 using OpenTelemetryAPI
 using Test
-using Base.Threads
 using LoggingExtras
 using Logging
 

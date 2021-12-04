@@ -26,12 +26,14 @@ end
 struct MetricReader{P,E} <: AbstractMetricReader
     provider::P
     exporter::E
-    function MetricReader(; provider::P, exporter::E) where {P,E}
+    function MetricReader(provider::P, exporter::E) where {P,E}
         r = new{P,E}(provider, exporter)
         r()
         r
     end
 end
+
+MetricReader(; provider, exporter) = MetricReader(provider, exporter)
 
 function (r::MetricReader)()
     for ins in keys(r.provider.async_instruments)
@@ -39,10 +41,7 @@ function (r::MetricReader)()
     end
     export!(
         r.exporter,
-        (
-            m => d for m in values(r.provider.metrics) for
-            d in m.aggregation.agg_store.unique_points
-        ),
+        (m for m in values(r.provider.metrics)),
     )
 end
 

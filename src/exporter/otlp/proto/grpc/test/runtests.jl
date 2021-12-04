@@ -5,7 +5,7 @@ using OpenTelemetryProto
 using OpenTelemetryExporterOtlpProtoGrpc
 
 exporter = InMemoryExporter()
-# exporter = OtlpProtoGrpcExporter()
+# exporter = OtlpProtoGrpcTraceExporter()
 
 p = TracerProvider(span_processor = CompositSpanProcessor(SimpleSpanProcessor(exporter)))
 

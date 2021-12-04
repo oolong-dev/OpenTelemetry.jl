@@ -110,7 +110,6 @@ current_span
 with_span
 Base.push!(s::Span, ex::Exception)
 Base.push!(s::Span, link::Link)
-Base.push!(s::Span, event::Event)
 Base.setindex!(s::Span, val, key)
 Base.getindex(s::Span, key)
 set_status!
