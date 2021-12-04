@@ -11,10 +11,12 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 
 | Package | Latest Version | Status |
 |:--------|:---------------|:-------|
+|`OpenTelemetry` | | |
 |`OpenTelemetryAPI` | [![version](https://juliahub.com/docs/OpenTelemetryAPI/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryAPI/p4SiN) | [![pkgeval](https://juliahub.com/docs/OpenTelemetryAPI/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetryAPI/p4SiN) |
 | `OpenTelemetrySDK` | [![version](https://juliahub.com/docs/OpenTelemetrySDK/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetrySDK/NFHPX) | [![pkgeval](https://juliahub.com/docs/OpenTelemetrySDK/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetrySDK/NFHPX) |
 | `OpenTelemetryProto` | [![version](https://juliahub.com/docs/OpenTelemetryProto/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryProto/l1kB4) | [![pkgeval](https://juliahub.com/docs/OpenTelemetryProto/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetryProto/l1kB4) |
 | `OpenTelemetryExporterOtlpProtoGrpc` | [![version](https://juliahub.com/docs/OpenTelemetryExporterOtlpProtoGrpc/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterOtlpProtoGrpc/S0kTL) | [![pkgeval](https://juliahub.com/docs/OpenTelemetryExporterOtlpProtoGrpc/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterOtlpProtoGrpc/S0kTL) |
+| `OpenTelemetryExporterPrometheus` | | |
 
 ## Progress
 
@@ -27,8 +29,20 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
     - [x] Tracing
     - [x] Metric
 
+- Exporter
+    - OTLP
+        - [x] Tracing
+        - [ ] Metrics
+        - [ ] Downloads
+
 - Instrumentation
-    - [ ] HTTP.jl
+    - Std Lib
+        - [ ] Core
+        - [ ] Sockets
+        - [ ] Distributed
+    - Common Packages
+        - [ ] HTTP
+        - [ ] Genie
 
 ## Get Started
 
