@@ -103,4 +103,4 @@ end
 
 ## Benchmarks
 
-Check out the benchmark results with [Julia@v1.6](https://oolong-dev.github.io/OpenTelemetry.jl/dev/bench/Julia-v1.6/), [Julia@v1.7](https://oolong-dev.github.io/OpenTelemetry.jl/dev/bench/Julia-v1.7/).
+Check out the benchmark results with [Julia@v1.6](https://oolong-dev.github.io/OpenTelemetry.jl/benchmarks/Julia-v1.6/), [Julia@v1.7](https://oolong-dev.github.io/OpenTelemetry.jl/benchmarks/Julia-v1.7/).
