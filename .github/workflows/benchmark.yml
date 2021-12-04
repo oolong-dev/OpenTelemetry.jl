@@ -5,7 +5,7 @@ on:
       - "CI"
     branches:
       - master
-    types: 
+    types:
       - completed
 
 permissions:
@@ -20,8 +20,8 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.6'
-          - '1.7'
+          - "1.6"
+          - "1.7"
         os:
           - ubuntu-latest
         arch:
@@ -54,14 +54,14 @@ jobs:
         uses: benchmark-action/github-action-benchmark@v1
         with:
           name: Benchmark Result with Julia v${{ matrix.version }}
-          tool: 'julia'
+          tool: "julia"
           output-file-path: benchmarks/output.json
-          benchmark-data-dir-path: /dev/bench/Julia-v${{ matrix.version }}
+          benchmark-data-dir-path: dev/bench/Julia-v${{ matrix.version }}
           # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t/github-action-not-triggering-gh-pages-upon-push/16096
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
           # Show alert with commit comment on detecting possible performance regression
-          alert-threshold: '200%'
+          alert-threshold: "200%"
           comment-on-alert: true
           fail-on-alert: true
-          alert-comment-cc-users: '@findmyway'
+          alert-comment-cc-users: "@findmyway"
