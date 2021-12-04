@@ -33,13 +33,14 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
     - OTLP
         - [x] Tracing
         - [ ] Metrics
-        - [ ] Downloads
+    - [x] Prometheus
 
 - Instrumentation
     - Std Lib
         - [ ] Core
         - [ ] Sockets
         - [ ] Distributed
+        - [ ] Downloads
     - Common Packages
         - [ ] HTTP
         - [ ] Genie
