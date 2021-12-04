@@ -55,7 +55,7 @@ version = "0.6.13"
 deps = ["Configurations", "Preferences"]
 path = "../../GarishPrint.jl"
 uuid = "b0ab02a7-8576-43f7-aa76-eaa7c3897c54"
-version = "0.5.0"
+version = "0.5.1"
 
 [[Glob]]
 git-tree-sha1 = "4df9f7e06108728ebf00a0a11edee4b29a482bb2"
