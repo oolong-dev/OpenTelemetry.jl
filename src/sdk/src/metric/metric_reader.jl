@@ -58,7 +58,7 @@ struct PeriodicMetricReader{R<:AbstractMetricReader} <: AbstractMetricReader
     function PeriodicMetricReader(
         reader;
         export_interval_seconds = 60,
-        export_timeout_seconds = 30
+        export_timeout_seconds = 30,
     )
         timer = Timer(0; interval = export_interval_seconds) do t
             res = timedwait(export_timeout_seconds; pollint = 1) do

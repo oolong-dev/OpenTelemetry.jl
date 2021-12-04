@@ -35,7 +35,7 @@ mutable struct PrometheusExporter <: AbstractExporter
     end
 end
 
-function (r::MetricReader{<:MeterProvider, <:PrometheusExporter})()
+function (r::MetricReader{<:MeterProvider,<:PrometheusExporter})()
     if isnothing(r.exporter.provider)
         r.exporter.provider = r.provider
     else
@@ -51,7 +51,7 @@ function text_based_format(io, provider::MeterProvider)
         for (attrs, point) in m
             if point.value isa OpenTelemetrySDK.HistogramValue
                 val = point.value
-                for (i,c) in enumerate(Iterators.accumulate(+, val.counts))
+                for (i, c) in enumerate(Iterators.accumulate(+, val.counts))
                     if i == length(val.counts)
                         write(io, "$(m.name)_bucket{le=\"+Inf\"} $c\n")
                         write(io, "$(m.name)_count $c\n")

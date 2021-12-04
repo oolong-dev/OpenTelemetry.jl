@@ -119,10 +119,7 @@
     @test og_points[StaticAttrs()].value == -2 # the last value
 
     periodic_reader = PeriodicMetricReader(
-        CompositMetricReader(
-            r,
-            MetricReader(; provider = p, exporter = ConsoleExporter())
-        );
+        CompositMetricReader(r, MetricReader(; provider = p, exporter = ConsoleExporter()));
         export_interval_seconds = 1
     )
 
@@ -131,7 +128,10 @@
 end
 
 @testset "AggregationStore" begin
-    store = OpenTelemetrySDK.AggregationStore{OpenTelemetrySDK.DataPoint{Int,Nothing}}(; n_max_points = 3, n_max_attrs = 4)
+    store = OpenTelemetrySDK.AggregationStore{OpenTelemetrySDK.DataPoint{Int,Nothing}}(;
+        n_max_points = 3,
+        n_max_attrs = 4
+    )
     init_data = () -> OpenTelemetrySDK.DataPoint{Int}()
 
     p1 = get!(init_data, store, StaticAttrs())
@@ -142,7 +142,10 @@ end
     p4 = get!(init_data, store, StaticAttrs((b = 2, c = 3, a = 1)))
     @test p2 === p4
 
-    @test (@test_logs (:warn, "maximum cached keys in agg store reached, please consider increase `n_max_points`") get!(init_data, store, StaticAttrs((c = 3, b = 2, a = 1)))) === p2
+    @test (@test_logs (
+        :warn,
+        "maximum cached keys in agg store reached, please consider increase `n_max_points`",
+    ) get!(init_data, store, StaticAttrs((c = 3, b = 2, a = 1)))) === p2
 
     p5 = get!(init_data, store, StaticAttrs((; x = 123)))
     p6 = get!(init_data, store, StaticAttrs((; y = 123)))
@@ -156,8 +159,12 @@ end
         views = [
             View("X"),
             View("Foo"; instrument_name = "Y"),
-            View("Bar"; instrument_name = "Y", aggregation = HistogramAgg{Int}(boundaries = b))
-        ]
+            View(
+                "Bar";
+                instrument_name = "Y",
+                aggregation = HistogramAgg{Int}(boundaries = b)
+            ),
+        ],
     )
 
     e = InMemoryExporter()
@@ -198,15 +205,20 @@ end
     @test bar[1] == 2
     @test bar[end] == 2
     @test sum(bar) == 4
-
 end
 
 @testset "Drop Agg" begin
     p = MeterProvider(
         views = [
-            View("*"; instrument_type = Counter, meter_name = "test", meter_version = v"0.0.1-dev", meter_schema_url = ""),
+            View(
+                "*";
+                instrument_type = Counter,
+                meter_name = "test",
+                meter_version = v"0.0.1-dev",
+                meter_schema_url = ""
+            ),
             View("X"; aggregation = DROP),
-        ]
+        ],
     )
 
     e = InMemoryExporter()

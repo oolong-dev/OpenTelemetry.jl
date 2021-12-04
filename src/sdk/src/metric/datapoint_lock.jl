@@ -11,7 +11,7 @@ function DataPoint{T}(exemplar_reservoir = nothing) where {T}
     DataPoint(zero(T), t, t, exemplar_reservoir, ReentrantLock())
 end
 
-DataPoint(v,s,t,e) = DataPoint(v,s,t,e, ReentrantLock())
+DataPoint(v, s, t, e) = DataPoint(v, s, t, e, ReentrantLock())
 
 function _add_to_datapoint!(p::DataPoint, v, t)
     lock(p.lock) do

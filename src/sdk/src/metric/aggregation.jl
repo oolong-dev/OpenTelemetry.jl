@@ -1,8 +1,4 @@
-export Exemplar,
-    SumAgg,
-    LastValueAgg,
-    HistogramAgg,
-    DROP
+export Exemplar, SumAgg, LastValueAgg, HistogramAgg, DROP
 
 const N_MAX_POINTS_PER_METRIC = 2_000
 
@@ -40,16 +36,16 @@ struct AggregationStore{D<:DataPoint}
     lock::ReentrantLock
 end
 
-function AggregationStore{D}(
-    ; n_max_points = N_MAX_POINTS_PER_METRIC,
-    n_max_attrs = 2 * N_MAX_POINTS_PER_METRIC
+function AggregationStore{D}(;
+    n_max_points = N_MAX_POINTS_PER_METRIC,
+    n_max_attrs = 2 * N_MAX_POINTS_PER_METRIC,
 ) where {D}
     AggregationStore{D}(
         Dict{StaticAttrs,D}(),
         Dict{StaticAttrs,D}(),
         UInt(n_max_points),
         UInt(n_max_attrs),
-        ReentrantLock()
+        ReentrantLock(),
     )
 end
 
@@ -150,7 +146,8 @@ struct LastValueAgg{T,E,F} <: AbstractAggregation
     exemplar_reservoir_factory::F
 end
 
-LastValueAgg{T}() where {T} = LastValueAgg(AggregationStore{DataPoint{T,Nothing}}(), () -> nothing)
+LastValueAgg{T}() where {T} =
+    LastValueAgg(AggregationStore{DataPoint{T,Nothing}}(), () -> nothing)
 
 function (agg::LastValueAgg{T,E})(e::Exemplar{<:Measurement}) where {T,E}
     point = get!(agg.agg_store, e.value.attributes) do
@@ -163,7 +160,8 @@ end
 
 #####
 
-const DEFAULT_HISTOGRAM_BOUNDARIES = (0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0)
+const DEFAULT_HISTOGRAM_BOUNDARIES =
+    (0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0)
 
 struct HistogramValue{T,M,N}
     boundaries::NTuple{M,Float64}
@@ -177,7 +175,7 @@ function HistogramValue{T}(;
     boundaries = DEFAULT_HISTOGRAM_BOUNDARIES,
     is_record_sum = true,
     is_record_min = true,
-    is_record_max = true
+    is_record_max = true,
 ) where {T}
     M = length(boundaries)
     N = M + 1
@@ -219,30 +217,32 @@ struct HistogramAgg{T,E,F,M,N} <: AbstractAggregation
     exemplar_reservoir_factory::F
 end
 
-HistogramAgg{T}(
-    ; boundaries = DEFAULT_HISTOGRAM_BOUNDARIES,
+HistogramAgg{T}(;
+    boundaries = DEFAULT_HISTOGRAM_BOUNDARIES,
     is_record_min = true,
-    is_record_max = true
+    is_record_max = true,
 ) where {T} = HistogramAgg(
     boundaries,
     is_record_min,
     is_record_max,
-    AggregationStore{DataPoint{HistogramValue{T,length(boundaries),length(boundaries) + 1},Nothing}}(),
-    () -> nothing
+    AggregationStore{
+        DataPoint{HistogramValue{T,length(boundaries),length(boundaries) + 1},Nothing},
+    }(),
+    () -> nothing,
 )
 
 function (agg::HistogramAgg{T,E})(e::Exemplar{<:Measurement}) where {T,E}
     point = get!(agg.agg_store, e.value.attributes) do
         t = UInt(time() * 10^9)
         DataPoint(
-            HistogramValue{T}(
-                ; boundaries = agg.boundaries,
+            HistogramValue{T}(;
+                boundaries = agg.boundaries,
                 is_record_min = agg.is_record_min,
-                is_record_max = agg.is_record_max
+                is_record_max = agg.is_record_max,
             ),
             t,
             t,
-            agg.exemplar_reservoir_factory()
+            agg.exemplar_reservoir_factory(),
         )
     end
     if !isnothing(point)
