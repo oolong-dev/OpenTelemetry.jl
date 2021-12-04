@@ -2,9 +2,9 @@
 
 [[Configurations]]
 deps = ["ExproniconLite", "OrderedCollections", "TOML"]
-git-tree-sha1 = "79e812c535bb9780ba00f3acba526bde5652eb13"
+git-tree-sha1 = "b0dcafb34cfff977df79fc9927b70a9157a702ad"
 uuid = "5218b696-f38b-4ac9-8b61-a12ec717816d"
-version = "0.16.6"
+version = "0.17.0"
 
 [[Dates]]
 deps = ["Printf"]
@@ -17,9 +17,9 @@ version = "0.6.13"
 
 [[GarishPrint]]
 deps = ["Configurations", "Preferences"]
-path = "../../../GarishPrint.jl"
+git-tree-sha1 = "41136d24cc02c4d7c2b8c8982823fedac66d0a45"
 uuid = "b0ab02a7-8576-43f7-aa76-eaa7c3897c54"
-version = "0.5.0"
+version = "0.5.1"
 
 [[Glob]]
 git-tree-sha1 = "4df9f7e06108728ebf00a0a11edee4b29a482bb2"
@@ -33,7 +33,7 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 deps = ["Dates", "Logging", "Random", "UUIDs"]
 path = "../api"
 uuid = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
-version = "0.0.4"
+version = "0.1.0"
 
 [[OrderedCollections]]
 git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
