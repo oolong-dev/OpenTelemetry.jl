@@ -34,3 +34,5 @@ makedocs(
         "Design" => Any["API"=>"design_api.md", "SDK"=>"design_sdk.md"],
     ],
 )
+
+deploydocs(repo = "github.com/oolong-dev/OpenTelemetry.jl.git", target = "build")

@@ -65,6 +65,9 @@ jobs:
         with:
           version: '1'
       - name: Build docs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # For authentication with GitHub Actions token
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }} # For authentication with SSH deploy key
         run: |
           cd docs
           julia --project --color=yes -e '
@@ -72,9 +75,3 @@ jobs:
             Pkg.instantiate();
             Pkg.build("OpenTelemetryProto");
             include("make.jl")'
-      - name: Deploy to the main repo
-        uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.event_name == 'push' }}
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/build
