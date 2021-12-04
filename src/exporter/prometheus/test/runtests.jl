@@ -35,7 +35,7 @@ using HTTP
         keepempty=false
     )
 
-    for (expect, real) in zip(expected, body)
+    for (expect, real) in zip(sort(expected), sort(body))
         @test startswith(real, expect)
     end
 end

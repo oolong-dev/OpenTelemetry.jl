@@ -26,9 +26,9 @@ version = "0.6.13"
 
 [[deps.GarishPrint]]
 deps = ["Configurations", "Preferences"]
-path = "../../../../GarishPrint.jl"
+git-tree-sha1 = "41136d24cc02c4d7c2b8c8982823fedac66d0a45"
 uuid = "b0ab02a7-8576-43f7-aa76-eaa7c3897c54"
-version = "0.5.0"
+version = "0.5.1"
 
 [[deps.Glob]]
 git-tree-sha1 = "4df9f7e06108728ebf00a0a11edee4b29a482bb2"

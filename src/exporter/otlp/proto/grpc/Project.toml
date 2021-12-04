@@ -10,9 +10,6 @@ OpenTelemetrySDK = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
 gRPCClient = "aaca4a50-36af-4a1d-b878-4c443f2061ad"
 
 [compat]
-OpenTelemetryAPI = "0.1"
-OpenTelemetryProto = "0.1"
-OpenTelemetrySDK = "0.1"
 gRPCClient = "0.1"
 julia = "1"
 
