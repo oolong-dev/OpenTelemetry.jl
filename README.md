@@ -100,3 +100,7 @@ with_logger(TransformerLogger(LogTransformer(), global_logger())) do
     @info "hello world!"
 end
 ```
+
+## Benchmarks
+
+Check out the benchmark results [here](https://oolong-dev.github.io/OpenTelemetry.jl/dev/bench/).
