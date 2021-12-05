@@ -39,10 +39,7 @@ function (r::MetricReader)()
     for ins in keys(r.provider.async_instruments)
         ins()
     end
-    export!(
-        r.exporter,
-        (m for m in values(r.provider.metrics)),
-    )
+    export!(r.exporter, (m for m in values(r.provider.metrics)))
 end
 
 # ??? shut_down! provider?

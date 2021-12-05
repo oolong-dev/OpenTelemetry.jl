@@ -27,7 +27,8 @@ Base.@kwdef struct InMemoryExporter <: AbstractExporter
     is_shut_down::Ref{Bool} = Ref(false)
 end
 
-Base.show(io::IO, e::InMemoryExporter) = print(io, "InMemoryExporter with $(length(e.pool)) elements")
+Base.show(io::IO, e::InMemoryExporter) =
+    print(io, "InMemoryExporter with $(length(e.pool)) elements")
 Base.empty!(se::InMemoryExporter) = empty!(se.pool)
 Base.length(se::InMemoryExporter) = length(se.pool)
 Base.iterate(e::InMemoryExporter, args...) = iterate(e.pool, args...)

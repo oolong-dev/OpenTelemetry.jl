@@ -21,7 +21,7 @@ abstract type AbstractAsyncInstrument{T} <: AbstractInstrument{T} end
 function examine_instrument(
     ins::AbstractInstrument;
     max_unit_length = 63,
-    max_description_length = 1024
+    max_description_length = 1024,
 )
     !isnothing(match(r"[a-zA-Z][_0-9a-zA-Z\\.\\-]{0,62}$", ins.name)) ||
         throw(ArgumentError("invalid name: $(ins.name)"))
@@ -34,7 +34,8 @@ function examine_instrument(
     )
 end
 
-(ins::AbstractSyncInstrument)(amount; kw...) = ins(Measurement(amount, StaticAttrs(values(kw))))
+(ins::AbstractSyncInstrument)(amount; kw...) =
+    ins(Measurement(amount, StaticAttrs(values(kw))))
 (ins::AbstractSyncInstrument)(m::Measurement) = push!(ins.meter.provider, ins => m)
 
 (ins::AbstractAsyncInstrument)() = push!(ins.meter.provider, ins => ins.callback())
@@ -74,7 +75,7 @@ struct ObservableCounter{T,F} <: AbstractAsyncInstrument{T}
         name,
         meter;
         unit = "",
-        description = ""
+        description = "",
     ) where {T,F}
         c = new{T,F}(callback, meter, name, unit, description)
         examine_instrument(c)
@@ -107,7 +108,7 @@ struct ObservableGauge{T,F} <: AbstractAsyncInstrument{T}
         name,
         meter;
         unit = "",
-        description = ""
+        description = "",
     ) where {T,F}
         g = new{T,F}(callback, meter, name, unit, description)
         examine_instrument(g)
@@ -140,7 +141,7 @@ struct ObservableUpDownCounter{T,F} <: AbstractAsyncInstrument{T}
         name,
         meter;
         unit = "",
-        description = ""
+        description = "",
     ) where {T,F}
         c = new{T,F}(callback, meter, name, unit, description)
         examine_instrument(c)

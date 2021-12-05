@@ -49,7 +49,11 @@ function AggregationStore{D}(;
     )
 end
 
-function GarishPrint.pprint_struct(io::GarishPrint.GarishIO, mime::MIME"text/plain", a::AggregationStore)
+function GarishPrint.pprint_struct(
+    io::GarishPrint.GarishIO,
+    mime::MIME"text/plain",
+    a::AggregationStore,
+)
     GarishPrint.print_token(io, :type, AggregationStore)
     print(io.bland_io, "(")
     io.compact || println(io.bland_io)
