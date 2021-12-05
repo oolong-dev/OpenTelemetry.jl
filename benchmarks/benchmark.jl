@@ -43,33 +43,33 @@ trace_suite["Create Span"] = @benchmarkable create_span($TRACER)
 meter_suite = BenchmarkGroup()
 suite["Meter"] = meter_suite
 
-const PROVIDER = MeterProvider(
-    ;views = [
+const PROVIDER = MeterProvider(;
+    views = [
         View("benchmark_counter"),
         View(
             "benchmark_histogram";
-            aggregation=HistogramAgg{Int}(;
-                boundaries = Tuple(100.:100.:900.)
-            )
-        )
-    ]
+            aggregation = HistogramAgg{Int}(; boundaries = Tuple(100.0:100.0:900.0)),
+        ),
+    ],
 )
-const METER = Meter("benchmark_meter"; provider=PROVIDER)
+const METER = Meter("benchmark_meter"; provider = PROVIDER)
 const COUNTER = Counter{Int}("benchmark_counter", METER)
 
 function update_counter(c, n)
-    c(n; name="a", code=2, msg = "hi")
+    c(n; name = "a", code = 2, msg = "hi")
 end
 
-meter_suite["Update Counter"] = @benchmarkable update_counter(c, n) setup=(c=$COUNTER;n=rand(1:100))
+meter_suite["Update Counter"] =
+    @benchmarkable update_counter(c, n) setup = (c = $COUNTER; n = rand(1:100))
 
 const HISTOGRAM = Histogram{Int}("benchmark_histogram", METER)
 
 function update_histogram(h, n)
-    h(n; name="a", code=2, msg = "hi")
+    h(n; name = "a", code = 2, msg = "hi")
 end
 
-meter_suite["Update Histogram"] = @benchmarkable update_histogram(h, n) setup=(h=$HISTOGRAM; n=rand(1:1_000))
+meter_suite["Update Histogram"] =
+    @benchmarkable update_histogram(h, n) setup = (h = $HISTOGRAM; n = rand(1:1_000))
 
 #####
 

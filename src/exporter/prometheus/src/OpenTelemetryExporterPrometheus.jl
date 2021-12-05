@@ -8,16 +8,12 @@ using Sockets
 
 mutable struct PrometheusExporter <: AbstractExporter
     server::Sockets.TCPServer
-    provider::Union{MeterProvider, Nothing}
+    provider::Union{MeterProvider,Nothing}
     taskref::Ref{Task}
-    function PrometheusExporter(
-        ;host="127.0.0.1",
-        port=9966,
-        kw...
-    )
+    function PrometheusExporter(; host = "127.0.0.1", port = 9966, kw...)
         server = Sockets.listen(Sockets.InetAddr(parse(IPAddr, host), port))
         exporter = new(server, nothing, Ref{Task}())
-        exporter.taskref[] = @async HTTP.listen(host, port;server=server, kw...) do http
+        exporter.taskref[] = @async HTTP.listen(host, port; server = server, kw...) do http
             HTTP.setstatus(http, 200)
             HTTP.setheader(http, "Content-Type" => "text/plain")
 
@@ -66,7 +62,7 @@ function text_based_format(io, provider::MeterProvider)
             else
                 write(io, "$(m.name){")
                 # TODO: escape
-                join(io, ("$k=\"$v\"" for (k,v) in pairs(attrs)), ",")
+                join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
                 write(io, "} $(point.value) $(point.time_unix_nano ÷ 10^6) \n")
             end
         end

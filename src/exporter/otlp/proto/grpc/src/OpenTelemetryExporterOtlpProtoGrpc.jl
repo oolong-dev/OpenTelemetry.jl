@@ -19,7 +19,11 @@ struct OtlpProtoGrpcTraceExporter{T} <: SDK.AbstractExporter
     client::T
 end
 
-function OtlpProtoGrpcTraceExporter(; url = "http://localhost:4317", is_blocking = true, kw...)
+function OtlpProtoGrpcTraceExporter(;
+    url = "http://localhost:4317",
+    is_blocking = true,
+    kw...,
+)
     if is_blocking
         client = Otlp.TraceServiceBlockingClient(url; kw...)
     else

@@ -4,7 +4,7 @@
 
         @test n_dropped(L1) == 0
 
-        for i = 4:8
+        for i in 4:8
             push!(L1, i)
         end
 
