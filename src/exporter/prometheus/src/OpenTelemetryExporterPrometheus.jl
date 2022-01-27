@@ -52,12 +52,12 @@ function text_based_format(io, provider::MeterProvider)
                         write(io, "$(m.name)_bucket{le=\"+Inf\"} $c\n")
                         write(io, "$(m.name)_count $c\n")
                     else
-                        write(io, "$(m.name)_bucket{le=\"$(point.boundaries[i])\"} $c\n")
+                        write(io, "$(m.name)_bucket{le=\"$(val.boundaries[i])\"} $c\n")
                     end
                 end
                 # ???
-                if !isnothing(point.sum)
-                    write(io, "$(m.name)_sum $(point.sum)\n")
+                if !isnothing(val.sum)
+                    write(io, "$(m.name)_sum $(val.sum)\n")
                 end
             else
                 write(io, "$(m.name){")
