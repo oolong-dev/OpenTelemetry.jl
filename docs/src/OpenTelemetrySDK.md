@@ -1,24 +1,21 @@
-# SDK
+# OpenTelemetrySDK
+
+## Exporters
 
 Two common exporters are provided to for debugging:
 
-```@docs
-InMemoryExporter
-ConsoleExporter
+```@autodocs
+Modules = [OpenTelemetrySDK]
+Pages = ["exporter.jl"]
 ```
 
 ## Trace
 
-In SDK, a dedicated [`TraceProvider`](@ref) is provided.
+In SDK, a dedicated [`TracerProvider`](@ref) is provided.
 
-```@docs
-TraceProvider
-CompositSpanProcessor
-ALWAYS_ON
-ALWAYS_OFF
-DEFAULT_ON
-DEFAULT_OFF
-TraceIdRatioBased
+```@autodocs
+Modules = [OpenTelemetrySDK]
+Pages = ["trace_provider.jl", "id_generator.jl", "sampling.jl", "span_processor.jl"]
 ```
 
 ## Metric
@@ -87,10 +84,13 @@ configured by [`StaticAttrs`](@ref) in a [`Measurement`](@ref). For each dimensi
   dimension in the [`AggregationStore`](@ref), a design from
   [opentelemetry-dotnet#2374](https://github.com/open-telemetry/opentelemetry-dotnet/issues/2374) is borrowed here.
 
+```@autodocs
+Modules = [OpenTelemetrySDK]
+Pages = ["aggregation.jl", "datapoint_atomic.jl", "datapoint_lock.jl", "meter_provider.jl", "meter_reader.jl", "view.jl"]
+```
 
-```@docs
-MeterProvider
-View
-Metric
-AggregationStore
+## Misc
+
+```@autodocs
+Modules = [OpenTelemetrySDK]
 ```

@@ -9,14 +9,15 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 
 ## Packages
 
-| Package | Latest Version | Status |
-|:--------|:---------------|:-------|
-|`OpenTelemetry` | [![version](https://juliahub.com/docs/OpenTelemetry/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetry/L4aUb) | [![pkgeval](https://juliahub.com/docs/OpenTelemetry/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetry/L4aUb)|
-|`OpenTelemetryAPI` | [![version](https://juliahub.com/docs/OpenTelemetryAPI/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryAPI/p4SiN) | [![pkgeval](https://juliahub.com/docs/OpenTelemetryAPI/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetryAPI/p4SiN) |
-| `OpenTelemetrySDK` | [![version](https://juliahub.com/docs/OpenTelemetrySDK/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetrySDK/NFHPX) | [![pkgeval](https://juliahub.com/docs/OpenTelemetrySDK/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetrySDK/NFHPX) |
-| `OpenTelemetryProto` | [![version](https://juliahub.com/docs/OpenTelemetryProto/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryProto/l1kB4) | [![pkgeval](https://juliahub.com/docs/OpenTelemetryProto/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetryProto/l1kB4) |
-| `OpenTelemetryExporterOtlpProtoGrpc` | [![version](https://juliahub.com/docs/OpenTelemetryExporterOtlpProtoGrpc/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterOtlpProtoGrpc/S0kTL) | [![pkgeval](https://juliahub.com/docs/OpenTelemetryExporterOtlpProtoGrpc/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterOtlpProtoGrpc/S0kTL) |
-| `OpenTelemetryExporterPrometheus` |[![version](https://juliahub.com/docs/OpenTelemetryExporterPrometheus/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterPrometheus/Xma7h) | [![pkgeval](https://juliahub.com/docs/OpenTelemetryExporterPrometheus/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterPrometheus/Xma7h)|
+| Package | Description | Latest Version |
+|:--------|:------------|:---------------|
+|[`OpenTelemetryAPI`](https://oolong.dev/OpenTelemetry.jl/dev/design_api/) | Common data structures and interfaces. Instrumentations should rely on it only. | [![version](https://juliahub.com/docs/OpenTelemetryAPI/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryAPI/p4SiN) |
+| [`OpenTelemetrySDK`](https://oolong.dev/OpenTelemetry.jl/dev/design_sdk/) | Based on [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/overview.md#sdk), application owners use SDK constructors; plugin authors use SDK plugin interfaces| [![version](https://juliahub.com/docs/OpenTelemetrySDK/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetrySDK/NFHPX) |
+|`OpenTelemetry` | Reexport all above. | [![version](https://juliahub.com/docs/OpenTelemetry/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetry/L4aUb) |
+| `OpenTelemetryProto` | See [the OTLP specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/README.md) | [![version](https://juliahub.com/docs/OpenTelemetryProto/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryProto/l1kB4) |
+| `OpenTelemetryExporterOtlpProtoGrpc` | Provide an `AbstractExporter` in OTLP through gRPC | [![version](https://juliahub.com/docs/OpenTelemetryExporterOtlpProtoGrpc/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterOtlpProtoGrpc/S0kTL) |
+| `OpenTelemetryExporterPrometheus` | Provide an `AbstractExporter` to allow pulling metrics from Prometheus |[![version](https://juliahub.com/docs/OpenTelemetryExporterPrometheus/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterPrometheus/Xma7h) |
+| `OpenTelemetryUber` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetry` and necessary plugins or instrumentations explicitly. | | |
 
 ## Progress
 
@@ -100,6 +101,8 @@ with_logger(TransformerLogger(LogTransformer(), global_logger())) do
     @info "hello world!"
 end
 ```
+
+## Versioning and Stability
 
 ## Benchmarks
 
