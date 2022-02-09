@@ -1,4 +1,4 @@
-using OpenTelemetryUber
+using OpenTelemetryAPI
 
 using Documenter
 
@@ -13,7 +13,7 @@ open(joinpath(@__DIR__, "..", "README.md"), "r") do f_src
 end
 
 makedocs(
-    modules = [OpenTelemetryUber],
+    modules = [OpenTelemetryAPI],
     format = Documenter.HTML(
         prettyurls = true,
         analytics = "G-YWC6SQHSVM",

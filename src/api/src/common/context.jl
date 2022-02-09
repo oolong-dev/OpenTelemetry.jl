@@ -31,7 +31,7 @@ with_context(f, ctx::Context; kw...) = task_local_storage(f, CONTEXT_KEY, merge(
 """
 Return the `Context` associated with the caller's current execution unit.
 """
-current_context() = get(task_local_storage(), CONTEXT_KEY, Context())
+current_context() = get(task_local_storage(), CONTEXT_KEY, Context())::Context
 
 # !!! intentional type piracy
 function Base.schedule(t::Task)

@@ -24,6 +24,8 @@ const TRACER = Tracer(
     ),
 )
 
+const DUMMY_TRACER = Tracer(;provider = global_tracer_provider())
+
 function create_span(t)
     with_span(
         Span(
@@ -37,6 +39,8 @@ function create_span(t)
 end
 
 trace_suite["Create Span"] = @benchmarkable create_span($TRACER)
+
+trace_suite["Create Dummy Span"] = @benchmarkable create_span($DUMMY_TRACER)
 
 #####
 

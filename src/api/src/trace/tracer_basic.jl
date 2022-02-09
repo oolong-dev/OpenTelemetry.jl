@@ -7,7 +7,6 @@ export TraceIdType,
     TraceState,
     SpanContext,
     INVALID_SPAN_CONTEXT,
-    span_context,
     SPAN_KIND_UNSPECIFIED,
     SPAN_KIND_INTERNAL,
     SPAN_KIND_SERVER,
@@ -131,15 +130,6 @@ end
 
 const INVALID_SPAN_CONTEXT =
     SpanContext(; trace_id = INVALID_TRACE_ID, span_id = INVALID_SPAN_ID, is_remote = false)
-
-"""
-    span_context([s::Span])
-
-Get the `SpanContext` from a span `s`. If `s` is not specified, [`current_span()`](@ref) will be used. `nothing` is returned if no span context found.
-"""
-span_context(s) = s.span_context
-span_context(::Nothing) = nothing
-span_context() = span_context(current_span())
 
 # !!! must be of the same order with https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
 @enum SpanKind begin

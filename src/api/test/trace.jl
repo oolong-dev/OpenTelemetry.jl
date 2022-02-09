@@ -9,8 +9,8 @@
                 "1a-_*/2b@foo" => "bar2",
                 "foo" => "bar3",
                 "foo-_*/bar" => "bar4",
-                "^foo-_*/bar" => "bar5",
-                "hello" => "世界！",
+                "^foo-_*/bar" => "bar5",  # invalid key
+                "hello" => "世界！",  # invalid value
             )
 
             @test string(ts) == "1a-2f@foo=bar1,1a-_*/2b@foo=bar2,foo=bar3,foo-_*/bar=bar4"
@@ -23,43 +23,18 @@
 
     @testset "TracerProvider" begin
         tracer = Tracer()
-        s = Span("test", tracer)
-        @test span_context(s) === INVALID_SPAN_CONTEXT
-        @test is_recording(s) == false
-
-        @testset "non recording behaviors" begin
-            s["foo"] = "bar"
-            push!(s, API.Event(; name = "test"))
-            push!(s, Link(INVALID_SPAN_CONTEXT, StaticAttrs()))
-            set_status!(s, SPAN_STATUS_OK)
-
-            @test haskey(s, "foo") == false
-            @test length(s.events) == 0
-            @test length(s.links) == 0
-            @test s.status[].code == SPAN_STATUS_UNSET
+        with_span("test", tracer) do
+            s = current_span()
+            @test span_context(s) === INVALID_SPAN_CONTEXT
+            @test is_recording(s) == false
         end
 
-        s.end_time[] = nothing # !!! for test only
-
-        @test_throws ErrorException with_span(s) do
-            s["foo"] = "bar"
-            push!(s, API.Event(; name = "test"))
-            push!(s, Link(INVALID_SPAN_CONTEXT, StaticAttrs()))
-            throw(ErrorException("!!!"))
-        end
-
-        @test is_recording(s) == false
-        @test s["foo"] == "bar"
-        @test length(s.events) == 2  # note that the ErrorException is also recorded
-        @test length(s.links) == 1
-        @test s.status[].code == SPAN_STATUS_ERROR
-
-        with_span(Span("foo", tracer)) do
-            with_span(Span("bar", tracer)) do
-                with_span(Span("baz", tracer)) do
+        with_span("foo", tracer) do
+            with_span("bar", tracer) do
+                with_span("baz", tracer) do
                     println("hello")
                 end
-                with_span(Span("baz", tracer)) do
+                with_span("baz", tracer) do
                     println("world!")
                 end
             end

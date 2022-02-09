@@ -1,4 +1,33 @@
 @testset "trace" begin
+    @testset "Span" begin
+        @testset "non recording behaviors" begin
+            s["foo"] = "bar"
+            push!(s, API.Event(; name = "test"))
+            push!(s, Link(INVALID_SPAN_CONTEXT, StaticAttrs()))
+            set_status!(s, SPAN_STATUS_OK)
+
+            @test haskey(s, "foo") == false
+            @test length(s.events) == 0
+            @test length(s.links) == 0
+            @test s.status[].code == SPAN_STATUS_UNSET
+        end
+
+        s.end_time[] = nothing # !!! for test only
+
+        @test_throws ErrorException with_span(s) do
+            s["foo"] = "bar"
+            push!(s, API.Event(; name = "test"))
+            push!(s, Link(INVALID_SPAN_CONTEXT, StaticAttrs()))
+            throw(ErrorException("!!!"))
+        end
+
+        @test is_recording(s) == false
+        @test s["foo"] == "bar"
+        @test length(s.events) == 2  # note that the ErrorException is also recorded
+        @test length(s.links) == 1
+        @test s.status[].code == SPAN_STATUS_ERROR
+    end
+
     @testset "basic usage" begin
         global_tracer_provider(
             TracerProvider(

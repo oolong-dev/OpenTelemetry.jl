@@ -7,15 +7,56 @@ Two common exporters are provided to for debugging:
 ```@autodocs
 Modules = [OpenTelemetrySDK]
 Pages = ["exporter.jl"]
+Private = false
 ```
 
 ## Trace
 
+
+```
+┌────────────────────────────┐
+│Span                        │
+│                            │
+│ tracer                     │
+│   ┌──────────────────────┐ │
+│   │Tracer                │ │
+│   │                      │ │
+│   │  provider            │ │
+│   │   ┌────────────────┐ │ │
+│   │   │    Abstract    │ │ │
+│   │   │ TracerProvider │ │ │
+│   │   └────────────────┘ │ │
+│   │  instrumentation     │ │
+│   │   ┌────────────────┐ │ │
+│   │   │ name           │ │ │
+│   │   │ version        │ │ │
+│   │   └────────────────┘ │ │
+│   │                      │ │
+│   └──────────────────────┘ │
+│ span_context               │
+│   ┌──────────────────────┐ │
+│   │ trace_id             │ │
+│   │ span_id              │ │
+│   │ is_remote            │ │
+│   │ trace_flag           │ │
+│   │ trace_state          │ │
+│   └──────────────────────┘ │
+│ parent_span_context        │
+│ kind                       │
+│ start_time                 │
+│ end_time                   │
+│ attributes                 │
+│ links                      │
+│ events                     │
+│ status                     │
+└────────────────────────────┘
+```
 In SDK, a dedicated [`TracerProvider`](@ref) is provided.
 
 ```@autodocs
 Modules = [OpenTelemetrySDK]
 Pages = ["trace_provider.jl", "id_generator.jl", "sampling.jl", "span_processor.jl"]
+Private = false
 ```
 
 ## Metric
@@ -87,10 +128,12 @@ configured by [`StaticAttrs`](@ref) in a [`Measurement`](@ref). For each dimensi
 ```@autodocs
 Modules = [OpenTelemetrySDK]
 Pages = ["aggregation.jl", "datapoint_atomic.jl", "datapoint_lock.jl", "meter_provider.jl", "meter_reader.jl", "view.jl"]
+Private = false
 ```
 
 ## Misc
 
 ```@autodocs
 Modules = [OpenTelemetrySDK]
+Private = false
 ```

@@ -2,6 +2,9 @@ export inject!, extract
 
 abstract type AbstractPropagator end
 
+"""
+    CompositePropagator(propagators::Vector)
+"""
 struct CompositePropagator <: AbstractPropagator
     propagators::Vector
 end

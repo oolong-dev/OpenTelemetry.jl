@@ -8,6 +8,13 @@ export AbstractAsyncInstrument,
     UpDownCounter,
     ObservableUpDownCounter
 
+"""
+    Measurement(value, [attributes=StaticAttrs()])
+
+This is to follow [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/api.md#measurement)
+
+See also [StaticAttrs](@ref)
+"""
 struct Measurement{V,T<:StaticAttrs}
     value::V
     attributes::T
@@ -15,7 +22,15 @@ end
 
 Measurement(v) = Measurement(v, StaticAttrs())
 
+"""
+Sync instrument usually pass its measurement immediately.
+"""
 abstract type AbstractSyncInstrument{T} <: AbstractInstrument{T} end
+
+"""
+Async instrument usually has a callback function (which is named *Observable* in
+OpenTelemetry) to get its measurement.
+"""
 abstract type AbstractAsyncInstrument{T} <: AbstractInstrument{T} end
 
 function examine_instrument(
@@ -42,6 +57,13 @@ end
 
 #####
 
+"""
+    Counter{T}(name, meter;unit="", description="") where T
+
+`Counter` is a [`AbstractSyncInstrument`](@ref) which supports non-negative increments.
+
+See more details from [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/api.md#counter).
+"""
 struct Counter{T} <: AbstractSyncInstrument{T}
     meter::Meter
     name::String
@@ -64,6 +86,13 @@ function (c::Counter)(m::Measurement)
     push!(c.meter.provider, c => m)
 end
 
+"""
+    ObservableCounter{T}(callback, name, meter; unit = "", description = "") where {T}
+
+`ObservableCounter` is an [`AbstractAsyncInstrument`](@ref) which reports monotonically increasing value(s) when the instrument is being observed.
+
+See more details from [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/api.md#asynchronous-counter)
+"""
 struct ObservableCounter{T,F} <: AbstractAsyncInstrument{T}
     callback::F
     meter::Meter
@@ -84,6 +113,13 @@ struct ObservableCounter{T,F} <: AbstractAsyncInstrument{T}
     end
 end
 
+"""
+    Histogram{T}(name, meter; unit = "", description = "") where {T}
+
+`Histogram`` is `AbstractSyncInstrument` which can be used to report arbitrary values that are likely to be statistically meaningful. It is intended for statistics such as histograms, summaries, and percentile.
+
+See more details from [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/api.md#histogram)
+"""
 struct Histogram{T} <: AbstractSyncInstrument{T}
     meter::Meter
     name::String
@@ -97,6 +133,13 @@ struct Histogram{T} <: AbstractSyncInstrument{T}
     end
 end
 
+"""
+    ObservableGauge{T}(callback, name, meter; unit = "", description = "",) where {T}
+
+`ObservableGauge` is an [`AbstractAsyncInstrument`](@ref) which reports non-additive value(s) (e.g. the room temperature - it makes no sense to report the temperature value from multiple rooms and sum them up) when the instrument is being observed.
+
+See also the details from [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/api.md#asynchronous-gauge)
+"""
 struct ObservableGauge{T,F} <: AbstractAsyncInstrument{T}
     callback::F
     meter::Meter
@@ -117,6 +160,13 @@ struct ObservableGauge{T,F} <: AbstractAsyncInstrument{T}
     end
 end
 
+"""
+    UpDownCounter{T}(name, meter; unit = "", description = "") where {T}
+
+`UpDownCounter` is a [`AbstractSyncInstrument`](@ref) which supports increments and decrements.
+
+See also the details from [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/api.md#updowncounter).
+"""
 struct UpDownCounter{T} <: AbstractSyncInstrument{T}
     meter::Meter
     name::String
@@ -130,6 +180,13 @@ struct UpDownCounter{T} <: AbstractSyncInstrument{T}
     end
 end
 
+"""
+    ObservableUpDownCounter{T}(callback, name, meter; unit = "", description = "") where {T}
+
+`ObservableUpDownCounter` is an [`AbstractAsyncInstrument`](@ref) which reports additive value(s) (e.g. the process heap size - it makes sense to report the heap size from multiple processes and sum them up, so we get the total heap usage) when the instrument is being observed.
+
+See more details from [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/api.md#asynchronous-updowncounter).
+"""
 struct ObservableUpDownCounter{T,F} <: AbstractAsyncInstrument{T}
     callback::F
     meter::Meter

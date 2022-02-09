@@ -46,6 +46,8 @@ Base.iterate(x::Limited, args...) = iterate(x.xs, args...)
 Base.pairs(A::Limited) = pairs(A.xs)
 
 """
+    n_dropped(x::Limited)
+
 Return the total number of dropped elements since creation.
 """
 n_dropped(x::Limited) = x.n_dropped[]
@@ -97,6 +99,9 @@ function _truncate(xs::Vector{String}, limit)
     xs
 end
 
+"""
+Valid type of attribute value.
+"""
 const TAttrVal = Union{
     String,
     Bool,
@@ -168,6 +173,8 @@ Base.sort(A::StaticAttrs) = A[keys(A)|>collect|>sort|>Tuple]
     DynamicAttrs(attrs::Pair{String, TAttrVal}...;count_limit=128, value_length_limit=nothing)
 
 Here we use a `Dict` internally to represent the mutable version of the [`Attributes`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes) specification. If the `value_length_limit` is set to a positive int, the value of `String` or each element in a value of `Vector{String}` will be truncated to a maximum length of `value_length_limit`. By default we do not do the truncation. When adding new pairs into it, if the number of attributes exceeds the `count_limit`, it will be dropped. You can get the number of dropped pairs via `n_dropped`.
+
+See also [`StaticAttrs`](@ref).
 """
 struct DynamicAttrs
     attrs::Limited{Dict{String,TAttrVal}}
