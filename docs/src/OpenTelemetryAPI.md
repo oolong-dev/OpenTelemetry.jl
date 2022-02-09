@@ -154,5 +154,4 @@ Private = false
 
 ```@autodocs
 Modules = [OpenTelemetryAPI]
-Private = false
 ```

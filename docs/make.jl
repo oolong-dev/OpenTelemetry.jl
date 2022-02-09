@@ -1,4 +1,5 @@
 using OpenTelemetryAPI
+using OpenTelemetrySDK
 
 using Documenter
 
@@ -13,7 +14,7 @@ open(joinpath(@__DIR__, "..", "README.md"), "r") do f_src
 end
 
 makedocs(
-    modules = [OpenTelemetryAPI],
+    modules = [OpenTelemetryAPI, OpenTelemetrySDK],
     format = Documenter.HTML(
         prettyurls = true,
         analytics = "G-YWC6SQHSVM",

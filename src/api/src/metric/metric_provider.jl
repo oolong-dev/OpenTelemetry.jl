@@ -1,6 +1,14 @@
 export AbstractMeterProvider,
     AbstractInstrument, global_meter_provider, global_meter_provider!, Meter
 
+"""
+A meter provider defines how to collect and update [`Measurement`](@ref)s. Each
+meter provider should have the following interfaces implemented:
+
+  - `Base.push!(provider, m::Meter)`, register a meter.
+  - `Base.push!(provider, ins::AbstractInstrument)`, register an instrument.
+  - `Base.push!(provider, (ins::AbstractInstrument, m::Measurement))`, update a measurement.
+"""
 abstract type AbstractMeterProvider end
 
 Base.@kwdef struct DummyMeterProvider <: AbstractMeterProvider end

@@ -1,4 +1,3 @@
-
 struct Span{P<:AbstractTracerProvider} <: AbstractSpan
     name::Ref{String}
     tracer::Tracer{P}
@@ -13,7 +12,83 @@ struct Span{P<:AbstractTracerProvider} <: AbstractSpan
     status::Ref{SpanStatus}
 end
 
-is_recording(s::Span) = isnothing(s.end_time[])
+function OpenTelemetryAPI.create_span(
+    name::String,
+    tracer::Tracer{<:TracerProvider};
+    context = current_context(),
+    kind = SPAN_KIND_INTERNAL,
+    attributes = Dict{String,TAttrVal}(),
+    links = Link[],
+    events = OpenTelemetryAPI.Event[],
+    start_time = UInt(time() * 10^9),
+    is_remote = false,
+)
+    provider = tracer.provider
+    parent_span_ctx = context |> current_span |> span_context
+    if isnothing(parent_span_ctx)
+        trace_id = generate_trace_id(provider.id_generator)
+    else
+        trace_id = parent_span_ctx.trace_id
+    end
+
+    attributes = DynamicAttrs(
+        attributes;
+        count_limit = provider.limit_info.span_attribute_count_limit,
+        value_length_limit = provider.limit_info.span_attribute_value_length_limit,
+    )
+
+    links = Limited(links; limit = provider.limit_info.span_link_count_limit)
+    events = Limited(events; limit = provider.limit_info.span_event_count_limit)
+
+    sampling_result = should_sample(
+        provider.sampler,
+        context,
+        trace_id,
+        name,
+        kind,
+        attributes,
+        links,
+        isnothing(parent_span_ctx) ? TraceState() : parent_span_ctx.trace_state,
+    )
+
+    span_ctx = SpanContext(
+        trace_id = trace_id,
+        span_id = generate_span_id(provider.id_generator),
+        is_remote = is_remote,
+        trace_flag = TraceFlag(sampled = is_sampled(sampling_result)),
+        trace_state = sampling_result.trace_state,
+    )
+
+    is_no_op_span = provider.is_shut_down[] || !is_recording(sampling_result)
+    s = Span(
+        Ref(name),
+        tracer,
+        is_no_op_span ? INVALID_SPAN_CONTEXT : span_ctx,
+        parent_span_ctx,
+        kind,
+        start_time,
+        Ref{Union{Nothing,UInt64}}(is_no_op_span ? start_time : nothing),
+        attributes,
+        links,
+        events,
+        Ref(SpanStatus(SPAN_STATUS_UNSET)),
+    )
+    if !is_no_op_span
+        on_start!(tracer.provider.span_processor, s)
+    end
+    s
+end
+
+function OpenTelemetryAPI.end!(s::Span{<:TracerProvider}, t = UInt(time() * 10^9))
+    if is_recording(s)
+        s.end_time[] = t
+        on_end!(s.tracer.provider.span_processor, s)
+    else
+        @warn "the span is not recording."
+    end
+end
+
+OpenTelemetryAPI.is_recording(s::Span) = isnothing(s.end_time[])
 
 function Base.setindex!(s::Span, val, key)
     if is_recording(s)
@@ -42,7 +117,7 @@ function Base.push!(s::Span, link::Link)
     end
 end
 
-function set_status!(s::Span, code::SpanStatusCode, description = nothing)
+function OpenTelemetryAPI.set_status!(s::Span, code::SpanStatusCode, description = nothing)
     if is_recording(s)
         if s.status[].code === SPAN_STATUS_OK
             # no further updates
@@ -58,7 +133,7 @@ function set_status!(s::Span, code::SpanStatusCode, description = nothing)
     end
 end
 
-function end!(s::Span, t)
+function OpenTelemetryAPI.end!(s::Span, t)
     if is_recording(s)
         s.end_time[] = t
     else
@@ -92,7 +167,7 @@ end
 
 Base.nameof(s::Span) = s.name[]
 
-function set_name!(s::Span, name::String)
+function OpenTelemetryAPI.set_name!(s::Span, name::String)
     if is_recording(s)
         s.name[] = name
     else
@@ -100,4 +175,4 @@ function set_name!(s::Span, name::String)
     end
 end
 
-span_context(s::Span) = s.span_context
+OpenTelemetryAPI.span_context(s::Span) = s.span_context

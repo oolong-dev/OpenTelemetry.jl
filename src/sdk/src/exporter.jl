@@ -12,16 +12,28 @@ export AbstractExporter,
     EXPORT_FAILURE
 end
 
+"""
+An `AbstractExporter` is to export a collection of [`AbstractSpan`](@ref)s and
+(or) [`Metric`](@ref)s. Each method should have the following interfaces
+implemented:
+
+  - [`force_flush!(::AbstractExporter)`](@ref)
+  - [`shut_down!(::AbstractExporter)`](@ref)
+  - [`export!(::AbstractExporter, collection)`](@ref)
+"""
 abstract type AbstractExporter end
 
-function force_flush!(::AbstractExporter)
-    true
-end
+force_flush!(::AbstractExporter) = true
 
 shut_down!(e::AbstractExporter) = force_flush!(e)
 
 #####
 
+"""
+    InMemoryExporter(;pool=[], is_shut_down=Ref(false))
+
+Simply store all `export!`ed elements into the `pool`.
+"""
 Base.@kwdef struct InMemoryExporter <: AbstractExporter
     pool::Vector = []
     is_shut_down::Ref{Bool} = Ref(false)
@@ -55,6 +67,11 @@ end
 
 #####
 
+"""
+    ConsoleExporter(;io=stdout)
+
+Print [`Span`](@ref) or [`Metric`](@ref) into `io`.
+"""
 Base.@kwdef struct ConsoleExporter <: AbstractExporter
     io::IO = stdout
 end

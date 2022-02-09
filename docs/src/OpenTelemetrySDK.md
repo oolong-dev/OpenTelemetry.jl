@@ -10,52 +10,41 @@ Pages = ["exporter.jl"]
 Private = false
 ```
 
-## Trace
+## Tracer
 
+### TracerProvider
 
-```
-┌────────────────────────────┐
-│Span                        │
-│                            │
-│ tracer                     │
-│   ┌──────────────────────┐ │
-│   │Tracer                │ │
-│   │                      │ │
-│   │  provider            │ │
-│   │   ┌────────────────┐ │ │
-│   │   │    Abstract    │ │ │
-│   │   │ TracerProvider │ │ │
-│   │   └────────────────┘ │ │
-│   │  instrumentation     │ │
-│   │   ┌────────────────┐ │ │
-│   │   │ name           │ │ │
-│   │   │ version        │ │ │
-│   │   └────────────────┘ │ │
-│   │                      │ │
-│   └──────────────────────┘ │
-│ span_context               │
-│   ┌──────────────────────┐ │
-│   │ trace_id             │ │
-│   │ span_id              │ │
-│   │ is_remote            │ │
-│   │ trace_flag           │ │
-│   │ trace_state          │ │
-│   └──────────────────────┘ │
-│ parent_span_context        │
-│ kind                       │
-│ start_time                 │
-│ end_time                   │
-│ attributes                 │
-│ links                      │
-│ events                     │
-│ status                     │
-└────────────────────────────┘
-```
-In SDK, a dedicated [`TracerProvider`](@ref) is provided.
+In SDK, [`TracerProvider`](@ref) and [`Span`](@ref) are provided to replace the
+dummy ones in API. `Span` is not exported since we mainly use [`with_span`](@ref) to
+create new spans.
 
 ```@autodocs
 Modules = [OpenTelemetrySDK]
-Pages = ["trace_provider.jl", "id_generator.jl", "sampling.jl", "span_processor.jl"]
+Pages = ["trace_provider.jl"]
+Private = false
+```
+
+### ID Generators
+
+```@autodocs
+Modules = [OpenTelemetrySDK]
+Pages = ["id_generator.jl"]
+Private = false
+```
+
+### Samplers
+
+```@autodocs
+Modules = [OpenTelemetrySDK]
+Pages = ["sampling.jl"]
+Private = false
+```
+
+### Span Processors
+
+```@autodocs
+Modules = [OpenTelemetrySDK]
+Pages = ["span_processor.jl"]
 Private = false
 ```
 
@@ -114,14 +103,14 @@ sdk](https://github.com/open-telemetry/opentelemetry-dotnet).
 A [`View`](@ref) specifies which instruments are grouped together through [`Criteria`](@ref). For each view, a
 [`Metric`](@ref) is created to store the [`Measurement`](@ref)s. Each metric may have many different dimensions
 configured by [`StaticAttrs`](@ref) in a [`Measurement`](@ref). For each dimension, we may also collect those
-[`Exemplar`]s in the mean while.
+[`Exemplar`](@ref)s in the mean while.
 
 ### Design decisions
 
 - For each registered instrument, we have stored the associated metrics configured by views into the
   `instrument_associated_metric_names` field. So that for each pair of `instrument => measurement`, we can quickly
   determine which metrics to update.
-- The make sure that measurements with the same attribute key-values but with different order can be updated in the same
+- To make sure that measurements of the same attribute key-values but with different order can be updated in the same
   dimension in the [`AggregationStore`](@ref), a design from
   [opentelemetry-dotnet#2374](https://github.com/open-telemetry/opentelemetry-dotnet/issues/2374) is borrowed here.
 
@@ -135,5 +124,4 @@ Private = false
 
 ```@autodocs
 Modules = [OpenTelemetrySDK]
-Private = false
 ```

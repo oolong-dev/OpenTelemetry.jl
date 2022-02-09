@@ -1,12 +1,12 @@
 export AbstractSpanProcessor, CompositSpanProcessor, SimpleSpanProcessor
 
 """
-Each span processor must implements the following methods:
+Each span processor must implement the following methods:
 
-  - `on_start(span_processor, span)`
-  - `on_end(span_processor, span)`
-  - `shut_down!(span_processor)`
-  - `force_flush!(span_processor)`
+  - [`on_start!(span_processor::AbstractSpanProcessor, span::AbstractSpan)`](@ref)
+  - [`on_end!(span_processor::AbstractSpanProcessor, span::AbstractSpan)`](@ref)
+  - [`shut_down!(span_processor::AbstractSpanProcessor)`](@ref)
+  - [`force_flush!(span_processor::AbstractSpanProcessor)`](@ref)
 """
 abstract type AbstractSpanProcessor end
 
@@ -24,7 +24,7 @@ struct CompositSpanProcessor <: AbstractSpanProcessor
     end
 end
 
-for f in (:on_start, :on_end, :shut_down!)
+for f in (:on_start!, :on_end!, :shut_down!)
     @eval function $f(sp::CompositSpanProcessor, args...)
         # ??? spawn
         for p in sp.span_processors
@@ -49,15 +49,23 @@ Base.push!(sp::CompositSpanProcessor, p::AbstractSpanProcessor) =
 """
     SimpleSpanProcessor(span_exporter)
 
-Export each span immediately when [`on_end`](@ref) is called on this processor.
+Export each span immediately when [`on_end!`](@ref) is called on this processor.
 """
 struct SimpleSpanProcessor{T} <: AbstractSpanProcessor
     span_exporter::T
 end
 
-on_start(ssp::SimpleSpanProcessor, span) = nothing
+"""
+    on_start!(ssp::SimpleSpanProcessor, span)
+"""
+on_start!(ssp::SimpleSpanProcessor, span) = nothing
 
-function on_end(ssp::SimpleSpanProcessor, span)
+"""
+    on_end!(ssp::SimpleSpanProcessor, span)
+
+The `span` is exported immediately if it is sampled.
+"""
+function on_end!(ssp::SimpleSpanProcessor, span)
     if span_context(span).trace_flag.sampled
         export!(ssp.span_exporter, [span])
     end
@@ -66,3 +74,7 @@ end
 shut_down!(ssp::SimpleSpanProcessor) = shut_down!(ssp.span_exporter)
 
 force_flush!(ssp::SimpleSpanProcessor, args...) = force_flush!(ssp.span_exporter)
+
+#####
+
+# TODO: BatchSpanProcessor
