@@ -21,7 +21,7 @@ function OpenTelemetryAPI.create_span(
     links = Link[],
     events = OpenTelemetryAPI.Event[],
     start_time = UInt(time() * 10^9),
-    is_remote = false,
+    is_remote = false
 )
     provider = tracer.provider
     parent_span_ctx = context |> current_span |> span_context
@@ -34,7 +34,7 @@ function OpenTelemetryAPI.create_span(
     attributes = DynamicAttrs(
         attributes;
         count_limit = provider.limit_info.span_attribute_count_limit,
-        value_length_limit = provider.limit_info.span_attribute_value_length_limit,
+        value_length_limit = provider.limit_info.span_attribute_value_length_limit
     )
 
     links = Limited(links; limit = provider.limit_info.span_link_count_limit)
@@ -79,39 +79,21 @@ function OpenTelemetryAPI.create_span(
     s
 end
 
+OpenTelemetryAPI.tracer(s::Span) = s.tracer
+OpenTelemetryAPI.span_context(s::Span) = s.span_context
+OpenTelemetryAPI.span_kind(s::Span) = s.kind
+OpenTelemetryAPI.parent_span_context(s::Span) = s.parent_span_context
+OpenTelemetryAPI.attributes(s::Span) = s.attributes
+OpenTelemetryAPI.is_recording(s::Span) = isnothing(s.end_time[])
+OpenTelemetryAPI.start_time(s::Span) = s.start_time
+OpenTelemetryAPI.span_links(s::Span) = s.links
+OpenTelemetryAPI.span_events(s::Span) = s.events
+OpenTelemetryAPI.end_time(s::Span) = s.end_time[]
+
 function OpenTelemetryAPI.end_span!(s::Span{<:TracerProvider}, t = UInt(time() * 10^9))
     if is_recording(s)
         s.end_time[] = t
         on_end!(s.tracer.provider.span_processor, s)
-    else
-        @warn "the span is not recording."
-    end
-end
-
-OpenTelemetryAPI.is_recording(s::Span) = isnothing(s.end_time[])
-
-function Base.setindex!(s::Span, val, key)
-    if is_recording(s)
-        s.attributes[key] = val
-    else
-        @warn "the span is not recording."
-    end
-end
-
-Base.getindex(s::Span, key) = s.attributes[key]
-Base.haskey(s::Span, key) = haskey(s.attributes, key)
-
-function Base.push!(s::Span, event::Event)
-    if is_recording(s)
-        push!(s.events, event)
-    else
-        @warn "the span is not recording."
-    end
-end
-
-function Base.push!(s::Span, link::Link)
-    if is_recording(s)
-        push!(s.links, link)
     else
         @warn "the span is not recording."
     end
@@ -133,39 +115,9 @@ function OpenTelemetryAPI.span_status!(s::Span, code::SpanStatusCode, descriptio
     end
 end
 
-function OpenTelemetryAPI.end_span!(s::Span, t)
-    if is_recording(s)
-        s.end_time[] = t
-    else
-        @warn "the span is not recording."
-    end
-end
+OpenTelemetryAPI.span_status(s::Span) = s.status[]
 
-function Base.push!(s::Span, ex::Exception; is_rethrow_followed = false)
-    if is_recording(s)
-        msg_io = IOBuffer()
-        showerror(msg_io, ex)
-        msg = String(take!(msg_io))
-
-        st_io = IOBuffer()
-        showerror(st_io, CapturedException(ex, catch_backtrace()))
-        st = String(take!(st_io))
-
-        attrs = StaticAttrs((;
-            Symbol("exception.type") => string(typeof(ex)),
-            Symbol("exception.type") => string(typeof(ex)),
-            Symbol("exception.message") => msg,
-            Symbol("exception.stacktrace") => st,
-            Symbol("exception.escaped") => is_rethrow_followed,
-        ))
-
-        push!(s, Event(name = "exception", attributes = attrs))
-    else
-        @warn "the span is not recording."
-    end
-end
-
-Base.nameof(s::Span) = s.name[]
+OpenTelemetryAPI.span_name(s::Span) = s.name[]
 
 function OpenTelemetryAPI.span_name!(s::Span, name::String)
     if is_recording(s)
@@ -174,5 +126,3 @@ function OpenTelemetryAPI.span_name!(s::Span, name::String)
         @warn "the span is not recording."
     end
 end
-
-OpenTelemetryAPI.span_context(s::Span) = s.span_context

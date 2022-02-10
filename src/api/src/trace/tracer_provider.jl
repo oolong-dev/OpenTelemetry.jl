@@ -1,10 +1,15 @@
 export AbstractTracerProvider,
     global_tracer_provider,
     global_tracer_provider!,
+    provider,
+    tracer,
+    resource,
     Tracer,
     AbstractSpan,
     with_span,
     span_context,
+    span_kind,
+    parent_span_context,
     is_recording,
     span_status!,
     end_span!,
@@ -16,13 +21,17 @@ export AbstractTracerProvider,
 
 """
 A tracer provider is a part of an [`Tracer`](@ref). For each concrete tracer
-provider, `OpenTelemetryAPI.create_span(name::String, tracer::Tracer{<:YourCustomProvider})` should also be implemented.
+provider, `resource` and `OpenTelemetryAPI.create_span(name::String, tracer::Tracer{<:YourCustomProvider})` should also be implemented.
 """
 abstract type AbstractTracerProvider end
 
 struct DummyTracerProvider <: AbstractTracerProvider end
 
-const GLOBAL_TRACER_PROVIDER = Ref{AbstractTracerProvider}(DummyTracerProvider())
+resource(::DummyTracerProvider) = Resource()
+
+const DUMMY_TRACER_PROVIDER = DummyTracerProvider()
+
+const GLOBAL_TRACER_PROVIDER = Ref{AbstractTracerProvider}(DUMMY_TRACER_PROVIDER)
 
 """
     global_tracer_provider()
@@ -43,6 +52,8 @@ struct Tracer{P<:AbstractTracerProvider}
     provider::P
 end
 
+provider(t::Tracer) = t.provider
+
 """
     Tracer(name="Main", version=v"0.0.1-dev";provider=global_tracer_provider())
 
@@ -56,14 +67,14 @@ end
 """
 Each concrete span should have the following interfaces implemented.
 
+  - [`tracer`](@ref)
   - [`span_context`](@ref)
+  - [`span_kind`](@ref)
+  - [`parent_span_context`](@ref)
+  - [`attributes`](@ref)
   - [`is_recording`](@ref)
-  - [`Base.setindex!(s::AbstractSpan, val, key)`](@ref)
-  - [`Base.getindex(s::AbstractSpan, key)`](@ref)
-  - [`Base.haskey(s::AbstractSpan, key)`](@ref)
-  - [`Base.push!(s::AbstractSpan, event::Event)`](@ref)
-  - [`Base.push!(s::AbstractSpan, link::Link)`](@ref)
-  - [`Base.push!(s::AbstractSpan, ex::Exception; is_rethrow_followed = false)`](@ref)
+  - [`start_time`](@ref)
+  - [`end_time`](@ref)
   - [`end_span!`](@ref)
   - [`span_status!`](@ref)
   - [`span_status`](@ref)
@@ -81,6 +92,28 @@ struct NonRecordingSpan <: AbstractSpan
 end
 
 """
+    tracer(s::AbstractSpan)
+
+Get the [`Tracer`](@ref) which generates the span `s`.
+"""
+tracer(::NonRecordingSpan) = Tracer(; provider = DUMMY_TRACER_PROVIDER)
+
+"""
+    provider(s::AbstractSpan)
+
+Get the [`AbstractTracerProvider`](@ref) which generates the tracer that the
+span `s` resides in.
+"""
+provider(s::AbstractSpan) = provider(tracer(s))
+
+"""
+    resource(s::AbstractSpan)
+
+Get the associated resource of the span `s`. Fall back to `resource(provider(::AbstractSpan))`
+"""
+resource(s::AbstractSpan) = resource(provider(s))
+
+"""
     is_recording([current_span()])
 
 Returns `true` if this span `s` is recording information like [`Event`](@ref) operations, attribute modification using [`setindex!`](@ref), etc.
@@ -89,25 +122,46 @@ is_recording() = is_recording(current_span())
 is_recording(s::NonRecordingSpan) = false
 
 """
+    attributes(s::AbstractSpan)
+
+Return either [`StaticAttrs`](@ref) or [`DynamicAttrs`](@ref) in the span `s`.
+"""
+attributes(s::NonRecordingSpan) = StaticAttrs()
+
+"""
+    start_time(s::AbstractSpan)
+
+Get the start time of span `s` in nanoseconds.
+"""
+start_time(::NonRecordingSpan) = UInt(0)
+
+"""
+    end_time(s::AbstractSpan)
+
+Get the end time of span `s` in nanoseconds.
+"""
+end_time(::NonRecordingSpan) = UInt(0)
+
+"""
     (s::AbstractSpan)[key] = val
 
 Set the attributes in span `s`. Only valid when the span is not ended yet.
 """
-Base.setindex!(::NonRecordingSpan, val, key) = @warn "the span is not recording."
+Base.setindex!(s::AbstractSpan, val, key) = setindex!(attributes(s), val, key)
 
 """
     Base.getindex(s::AbstractSpan, key)
 
 Look up `key` in the attributes of the span `s`.
 """
-Base.getindex(s::NonRecordingSpan, key) = throw(KeyError(key))
+Base.getindex(s::AbstractSpan, key) = getindex(attributes(s), key)
 
 """
     Base.haskey(s::AbstractSpan, key)
 
 Check if the span `s` has the key in its attributes.
 """
-Base.haskey(s::NonRecordingSpan, key) = false
+Base.haskey(s::AbstractSpan, key) = haskey(attributes(s), key)
 
 """
     Base.push!([s::AbstractSpan], event::Event)
@@ -115,15 +169,22 @@ Base.haskey(s::NonRecordingSpan, key) = false
 Add an [`Event`](@ref) into the span `s`.
 """
 Base.push!(event::Event) = push!(current_span(), event)
-Base.push!(s::NonRecordingSpan, event::Event) = @warn "the span is not recording."
+
+function Base.push!(s::AbstractSpan, event::Event)
+    if is_recording(s)
+        push!(span_events(s), event)
+    else
+        @warn "the span is not recording."
+    end
+end
 
 """
     span_events(s::AbstractSpan)
 
-Get the recorded events in a span.
+Get the recorded events in a span. A [`Limited`](@ref) is expected.
 """
 span_events() = span_events(current_span())
-span_events(s::NonRecordingSpan) = Event[]
+span_events(s::NonRecordingSpan) = Limited(Event[])
 
 """
     Base.push!([current_span()], link::Link)
@@ -131,15 +192,22 @@ span_events(s::NonRecordingSpan) = Event[]
 Add a [`Link`](@ref) into the span `s`.
 """
 Base.push!(link::Link) = push!(current_span(), link)
-Base.push!(s::NonRecordingSpan, link::Link) = @warn "the span is not recording."
+
+function Base.push!(s::AbstractSpan, link::Link)
+    if is_recording(s)
+        push!(span_links(s), link)
+    else
+        @warn "the span is not recording."
+    end
+end
 
 """
     span_links(s::AbstractSpan)
 
-Get the recorded links in a span.
+Get the recorded links in a span. A [`Limited`](@ref) is expected.
 """
 span_links() = span_links(current_span())
-span_links(s::NonRecordingSpan) = Link[]
+span_links(s::NonRecordingSpan) = Limited(Link[])
 
 """
     span_status!([current_span()], code::SpanStatusCode, description=nothing)
@@ -203,6 +271,22 @@ span_context(::Nothing) = nothing
 span_context(s::NonRecordingSpan) = s.span_context
 
 """
+    span_kind([current_span()])
+
+Return [`SpanKind`](@ref)
+"""
+span_kind() = span_kind(current_span())
+span_kind(::NonRecordingSpan) = SPAN_KIND_INTERNAL
+
+"""
+    parent_span_context(s::AbstractSpan)
+
+Get the [`SpanContext`](@ref) from parent span.
+"""
+parent_span_context() = parent_span_context(current_span())
+parent_span_context(s::NonRecordingSpan) = s.parent_span_context
+
+"""
 Here we follow the [Behavior of the API in the absence of an installed SDK](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/api.md#behavior-of-the-api-in-the-absence-of-an-installed-sdk).
 """
 function create_span(
@@ -223,9 +307,9 @@ function create_span(
 end
 
 """
-    with_span(f, name::String, tracer::Tracer;kw...)
+    with_span(f, name::String, [tracer=Tracer()];kw...)
 
-Call function `f` with the current span set to `s`.
+Call function `f` with the current span set a newly created one of `name` with `tracer`.
 
 # Keyword arguments
 
@@ -236,7 +320,7 @@ Call function `f` with the current span set to `s`.
 function with_span(
     f,
     name::String,
-    tracer::Tracer;
+    tracer::Tracer = Tracer();
     end_on_exit = true,
     record_exception = true,
     set_status_on_exception = true,

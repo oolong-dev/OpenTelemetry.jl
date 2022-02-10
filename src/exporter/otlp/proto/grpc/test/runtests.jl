@@ -4,24 +4,22 @@ using OpenTelemetrySDK
 using OpenTelemetryProto
 using OpenTelemetryExporterOtlpProtoGrpc
 
-exporter = InMemoryExporter()
 # exporter = OtlpProtoGrpcTraceExporter()
 
-p = TracerProvider(span_processor = CompositSpanProcessor(SimpleSpanProcessor(exporter)))
-
-tracer = Tracer(provider = p)
-
 @testset "OtlpProtoGrpc" begin
-    with_span(Span("foo", tracer)) do
-        with_span(Span("bar", tracer)) do
-            with_span(Span("baz", tracer)) do
-                println("Hello world!")
-            end
-        end
+    # NonRecordingSpan
+    with_span("foo") do
+        req = convert(
+            OpenTelemetryProto.OpentelemetryClients.ExportTraceServiceRequest,
+            current_span(),
+        )
     end
 
-    req = convert(
-        OpenTelemetryProto.OpentelemetryClients.ExportTraceServiceRequest,
-        exporter.pool,
-    )
+    # Span
+    with_span("foo", Tracer(provider = TracerProvider())) do
+        req = convert(
+            OpenTelemetryProto.OpentelemetryClients.ExportTraceServiceRequest,
+            current_span(),
+        )
+    end
 end

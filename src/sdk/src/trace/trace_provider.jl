@@ -31,6 +31,8 @@ Base.@kwdef struct TracerProvider{
     is_shut_down::Ref{Bool} = Ref(false)
 end
 
+OpenTelemetryAPI.resource(p::TracerProvider) = p.resource
+
 """
     force_flush!(p::TracerProvider)
 

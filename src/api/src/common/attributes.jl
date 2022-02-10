@@ -1,8 +1,4 @@
-export Limited,
-    n_dropped,
-    TAttrVal,
-    DynamicAttrs,
-    StaticAttrs
+export Limited, n_dropped, TAttrVal, DynamicAttrs, StaticAttrs
 
 """
     Limited(container; limit=32)
@@ -157,6 +153,8 @@ StaticAttrs(; kw...) = StaticAttrs(NamedTuple(); kw...)
 n_dropped(a::StaticAttrs) = 0
 
 Base.keys(A::StaticAttrs) = keys(A.attrs)
+Base.haskey(A::StaticAttrs, k::String) = haskey(A.attrs, Symbol(k))
+Base.haskey(A::StaticAttrs, k::Symbol) = haskey(A.attrs, k)
 Base.getindex(A::StaticAttrs, k::String) = getindex(A, Symbol(k))
 Base.getindex(A::StaticAttrs, k::Symbol) = getindex(A.attrs, k)
 Base.getindex(A::StaticAttrs, k::Tuple{Vararg{Symbol}}) =
@@ -210,4 +208,3 @@ function Base.setindex!(d::DynamicAttrs, v::TAttrVal, k::String)
 end
 
 n_dropped(a::DynamicAttrs) = n_dropped(a.attrs)
-
