@@ -63,7 +63,7 @@ tracer = Tracer(
     )
 );
 
-with_span(Span("Hello", tracer)) do
+with_span("Hello", tracer) do
     println("World!")
 end
 ```

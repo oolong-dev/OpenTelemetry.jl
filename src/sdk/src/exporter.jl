@@ -70,7 +70,7 @@ end
 """
     ConsoleExporter(;io=stdout)
 
-Print [`Span`](@ref) or [`Metric`](@ref) into `io`.
+Print an [`AbstractSpan`](@ref) or [`Metric`](@ref) into `io`.
 """
 Base.@kwdef struct ConsoleExporter <: AbstractExporter
     io::IO = stdout

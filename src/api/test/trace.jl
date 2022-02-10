@@ -24,9 +24,12 @@
     @testset "TracerProvider" begin
         tracer = Tracer()
         with_span("test", tracer) do
-            s = current_span()
-            @test span_context(s) === INVALID_SPAN_CONTEXT
-            @test is_recording(s) == false
+            @test span_context() === INVALID_SPAN_CONTEXT
+            @test is_recording() == false
+            @test haskey(current_span(), "foo") == false
+            @test length(span_events()) == 0
+            @test length(span_links()) == 0
+            @test span_status().code == SPAN_STATUS_UNSET
         end
 
         with_span("foo", tracer) do

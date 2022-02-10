@@ -6,9 +6,13 @@ export AbstractTracerProvider,
     with_span,
     span_context,
     is_recording,
-    set_status!,
-    end!,
-    set_name!
+    span_status!,
+    end_span!,
+    span_name!,
+    span_name,
+    span_links,
+    span_events,
+    span_status
 
 """
 A tracer provider is a part of an [`Tracer`](@ref). For each concrete tracer
@@ -52,18 +56,21 @@ end
 """
 Each concrete span should have the following interfaces implemented.
 
-  - [`span_context(s::AbstractSpan)`](@ref)
-  - [`is_recording(s::AbstractSpan)`](@ref)
+  - [`span_context`](@ref)
+  - [`is_recording`](@ref)
   - [`Base.setindex!(s::AbstractSpan, val, key)`](@ref)
   - [`Base.getindex(s::AbstractSpan, key)`](@ref)
   - [`Base.haskey(s::AbstractSpan, key)`](@ref)
   - [`Base.push!(s::AbstractSpan, event::Event)`](@ref)
   - [`Base.push!(s::AbstractSpan, link::Link)`](@ref)
   - [`Base.push!(s::AbstractSpan, ex::Exception; is_rethrow_followed = false)`](@ref)
-  - [`set_status!(s::AbstractSpan, code::SpanStatusCode, description = nothing)`](@ref)
-  - [`end!(s::AbstractSpan)`](@ref)
-  - [`Base.nameof(s::AbstractSpan)`](@ref)
-  - [`set_name!(s::AbstractSpan, name::String)`](@ref)
+  - [`end_span!`](@ref)
+  - [`span_status!`](@ref)
+  - [`span_status`](@ref)
+  - [`span_name!`](@ref)
+  - [`span_name`](@ref)
+  - [`span_links`](@ref)
+  - [`span_events`](@ref)
 """
 abstract type AbstractSpan end
 
@@ -74,10 +81,11 @@ struct NonRecordingSpan <: AbstractSpan
 end
 
 """
-    is_recording(s::AbstractSpan)
+    is_recording([current_span()])
 
 Returns `true` if this span `s` is recording information like [`Event`](@ref) operations, attribute modification using [`setindex!`](@ref), etc.
 """
+is_recording() = is_recording(current_span())
 is_recording(s::NonRecordingSpan) = false
 
 """
@@ -97,40 +105,69 @@ Base.getindex(s::NonRecordingSpan, key) = throw(KeyError(key))
 """
     Base.haskey(s::AbstractSpan, key)
 
-Check if the span `s` has the key.
+Check if the span `s` has the key in its attributes.
 """
 Base.haskey(s::NonRecordingSpan, key) = false
 
 """
-    Base.push!(s::AbstractSpan, event::Event)
+    Base.push!([s::AbstractSpan], event::Event)
 
 Add an [`Event`](@ref) into the span `s`.
 """
+Base.push!(event::Event) = push!(current_span(), event)
 Base.push!(s::NonRecordingSpan, event::Event) = @warn "the span is not recording."
 
 """
-    Base.push!(s::AbstractSpan, link::Link)
+    span_events(s::AbstractSpan)
+
+Get the recorded events in a span.
+"""
+span_events() = span_events(current_span())
+span_events(s::NonRecordingSpan) = Event[]
+
+"""
+    Base.push!([current_span()], link::Link)
 
 Add a [`Link`](@ref) into the span `s`.
 """
+Base.push!(link::Link) = push!(current_span(), link)
 Base.push!(s::NonRecordingSpan, link::Link) = @warn "the span is not recording."
 
 """
-    set_status!(s::AbstractSpan, code::SpanStatusCode, description=nothing)
+    span_links(s::AbstractSpan)
+
+Get the recorded links in a span.
+"""
+span_links() = span_links(current_span())
+span_links(s::NonRecordingSpan) = Link[]
+
+"""
+    span_status!([current_span()], code::SpanStatusCode, description=nothing)
 
 Update the status of span `s` by following the original specification. `description` is only considered when the `code` is `SPAN_STATUS_ERROR`. Only valid when the span is not ended yet.
 """
-set_status!(s::NonRecordingSpan, code::SpanStatusCode, description = nothing) =
+span_status!(code::SpanStatusCode, description) =
+    span_status!(current_span(), code, description)
+span_status!(s::NonRecordingSpan, code::SpanStatusCode, description = nothing) =
     @warn "the span is not recording."
 
 """
-    end!(s::AbstractSpan, t=UInt(time()*10^9))
+    span_status([current_span()])
+
+Get status of the span. A [`SpanStatusCode`](@ref) is returned.
+"""
+span_status() = span_status(current_span())
+span_status(s::NonRecordingSpan) = SpanStatus(SPAN_STATUS_UNSET)
+
+"""
+    end_span!([s=current_span()], [t=UInt(time()*10^9)])
 
 Set the end time of the span and trigger span processors. Note `t` is the nanoseconds.
 """
-end!(s::AbstractSpan) = end!(s, UInt(time() * 10^9))
-end!(s::NonRecordingSpan) = @warn "the span is not recording."
-end!(s::NonRecordingSpan, t) = @warn "the span is not recording."
+end_span!() = end_span!(current_span())
+end_span!(s::AbstractSpan) = end_span!(s, UInt(time() * 10^9))
+end_span!(s::NonRecordingSpan) = @warn "the span is not recording."
+end_span!(s::NonRecordingSpan, t) = @warn "the span is not recording."
 
 """
     Base.push!(s::AbstractSpan, ex::Exception; is_rethrow_followed = false)
@@ -141,14 +178,16 @@ Base.push!(s::NonRecordingSpan, ex::Exception; is_rethrow_followed = false) =
     @warn "the span is not recording."
 
 """
-    Base.nameof(s::AbstractSpan)
+    span_name([current_span()])
 """
-Base.nameof(s::NonRecordingSpan) = s.name
+span_name() = span_name(current_span())
+span_name(s::NonRecordingSpan) = s.name
 
 """
-    set_name!(s::AbstractSpan, name::String)
+    span_name!([current_span()], name::String)
 """
-set_name!(s::NonRecordingSpan, name::String) = @warn "the span is not recording."
+span_name!(name::String) = span_name!(current_span(), name)
+span_name!(s::NonRecordingSpan, name::String) = @warn "the span is not recording."
 
 #####
 
@@ -159,9 +198,9 @@ Get the [`SpanContext`](@ref) from a span `s`. If `s` is not specified,
 [`current_span()`](@ref) will be used. `nothing` is returned if no span context
 found.
 """
-span_context(s::NonRecordingSpan) = s.span_context
-span_context(::Nothing) = nothing
 span_context() = span_context(current_span())
+span_context(::Nothing) = nothing
+span_context(s::NonRecordingSpan) = s.span_context
 
 """
 Here we follow the [Behavior of the API in the absence of an installed SDK](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/api.md#behavior-of-the-api-in-the-absence-of-an-installed-sdk).
@@ -190,7 +229,7 @@ Call function `f` with the current span set to `s`.
 
 # Keyword arguments
 
-  - `end_on_exit=true`, controls whether to call [`end!`](@ref) after `f` or not.
+  - `end_on_exit=true`, controls whether to call [`end_span!`](@ref) after `f` or not.
   - `record_exception=true`, controls whether to record the exception.
   - `set_status_on_exception=true`, decides whether to set status to [`SPAN_STATUS_ERROR`](@ref) automatically when an exception is caught.
 """
@@ -212,13 +251,13 @@ function with_span(
                     push!(s, ex; is_rethrow_followed = true)
                 end
                 if set_status_on_exception
-                    set_status!(s, SPAN_STATUS_ERROR, string(ex))
+                    span_status!(s, SPAN_STATUS_ERROR, string(ex))
                 end
             end
             rethrow(ex)
         finally
             if end_on_exit
-                end!(s)
+                end_span!(s)
             end
         end
     end

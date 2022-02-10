@@ -7,8 +7,8 @@ struct Span{P<:AbstractTracerProvider} <: AbstractSpan
     start_time::UInt
     end_time::Ref{Union{Nothing,UInt}}
     attributes::DynamicAttrs
-    links::Vector{Link}
-    events::Vector{Event}
+    links::Limited{Vector{Link}}
+    events::Limited{Vector{Event}}
     status::Ref{SpanStatus}
 end
 
@@ -79,7 +79,7 @@ function OpenTelemetryAPI.create_span(
     s
 end
 
-function OpenTelemetryAPI.end!(s::Span{<:TracerProvider}, t = UInt(time() * 10^9))
+function OpenTelemetryAPI.end_span!(s::Span{<:TracerProvider}, t = UInt(time() * 10^9))
     if is_recording(s)
         s.end_time[] = t
         on_end!(s.tracer.provider.span_processor, s)
@@ -117,7 +117,7 @@ function Base.push!(s::Span, link::Link)
     end
 end
 
-function OpenTelemetryAPI.set_status!(s::Span, code::SpanStatusCode, description = nothing)
+function OpenTelemetryAPI.span_status!(s::Span, code::SpanStatusCode, description = nothing)
     if is_recording(s)
         if s.status[].code === SPAN_STATUS_OK
             # no further updates
@@ -133,7 +133,7 @@ function OpenTelemetryAPI.set_status!(s::Span, code::SpanStatusCode, description
     end
 end
 
-function OpenTelemetryAPI.end!(s::Span, t)
+function OpenTelemetryAPI.end_span!(s::Span, t)
     if is_recording(s)
         s.end_time[] = t
     else
@@ -167,7 +167,7 @@ end
 
 Base.nameof(s::Span) = s.name[]
 
-function OpenTelemetryAPI.set_name!(s::Span, name::String)
+function OpenTelemetryAPI.span_name!(s::Span, name::String)
     if is_recording(s)
         s.name[] = name
     else

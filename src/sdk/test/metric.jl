@@ -230,7 +230,7 @@ end
 
     y = Counter{Int}("Y", m)
     tracer = Tracer()
-    with_span(Span("test", tracer)) do
+    with_span("test", tracer) do
         y(2)
     end
 
