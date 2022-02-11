@@ -51,8 +51,9 @@ function shut_down!(p::TracerProvider)
 end
 
 """
-    Base.push!(p::TracerProvider, sp::AbstractSpanProcessor)
+    Base.push!([p::TracerProvider], sp::AbstractSpanProcessor)
 
 Add an extra span processor `sp` into the [`TracerProvider`](@ref) p.
 """
+Base.push!(sp::AbstractSpanProcessor) = push!(global_tracer_provider(), sp)
 Base.push!(p::TracerProvider, sp::AbstractSpanProcessor) = push!(p.span_processor, sp)

@@ -15,7 +15,7 @@ Base.@kwdef struct DummyMeterProvider <: AbstractMeterProvider end
 
 Base.push!(p::DummyMeterProvider, x) = nothing
 
-const GLOBAL_METER_PROVIDER = Ref(DummyMeterProvider())
+const GLOBAL_METER_PROVIDER = Ref{AbstractMeterProvider}(DummyMeterProvider())
 
 """
     global_meter_provider()
@@ -62,7 +62,7 @@ struct Meter{P<:AbstractMeterProvider}
         provider::P = global_meter_provider(),
         version = v"0.0.1-dev",
         schema_url = "",
-        instrumentation_info = InstrumentationInfo(),
+        instrumentation_info = InstrumentationInfo()
     ) where {P<:AbstractMeterProvider}
         m = new{P}(
             name,

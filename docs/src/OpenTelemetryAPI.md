@@ -142,7 +142,7 @@ Private = false
 
 ## Logging
 
-The idea is simple, a [`LogTransformer`](@ref) is provided to transform each logging message into a [`LogRecord`](@ref). To understand how to use it, users should be familiar with how **TransformerLogger** from [LoggingExtras.jl](https://github.com/JuliaLogging/LoggingExtras.jl#transformerlogger-transformer) works.
+The idea is simple, a [`OtelLogTransformer`](@ref) is provided to transform each logging message into a [`LogRecord`](@ref). To understand how to use it, users should be familiar with how **TransformerLogger** from [LoggingExtras.jl](https://github.com/JuliaLogging/LoggingExtras.jl#transformerlogger-transformer) works.
 
 ```@autodocs
 Modules = [OpenTelemetryAPI]

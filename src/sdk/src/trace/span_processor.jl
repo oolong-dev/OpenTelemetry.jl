@@ -44,6 +44,10 @@ end
 Base.push!(sp::CompositSpanProcessor, p::AbstractSpanProcessor) =
     push!(sp.span_processors, p)
 
+Base.empty!(sp::CompositSpanProcessor) = empty!(sp.span_processors)
+Base.getindex(sp::CompositSpanProcessor, args...) = getindex(sp.span_exporter, args...)
+Base.setindex!(sp::CompositSpanProcessor, args...) = setindex!(sp.span_exporter, args...)
+
 #####
 
 """
@@ -78,3 +82,4 @@ force_flush!(ssp::SimpleSpanProcessor, args...) = force_flush!(ssp.span_exporter
 #####
 
 # TODO: BatchSpanProcessor
+# https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#batching-processor

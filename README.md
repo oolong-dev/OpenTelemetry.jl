@@ -55,16 +55,10 @@ To show traces in your console:
 ```julia
 using OpenTelemetry
 
-tracer = Tracer(
-    provider = TracerProvider(
-        span_processor = SimpleSpanProcessor(
-            ConsoleExporter()
-        )
-    )
-);
-
-with_span("Hello", tracer) do
-    println("World!")
+with_span("Hello") do
+    with_span("World") do
+        println("from OpenTelemetry")
+    end
 end
 ```
 
@@ -73,12 +67,11 @@ end
 ```julia
 using OpenTelemetry
 
-p = MeterProvider();
-e = ConsoleExporter();
-r = MetricReader(p, e);
+r = MetricReader();
 
-m = Meter("my_metrics"; provider=p);
+m = Meter("demo_metrics");
 c = Counter{Int}("fruit_counter", m);
+h = Histogram{Float64}("normal_distribution", m);
 
 c(; name = "apple", color = "red")
 c(2; name = "lemon", color = "yellow")
@@ -87,7 +80,12 @@ c(2; name = "apple", color = "green")
 c(5; name = "apple", color = "red")
 c(4; name = "lemon", color = "yellow")
 
+for _ in 1:1_000
+    h(randn() * 100)
+end
+
 r()
+
 ```
 
 ### Logging
@@ -97,8 +95,10 @@ using OpenTelemetry
 using Logging
 using LoggingExtras
 
-with_logger(TransformerLogger(LogTransformer(), global_logger())) do
-    @info "hello world!"
+with_span("Hello") do
+    with_logger(TransformerLogger(OtelLogTransformer(), global_logger())) do
+        @info "World!"
+    end
 end
 ```
 

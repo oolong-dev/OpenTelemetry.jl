@@ -1,4 +1,4 @@
-export LogTransformer, LogRecord
+export OtelLogTransformer, LogRecord
 
 using Logging
 using Dates
@@ -22,18 +22,18 @@ Base.@kwdef struct LogRecord{B,R<:Resource}
 end
 
 """
-    LogTransformer(resource::Resource)
+    OtelLogTransformer(resource::Resource)
 
 It can be used as a function `f` to the [`TransformerLogger`](https://github.com/JuliaLogging/LoggingExtras.jl#transformerlogger-transformer).
 After applying this transformer, a [`LogRecord`](@ref) will be returned.
 """
-struct LogTransformer{R<:Resource}
+struct OtelLogTransformer{R<:Resource}
     resource::R
 end
 
-LogTransformer() = LogTransformer(Resource())
+OtelLogTransformer() = OtelLogTransformer(Resource())
 
-function (L::LogTransformer)(log)
+function (L::OtelLogTransformer)(log)
     span_ctx = span_context()
     merge(
         log,
