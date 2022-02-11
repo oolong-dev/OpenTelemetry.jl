@@ -1,7 +1,7 @@
 name = "OpenTelemetryProto"
 uuid = "cc651e92-2989-4f95-bcc3-32e6fb6ac025"
 authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
-version = "0.1.0"
+version = "0.13.0"
 
 [deps]
 CodecZlib = "944b1d66-785c-5afd-91f1-9de20f533193"

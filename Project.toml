@@ -16,7 +16,7 @@ OpenTelemetryAPI = "0.2"
 OpenTelemetrySDK = "0.2"
 OpenTelemetryExporterOtlpProtoGrpc = "0.2"
 OpenTelemetryExporterPrometheus = "0.1"
-OpenTelemetryProto = "0.1"
+OpenTelemetryProto = "0.13"
 Reexport = "1"
 julia = "1"
 

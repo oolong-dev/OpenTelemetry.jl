@@ -178,7 +178,7 @@ version = "0.1.2"
 deps = ["CodecZlib", "Downloads", "ProtoBuf", "Tar", "gRPCClient"]
 path = "../src/proto"
 uuid = "cc651e92-2989-4f95-bcc3-32e6fb6ac025"
-version = "0.1.0"
+version = "0.13.0"
 
 [[deps.OpenTelemetrySDK]]
 deps = ["Dates", "GarishPrint", "Glob", "OpenTelemetryAPI", "Random", "Reexport"]
