@@ -1,7 +1,7 @@
 name = "OpenTelemetrySDK"
 uuid = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
 authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
@@ -14,7 +14,7 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 [compat]
 GarishPrint = "0.2, 0.3, 0.4, 0.5"
 Glob = "1"
-OpenTelemetryAPI = "0.1"
+OpenTelemetryAPI = "0.2"
 Reexport = "1"
 julia = "1"
 

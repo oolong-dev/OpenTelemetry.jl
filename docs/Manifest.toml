@@ -151,7 +151,7 @@ uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 
 [[deps.OpenTelemetry]]
-deps = ["OpenTelemetryAPI", "OpenTelemetrySDK", "Reexport"]
+deps = ["OpenTelemetryAPI", "OpenTelemetryExporterOtlpProtoGrpc", "OpenTelemetryExporterPrometheus", "OpenTelemetryProto", "OpenTelemetrySDK", "Reexport"]
 path = ".."
 uuid = "c1912aec-9d41-432b-84fe-e17fd97255be"
 version = "0.1.0"
@@ -160,19 +160,19 @@ version = "0.1.0"
 deps = ["Dates", "Logging", "Random", "UUIDs"]
 path = "../src/api"
 uuid = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
-version = "0.1.0"
+version = "0.2.0"
 
 [[deps.OpenTelemetryExporterOtlpProtoGrpc]]
-deps = ["OpenTelemetryAPI", "OpenTelemetryProto", "OpenTelemetrySDK", "gRPCClient"]
+deps = ["OpenTelemetryAPI", "OpenTelemetryProto", "OpenTelemetrySDK", "URIs", "gRPCClient"]
 path = "../src/exporter/otlp/proto/grpc"
 uuid = "83e8ae56-efb3-499e-9158-b649d4f902fc"
-version = "0.1.0"
+version = "0.2.0"
 
 [[deps.OpenTelemetryExporterPrometheus]]
 deps = ["HTTP", "OpenTelemetrySDK", "Sockets"]
 path = "../src/exporter/prometheus"
 uuid = "34e26579-e93c-4b5e-ba07-7afb633408c2"
-version = "0.1.1"
+version = "0.1.2"
 
 [[deps.OpenTelemetryProto]]
 deps = ["CodecZlib", "Downloads", "ProtoBuf", "Tar", "gRPCClient"]
@@ -184,10 +184,10 @@ version = "0.1.0"
 deps = ["Dates", "GarishPrint", "Glob", "OpenTelemetryAPI", "Random", "Reexport"]
 path = "../src/sdk"
 uuid = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
-version = "0.1.0"
+version = "0.2.0"
 
 [[deps.OpenTelemetryUber]]
-deps = ["OpenTelemetry", "OpenTelemetryAPI", "OpenTelemetryExporterOtlpProtoGrpc", "OpenTelemetryExporterPrometheus", "OpenTelemetryProto", "OpenTelemetrySDK", "Reexport"]
+deps = ["OpenTelemetryAPI", "OpenTelemetryExporterOtlpProtoGrpc", "OpenTelemetryExporterPrometheus", "OpenTelemetryProto", "OpenTelemetrySDK", "Reexport"]
 path = "../src/uber"
 uuid = "463ee90e-87a9-4aee-9dc9-6a5c2417ebf4"
 version = "0.1.0"
@@ -199,9 +199,9 @@ version = "1.4.1"
 
 [[deps.Parsers]]
 deps = ["Dates"]
-git-tree-sha1 = "0b5cfbb704034b5b4c1869e36634438a047df065"
+git-tree-sha1 = "13468f237353112a01b2d6b32f3d0f80219944aa"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "2.2.1"
+version = "2.2.2"
 
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]

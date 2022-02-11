@@ -112,29 +112,23 @@ uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 
-[[deps.OpenTelemetry]]
-deps = ["OpenTelemetryAPI", "OpenTelemetrySDK", "Reexport"]
-path = "../.."
-uuid = "c1912aec-9d41-432b-84fe-e17fd97255be"
-version = "0.1.0"
-
 [[deps.OpenTelemetryAPI]]
 deps = ["Dates", "Logging", "Random", "UUIDs"]
 path = "../api"
 uuid = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
-version = "0.1.0"
+version = "0.2.0"
 
 [[deps.OpenTelemetryExporterOtlpProtoGrpc]]
-deps = ["OpenTelemetryAPI", "OpenTelemetryProto", "OpenTelemetrySDK", "gRPCClient"]
+deps = ["OpenTelemetryAPI", "OpenTelemetryProto", "OpenTelemetrySDK", "URIs", "gRPCClient"]
 path = "../exporter/otlp/proto/grpc"
 uuid = "83e8ae56-efb3-499e-9158-b649d4f902fc"
-version = "0.1.0"
+version = "0.2.0"
 
 [[deps.OpenTelemetryExporterPrometheus]]
 deps = ["HTTP", "OpenTelemetrySDK", "Sockets"]
 path = "../exporter/prometheus"
 uuid = "34e26579-e93c-4b5e-ba07-7afb633408c2"
-version = "0.1.1"
+version = "0.1.2"
 
 [[deps.OpenTelemetryProto]]
 deps = ["CodecZlib", "Downloads", "ProtoBuf", "Tar", "gRPCClient"]
@@ -146,7 +140,7 @@ version = "0.1.0"
 deps = ["Dates", "GarishPrint", "Glob", "OpenTelemetryAPI", "Random", "Reexport"]
 path = "../sdk"
 uuid = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
-version = "0.1.0"
+version = "0.2.0"
 
 [[deps.OrderedCollections]]
 git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
