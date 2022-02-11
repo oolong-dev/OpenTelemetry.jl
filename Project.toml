@@ -1,7 +1,7 @@
 name = "OpenTelemetry"
 uuid = "c1912aec-9d41-432b-84fe-e17fd97255be"
 authors = ["Jun Tian <tianjun.cpp@gmail.com> and contributors"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 OpenTelemetryAPI = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
