@@ -1,6 +1,6 @@
 @testset "trace" begin
     @testset "basic usage" begin
-        global_tracer_provider(
+        global_tracer_provider!(
             TracerProvider(
                 span_processor = CompositSpanProcessor(
                     SimpleSpanProcessor(InMemoryExporter()),
@@ -10,9 +10,9 @@
 
         tracer = Tracer()
 
-        with_span(Span("test_async", tracer)) do
+        with_span("test_async", tracer) do
             @sync for i in 1:5
-                @async with_span(Span("asyn_span_$i", tracer)) do
+                @async with_span("asyn_span_$i", tracer) do
                     current_span()["my_id"] = i
                 end
             end
@@ -24,7 +24,7 @@
 
         push!(p, SimpleSpanProcessor(ConsoleExporter()))
 
-        with_span(Span("test", tracer)) do
+        with_span("test", tracer) do
             println("hello world!")
         end
 
@@ -32,8 +32,9 @@
         shut_down!(p)
         @test length(sp.span_exporter.pool) == 0
 
-        s = Span("test", tracer)
-        @test span_context(s) === INVALID_SPAN_CONTEXT
+        with_span("test", tracer) do
+            @test span_context() === INVALID_SPAN_CONTEXT
+        end
     end
 
     @testset "sampling" begin
@@ -44,8 +45,9 @@
 
         t = Tracer(; provider = p)
 
-        s = Span("test", t)
-        @test span_context(s) === INVALID_SPAN_CONTEXT
+        with_span("test", t) do
+            @test span_context() === INVALID_SPAN_CONTEXT
+        end
 
         p = TracerProvider(
             span_processor = SimpleSpanProcessor(InMemoryExporter()),
@@ -54,8 +56,9 @@
 
         t = Tracer(; provider = p)
 
-        s = Span("test", t)
-        @test span_context(s) === INVALID_SPAN_CONTEXT
+        with_span("test", t) do
+            @test span_context() === INVALID_SPAN_CONTEXT
+        end
 
         p = TracerProvider(
             span_processor = SimpleSpanProcessor(InMemoryExporter()),
@@ -66,9 +69,10 @@
         t = Tracer(; provider = p)
         n_no_op_spans = 0
         for _ in 1:1_000
-            s = Span("test", t)
-            if span_context(s) === INVALID_SPAN_CONTEXT
-                n_no_op_spans += 1
+            with_span("test", t) do
+                if span_context() === INVALID_SPAN_CONTEXT
+                    n_no_op_spans += 1
+                end
             end
         end
         @test isapprox(n_no_op_spans / 1_000, 0.5; atol = 0.1)

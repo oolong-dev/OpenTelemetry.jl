@@ -1,6 +1,6 @@
-name = "OpenTelemetry"
-uuid = "c1912aec-9d41-432b-84fe-e17fd97255be"
-authors = ["Jun Tian <tianjun.cpp@gmail.com> and contributors"]
+name = "OpenTelemetryUber"
+uuid = "463ee90e-87a9-4aee-9dc9-6a5c2417ebf4"
+authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
 version = "0.1.0"
 
 [deps]
@@ -19,11 +19,3 @@ OpenTelemetryExporterPrometheus = "0.1"
 OpenTelemetryProto = "0.13"
 Reexport = "1"
 julia = "1"
-
-[extras]
-Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
-LoggingExtras = "e6f89c97-d47a-5376-807f-9c37f3926c36"
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-
-[targets]
-test = ["Test", "Logging", "LoggingExtras"]

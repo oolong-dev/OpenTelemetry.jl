@@ -61,6 +61,11 @@ struct MeterProvider <: AbstractMeterProvider
     n_max_metrics::UInt
 end
 
+"""
+    MeterProvider(;resource = Resource(), views = View[], n_max_metrics = N_MAX_METRICS)
+
+If `views` is empty, a default one ([`View(;instrument_name="*"`](@ref)) will be added to enable all metrics.
+"""
 function MeterProvider(;
     resource = Resource(),
     views = View[],

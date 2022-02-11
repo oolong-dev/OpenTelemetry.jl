@@ -3,6 +3,7 @@ module OpenTelemetryExporterOtlpProtoGrpc
 export OtlpProtoGrpcTraceExporter
 
 using gRPCClient
+using URIs
 
 import OpenTelemetryAPI
 import OpenTelemetrySDK
@@ -19,11 +20,27 @@ struct OtlpProtoGrpcTraceExporter{T} <: SDK.AbstractExporter
     client::T
 end
 
+"""
+    OtlpProtoGrpcTraceExporter(;kw...)
+
+## Keyword arguments
+
+  - `scheme=http`
+  - `host="localhost"`
+  - `port=4317`
+  - `is_blocking=true`, by default the `BlockingClient` is used.
+  - Rest keyword arguments will be forward to the gRPC client.
+
+`scheme`, `host` and `port` specifies the OTEL Collector to connect with.
+"""
 function OtlpProtoGrpcTraceExporter(;
-    url = "http://localhost:4317",
+    scheme = "http",
+    host = "localhost",
+    port = 4317,
     is_blocking = true,
     kw...,
 )
+    url = string(URI(; scheme = scheme, host = host, port = port))
     if is_blocking
         client = Otlp.TraceServiceBlockingClient(url; kw...)
     else
@@ -41,39 +58,51 @@ function SDK.export!(se::OtlpProtoGrpcTraceExporter, sp)
     end
 end
 
-Base.convert(t::Type{Otlp.ExportTraceServiceRequest}, s::API.Span) = convert(t, [s])
+Base.convert(t::Type{Otlp.ExportTraceServiceRequest}, s::API.AbstractSpan) = convert(t, [s])
 
-function Base.convert(::Type{Otlp.ExportTraceServiceRequest}, spans::Vector)
-    Otlp.ExportTraceServiceRequest(
-        resource_spans = [
-            Trace.ResourceSpans(
-                resource = convert(Resource.Resource, spans[1].tracer.provider.resource),
-                schema_url = spans[1].tracer.provider.resource.schema_url,
-                # Typically only one element is contained
-                # TODO: maybe group spans by resource first?
-                instrumentation_library_spans = [
-                    convert(Trace.InstrumentationLibrarySpans, spans),
-                ],
-            ),
-        ],
-    )
+function Base.convert(::Type{Otlp.ExportTraceServiceRequest}, spans)
+    r = Otlp.ExportTraceServiceRequest(; resource_spans = [])
+    s_res_pre = nothing
+    s_ins_pre = nothing
+    for s in spans
+        s_res = API.resource(s)
+        if s_res != s_res_pre
+            push!(
+                r.resource_spans,
+                Trace.ResourceSpans(
+                    resource = convert(Resource.Resource, s_res),
+                    schema_url = s_res.schema_url,
+                    instrumentation_library_spans = [],
+                ),
+            )
+        end
+        s_ins = API.tracer(s).instrumentation
+        if s_ins != s_ins_pre
+            push!(
+                r.resource_spans[end].instrumentation_library_spans,
+                Trace.InstrumentationLibrarySpans(
+                    instrumentation_library = convert(Common.InstrumentationLibrary, s_ins),
+                    schema_url = "",
+                    spans = [],
+                ),
+            )
+        end
+
+        push!(
+            r.resource_spans[end].instrumentation_library_spans[end].spans,
+            convert(Trace.Span, s),
+        )
+
+        s_res_pre = s_res
+        s_ins_pre = s_ins
+    end
+    r
 end
 
-function Base.convert(::Type{Resource.Resource}, r::SDK.Resource)
+function Base.convert(::Type{Resource.Resource}, r::API.Resource)
     Resource.Resource(
         attributes = convert(Vector{Common.KeyValue}, r.attributes),
         dropped_attributes_count = API.n_dropped(r.attributes),
-    )
-end
-
-function Base.convert(::Type{Trace.InstrumentationLibrarySpans}, spans::Vector)
-    Trace.InstrumentationLibrarySpans(
-        instrumentation_library = convert(
-            Common.InstrumentationLibrary,
-            spans[1].tracer.instrumentation,
-        ),
-        schema_url = spans[1].tracer.provider.resource.schema_url,
-        spans = [convert(Trace.Span, s) for s in spans],
     )
 end
 
@@ -82,27 +111,27 @@ function Base.convert(::Type{Common.InstrumentationLibrary}, info::API.Instrumen
 end
 
 # TODO: use method call instead of accessing field directly
-function Base.convert(::Type{Trace.Span}, s::API.Span)
+function Base.convert(::Type{Trace.Span}, s::API.AbstractSpan)
     Trace.Span(
         trace_id = reinterpret(UInt8, [API.span_context(s).trace_id]),
         span_id = reinterpret(UInt8, [API.span_context(s).span_id]),
         trace_state = string(API.span_context(s).trace_state),
-        parent_span_id = if isnothing(s.parent_span_context)
+        parent_span_id = if isnothing(API.parent_span_context(s))
             UInt8[]
         else
-            reinterpret(UInt8, [s.parent_span_context.span_id])
+            reinterpret(UInt8, [API.parent_span_context(s).span_id])
         end,
-        name = s.name[],
-        kind = Int32(s.kind),
-        start_time_unix_nano = s.start_time,
-        end_time_unix_nano = s.end_time[],
-        attributes = convert(Vector{Common.KeyValue}, s.attributes),
-        dropped_attributes_count = UInt32(API.n_dropped(s.attributes)),
-        events = [convert(Trace.Span_Event, e) for e in s.events],
-        dropped_events_count = UInt32(API.n_dropped(s.events)),
-        links = [convert(Trace.Span_Link, e) for e in s.links],
-        dropped_links_count = UInt32(API.n_dropped(s.links)),
-        status = convert(Trace.Status, s.status[]),
+        name = API.span_name(s),
+        kind = Int32(API.span_kind(s)),
+        start_time_unix_nano = API.start_time(s),
+        end_time_unix_nano = API.end_time(s),
+        attributes = convert(Vector{Common.KeyValue}, API.attributes(s)),
+        dropped_attributes_count = UInt32(API.n_dropped(API.attributes(s))),
+        events = [convert(Trace.Span_Event, e) for e in API.span_events(s)],
+        dropped_events_count = UInt32(API.n_dropped(API.span_events(s))),
+        links = [convert(Trace.Span_Link, e) for e in API.span_links(s)],
+        dropped_links_count = UInt32(API.n_dropped(API.span_links(s))),
+        status = convert(Trace.Status, API.span_status(s)),
     )
 end
 
@@ -150,7 +179,7 @@ function Base.convert(::Type{Trace.Span_Link}, link::API.Link)
     )
 end
 
-function Base.convert(::Type{Trace.Status}, status::SDK.SpanStatus)
+function Base.convert(::Type{Trace.Status}, status::API.SpanStatus)
     Trace.Status(code = Int32(status.code), message = something(status.description, ""))
 end
 

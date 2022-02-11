@@ -1,7 +1,7 @@
 @testset "metric" begin
     p = MeterProvider()
     e = InMemoryExporter()
-    r = MetricReader(; provider = p, exporter = e)
+    r = MetricReader(p, e)
 
     m = Meter("test"; provider = p)
 
@@ -119,8 +119,8 @@
     @test og_points[StaticAttrs()].value == -2 # the last value
 
     periodic_reader = PeriodicMetricReader(
-        CompositMetricReader(r, MetricReader(; provider = p, exporter = ConsoleExporter()));
-        export_interval_seconds = 1,
+        CompositMetricReader(r, MetricReader(p, ConsoleExporter()));
+        export_interval_seconds = 1
     )
 
     sleep(3)
@@ -130,7 +130,7 @@ end
 @testset "AggregationStore" begin
     store = OpenTelemetrySDK.AggregationStore{OpenTelemetrySDK.DataPoint{Int,Nothing}}(;
         n_max_points = 3,
-        n_max_attrs = 4,
+        n_max_attrs = 4
     )
     init_data = () -> OpenTelemetrySDK.DataPoint{Int}()
 
@@ -162,13 +162,13 @@ end
             View(
                 "Bar";
                 instrument_name = "Y",
-                aggregation = HistogramAgg{Int}(boundaries = b),
+                aggregation = HistogramAgg{Int}(boundaries = b)
             ),
         ],
     )
 
     e = InMemoryExporter()
-    r = MetricReader(; provider = p, exporter = e)
+    r = MetricReader(p, e)
     m = Meter("test"; provider = p)
 
     X = Counter{Int}("X", m)
@@ -215,14 +215,14 @@ end
                 instrument_type = Counter,
                 meter_name = "test",
                 meter_version = v"0.0.1-dev",
-                meter_schema_url = "",
+                meter_schema_url = ""
             ),
             View("X"; aggregation = DROP),
         ],
     )
 
     e = InMemoryExporter()
-    r = MetricReader(; provider = p, exporter = e)
+    r = MetricReader(p, e)
 
     m = Meter("test"; provider = p)
     x = Counter{Int}("X", m)
@@ -230,7 +230,7 @@ end
 
     y = Counter{Int}("Y", m)
     tracer = Tracer()
-    with_span(Span("test", tracer)) do
+    with_span("test", tracer) do
         y(2)
     end
 

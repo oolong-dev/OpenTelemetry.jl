@@ -9,41 +9,15 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 
 ## Packages
 
-| Package | Latest Version | Status |
-|:--------|:---------------|:-------|
-|`OpenTelemetry` | [![version](https://juliahub.com/docs/OpenTelemetry/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetry/L4aUb) | [![pkgeval](https://juliahub.com/docs/OpenTelemetry/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetry/L4aUb)|
-|`OpenTelemetryAPI` | [![version](https://juliahub.com/docs/OpenTelemetryAPI/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryAPI/p4SiN) | [![pkgeval](https://juliahub.com/docs/OpenTelemetryAPI/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetryAPI/p4SiN) |
-| `OpenTelemetrySDK` | [![version](https://juliahub.com/docs/OpenTelemetrySDK/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetrySDK/NFHPX) | [![pkgeval](https://juliahub.com/docs/OpenTelemetrySDK/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetrySDK/NFHPX) |
-| `OpenTelemetryProto` | [![version](https://juliahub.com/docs/OpenTelemetryProto/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryProto/l1kB4) | [![pkgeval](https://juliahub.com/docs/OpenTelemetryProto/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetryProto/l1kB4) |
-| `OpenTelemetryExporterOtlpProtoGrpc` | [![version](https://juliahub.com/docs/OpenTelemetryExporterOtlpProtoGrpc/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterOtlpProtoGrpc/S0kTL) | [![pkgeval](https://juliahub.com/docs/OpenTelemetryExporterOtlpProtoGrpc/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterOtlpProtoGrpc/S0kTL) |
-| `OpenTelemetryExporterPrometheus` |[![version](https://juliahub.com/docs/OpenTelemetryExporterPrometheus/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterPrometheus/Xma7h) | [![pkgeval](https://juliahub.com/docs/OpenTelemetryExporterPrometheus/pkgeval.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterPrometheus/Xma7h)|
-
-## Progress
-
-- API
-    - [x] Tracing
-    - [x] Metrics
-    - [x] Logging
-
-- SDK
-    - [x] Tracing
-    - [x] Metric
-
-- Exporter
-    - OTLP
-        - [x] Tracing
-        - [ ] Metrics
-    - [x] Prometheus
-
-- Instrumentation
-    - Std Lib
-        - [ ] Core
-        - [ ] Sockets
-        - [ ] Distributed
-        - [ ] Downloads
-    - Common Packages
-        - [ ] HTTP
-        - [ ] Genie
+| Package | Description | Latest Version |
+|:--------|:------------|:---------------|
+|[`OpenTelemetryAPI`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryAPI/) | Common data structures and interfaces. Instrumentations should rely on it only. | [![version](https://juliahub.com/docs/OpenTelemetryAPI/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryAPI/p4SiN) |
+| [`OpenTelemetrySDK`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetrySDK/) | Based on [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/overview.md#sdk), application owners use SDK constructors; plugin authors use SDK plugin interfaces| [![version](https://juliahub.com/docs/OpenTelemetrySDK/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetrySDK/NFHPX) |
+| [`OpenTelemetryProto`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryProto/) | See [the OTLP specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/README.md) | [![version](https://juliahub.com/docs/OpenTelemetryProto/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryProto/l1kB4) |
+| [`OpenTelemetryExporterOtlpProtoGrpc`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryExporterOtlpProtoGrpc/) | Provide an `AbstractExporter` in OTLP through gRPC | [![version](https://juliahub.com/docs/OpenTelemetryExporterOtlpProtoGrpc/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterOtlpProtoGrpc/S0kTL) |
+| [`OpenTelemetryExporterPrometheus`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryExporterPrometheus/) | Provide an `AbstractExporter` to allow pulling metrics from Prometheus |[![version](https://juliahub.com/docs/OpenTelemetryExporterPrometheus/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterPrometheus/Xma7h) |
+|`OpenTelemetry` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` and necessary plugins or instrumentations explicitly. | [![version](https://juliahub.com/docs/OpenTelemetry/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetry/L4aUb) |
+| `OpenTelemetryUber` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` and necessary plugins or instrumentations explicitly. | | |
 
 ## Get Started
 
@@ -54,16 +28,10 @@ To show traces in your console:
 ```julia
 using OpenTelemetry
 
-tracer = Tracer(
-    provider = TracerProvider(
-        span_processor = SimpleSpanProcessor(
-            ConsoleExporter()
-        )
-    )
-);
-
-with_span(Span("Hello", tracer)) do
-    println("World!")
+with_span("Hello") do
+    with_span("World") do
+        println("Hello world from OpenTelemetry.jl!")
+    end
 end
 ```
 
@@ -72,11 +40,9 @@ end
 ```julia
 using OpenTelemetry
 
-p = MeterProvider();
-e = ConsoleExporter();
-r = MetricReader(p, e);
+r = MetricReader();
 
-m = Meter("my_metrics"; provider=p);
+m = Meter("demo_metrics");
 c = Counter{Int}("fruit_counter", m);
 
 c(; name = "apple", color = "red")
@@ -87,6 +53,7 @@ c(5; name = "apple", color = "red")
 c(4; name = "lemon", color = "yellow")
 
 r()
+
 ```
 
 ### Logging
@@ -96,10 +63,14 @@ using OpenTelemetry
 using Logging
 using LoggingExtras
 
-with_logger(TransformerLogger(LogTransformer(), global_logger())) do
-    @info "hello world!"
+with_span("Hello") do
+    with_logger(TransformerLogger(OtelLogTransformer(), global_logger())) do
+        @info "World!"
+    end
 end
 ```
+
+For more details, please read the [tutorial](https://oolong.dev/OpenTelemetry.jl/dev/tutorial).
 
 ## Benchmarks
 

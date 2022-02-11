@@ -1,60 +1,4 @@
-export current_context,
-    with_context,
-    Limited,
-    n_dropped,
-    TAttrVal,
-    DynamicAttrs,
-    StaticAttrs,
-    Resource,
-    InstrumentationInfo
-
-using UUIDs: uuid4
-
-const CONTEXT_KEY = :OPEN_TELEMETRY_CONTEXT
-
-# ??? performace issue with NamedTuple
-struct Context{T<:NamedTuple}
-    kv::T
-end
-
-Context() = Context(NamedTuple())
-
-Base.merge(c1::Context, c2::Context) = Context(merge(c1.kv, c2.kv))
-
-create_key(s) = Symbol(s, '-', uuid4())
-
-for f in (:getindex, :haskey, :get)
-    @eval Base.$f(ctx::Context, args...) = $f(ctx.kv, args...)
-end
-
-with_context(f; kv...) = with_context(f, current_context(); kv...)
-
-"""
-    with_context(f, [context]; kv...)
-
-Run function `f` in the `context`. If extra `kv` pairs are provided, they will be merged with the `context` to form a new context. When `context` is not provided, the [`current_context`](@ref) will be used.
-"""
-function with_context(f, ctx::Context; kw...)
-    task_local_storage(CONTEXT_KEY, merge(ctx, Context(values(kw)))) do
-        f()
-    end
-end
-
-"""
-Return the `Context` associated with the caller's current execution unit.
-"""
-current_context() = get!(task_local_storage(), CONTEXT_KEY, Context())
-
-# !!! intentional type piracy
-function Base.schedule(t::Task)
-    if isnothing(t.storage)
-        t.storage = IdDict()
-    end
-    t.storage[CONTEXT_KEY] = current_context()
-    Base.enq_work(t)
-end
-
-#####
+export Limited, n_dropped, TAttrVal, DynamicAttrs, StaticAttrs
 
 """
     Limited(container; limit=32)
@@ -86,6 +30,7 @@ function Limited(xs::Union{Dict,AbstractVector}; limit = 32)
         for _ in 1:(length(xs)-limit)
             pop!(xs)
         end
+        @warn "limit $limit exceeded, $(n_dropped[]) elements dropped."
     end
     Limited(xs, limit, n_dropped)
 end
@@ -97,6 +42,8 @@ Base.iterate(x::Limited, args...) = iterate(x.xs, args...)
 Base.pairs(A::Limited) = pairs(A.xs)
 
 """
+    n_dropped(x::Limited)
+
 Return the total number of dropped elements since creation.
 """
 n_dropped(x::Limited) = x.n_dropped[]
@@ -148,6 +95,9 @@ function _truncate(xs::Vector{String}, limit)
     xs
 end
 
+"""
+Valid type of attribute value.
+"""
 const TAttrVal = Union{
     String,
     Bool,
@@ -171,7 +121,7 @@ is_valid_attr_val(x) = false
     StaticAttrs(attrs::Pair{String, TAttrVal}...; value_length_limit=nothing)
     StaticAttrs(attrs::Pair{Symbol, TAttrVal}...; value_length_limit=nothing)
 
-Here we use the `NamedTuple` internally to efficiently represent the immutable version of the [`Attributes`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes) specification. If the `value_length_limit` is set to a positive int, the value of `String` or each element in a value of `Vector{String}` will be truncated to a maximum length of `value_length_limit`. By default we do not do the truncation.
+Here we use the `NamedTuple` internally to efficiently represent the immutable version of the [`Attributes`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes) in the specification. If the `value_length_limit` is set to a positive int, the value of `String` or each element in a value of `Vector{String}` will be truncated to a maximum length of it. By default we do not do the truncation.
 
 See also [`DynamicAttrs`](@ref).
 """
@@ -203,6 +153,8 @@ StaticAttrs(; kw...) = StaticAttrs(NamedTuple(); kw...)
 n_dropped(a::StaticAttrs) = 0
 
 Base.keys(A::StaticAttrs) = keys(A.attrs)
+Base.haskey(A::StaticAttrs, k::String) = haskey(A.attrs, Symbol(k))
+Base.haskey(A::StaticAttrs, k::Symbol) = haskey(A.attrs, k)
 Base.getindex(A::StaticAttrs, k::String) = getindex(A, Symbol(k))
 Base.getindex(A::StaticAttrs, k::Symbol) = getindex(A.attrs, k)
 Base.getindex(A::StaticAttrs, k::Tuple{Vararg{Symbol}}) =
@@ -219,6 +171,8 @@ Base.sort(A::StaticAttrs) = A[keys(A)|>collect|>sort|>Tuple]
     DynamicAttrs(attrs::Pair{String, TAttrVal}...;count_limit=128, value_length_limit=nothing)
 
 Here we use a `Dict` internally to represent the mutable version of the [`Attributes`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes) specification. If the `value_length_limit` is set to a positive int, the value of `String` or each element in a value of `Vector{String}` will be truncated to a maximum length of `value_length_limit`. By default we do not do the truncation. When adding new pairs into it, if the number of attributes exceeds the `count_limit`, it will be dropped. You can get the number of dropped pairs via `n_dropped`.
+
+See also [`StaticAttrs`](@ref).
 """
 struct DynamicAttrs
     attrs::Limited{Dict{String,TAttrVal}}
@@ -254,17 +208,3 @@ function Base.setindex!(d::DynamicAttrs, v::TAttrVal, k::String)
 end
 
 n_dropped(a::DynamicAttrs) = n_dropped(a.attrs)
-
-#####
-
-Base.@kwdef struct Resource{A<:StaticAttrs}
-    attributes::A = StaticAttrs()
-    schema_url::String = ""
-end
-
-#####
-
-Base.@kwdef struct InstrumentationInfo
-    name::String = "Main"
-    version::VersionNumber = v"0.0.1-dev"
-end

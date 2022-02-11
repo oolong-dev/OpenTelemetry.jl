@@ -24,19 +24,21 @@ const TRACER = Tracer(
     ),
 )
 
+const DUMMY_TRACER = Tracer(; provider = global_tracer_provider())
+
 function create_span(t)
     with_span(
-        Span(
-            "benchmarkedSpan",
-            t;
-            attributes = Dict{String,TAttrVal}("long.attribute" => -10000000001000000000),
-        ),
+        "benchmarkedSpan",
+        t;
+        attributes = Dict{String,TAttrVal}("long.attribute" => -10000000001000000000),
     ) do
         push!(current_span(), OpenTelemetry.Event(name = "benchmarkEvent"))
     end
 end
 
 trace_suite["Create Span"] = @benchmarkable create_span($TRACER)
+
+trace_suite["Create Dummy Span"] = @benchmarkable create_span($DUMMY_TRACER)
 
 #####
 

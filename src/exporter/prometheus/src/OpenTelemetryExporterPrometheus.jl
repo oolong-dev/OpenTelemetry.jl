@@ -6,6 +6,21 @@ using OpenTelemetrySDK
 using HTTP
 using Sockets
 
+"""
+    PrometheusExporter(; host = "127.0.0.1", port = 9966, kw...)
+
+It will setup a http server configured by `host` and `port` on initialization.
+Here the extra keyword arguments `kw` will be forwarded to `HTTP.listen`.
+
+## Usage
+
+```julia
+r = MetricReader(PrometheusExporter())
+```
+
+Note that since `PrometheusExporter` is pull based exporter, which means there's
+no need to execute `r()` to update the metrics.
+"""
 mutable struct PrometheusExporter <: AbstractExporter
     server::Sockets.TCPServer
     provider::Union{MeterProvider,Nothing}

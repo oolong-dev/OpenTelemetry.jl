@@ -4,6 +4,23 @@ const N_MAX_POINTS_PER_METRIC = 2_000
 
 #####
 
+"""
+    Exemplar(;kw...)
+
+Exemplars are example data points for aggregated data. Read [the
+specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/sdk.md#exemplar)
+to understand its relation to trace and metric.
+
+## Keyword arguments:
+
+  - `value`
+  - `time_unix_nano`
+  - `filtered_attributes`::[`StaticAttrs`](@ref), extra attributes of a
+    [`Measurement`](@ref) that are not included in a [`Metric`](@ref)'s
+    `:attribute_keys` field.
+  - `trace_id`, the `trace_id` in the span context when the measurement happens.
+  - `span_id`, the `span_id` in the span context when the measurement happens.
+"""
 Base.@kwdef struct Exemplar{T}
     value::T
     time_unix_nano::UInt
@@ -22,7 +39,7 @@ struct AlignedHistogramBucketExemplarReservoir <: AbstractExemplarReservoir end
 
 #####
 
-if VERSION >= v"1.7.0-rc3"
+if VERSION >= v"1.7.0"
     include("datapoint_atomic.jl")
 else
     include("datapoint_lock.jl")
@@ -36,10 +53,24 @@ struct AggregationStore{D<:DataPoint}
     lock::ReentrantLock
 end
 
+"""
+    AggregationStore{D}(;kw...) where D<:DataPoint
+
+The `AggregationStore` holds all the aggregated datapoints in a
+[`Metric`](@ref).
+
+## Keyword arguments
+
+  - `n_max_points = N_MAX_POINTS_PER_METRIC`, the maximum number of data points.
+  - `n_max_attrs = 2 * N_MAX_POINTS_PER_METRIC`, the maximum number of allowed
+    attributes. Note that each datapoint may have several attributes pointing to
+    them. (Those attributes have the same key-value pair but with different
+    order)
+"""
 function AggregationStore{D}(;
     n_max_points = N_MAX_POINTS_PER_METRIC,
     n_max_attrs = 2 * N_MAX_POINTS_PER_METRIC,
-) where {D}
+) where {D<:DataPoint}
     AggregationStore{D}(
         Dict{StaticAttrs,D}(),
         Dict{StaticAttrs,D}(),
@@ -127,11 +158,20 @@ Base.iterate(a::AbstractAggregation, args...) = iterate(a.agg_store, args...)
 Base.getindex(m::AbstractAggregation, k) = getindex(m.agg_store, k)
 Base.length(m::AbstractAggregation) = length(m.agg_store)
 
+"""
+    SumAgg(agg_store::AggregationStore, exemplar_reservoir_factory)
+
+When `exemplar_reservoir_factory` set to `nothing`, no exemplar will be stored.
+See more details in [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/sdk.md#sum-aggregation).
+"""
 struct SumAgg{T,E,F} <: AbstractAggregation
     agg_store::AggregationStore{DataPoint{T,E}}
     exemplar_reservoir_factory::F
 end
 
+"""
+    SumAgg{T}()
+"""
 SumAgg{T}() where {T} = SumAgg(AggregationStore{DataPoint{T,Nothing}}(), () -> nothing)
 
 function (agg::SumAgg{T,E})(e::Exemplar{<:Measurement}) where {T,E}
@@ -145,11 +185,21 @@ end
 
 #####
 
+"""
+    LastValueAgg(agg_store::AggregationStore, exemplar_reservoir_factory)
+
+When `exemplar_reservoir_factory` set to `nothing`, no exemplar will be stored.
+
+See more details in [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/sdk.md#last-value-aggregation).
+"""
 struct LastValueAgg{T,E,F} <: AbstractAggregation
     agg_store::AggregationStore{DataPoint{T,E}}
     exemplar_reservoir_factory::F
 end
 
+"""
+    LastValueAgg{T}()
+"""
 LastValueAgg{T}() where {T} =
     LastValueAgg(AggregationStore{DataPoint{T,Nothing}}(), () -> nothing)
 
@@ -213,6 +263,18 @@ function Base.:(+)(v::HistogramValue, x)
     )
 end
 
+"""
+    HistogramAgg(args...)
+
+## Arguments:
+
+  - `boundaries::NTuple{M, Float64} where M`, the boundaries to calculate
+    histogram buckets. Note that `-Inf` and `Inf` shouldn't be included.
+  - `is_record_min`
+  - `is_record_max`
+  - `agg_store`
+  - `exemplar_reservoir_factory`, when set to `nothing`, no exemplar will be stored.
+"""
 struct HistogramAgg{T,E,F,M,N} <: AbstractAggregation
     boundaries::NTuple{M,Float64}
     is_record_min::Bool
@@ -221,6 +283,9 @@ struct HistogramAgg{T,E,F,M,N} <: AbstractAggregation
     exemplar_reservoir_factory::F
 end
 
+"""
+    HistogramAgg{T}(;boundaries = DEFAULT_HISTOGRAM_BOUNDARIES, is_record_min = true, is_record_max = true)
+"""
 HistogramAgg{T}(;
     boundaries = DEFAULT_HISTOGRAM_BOUNDARIES,
     is_record_min = true,
@@ -258,6 +323,9 @@ end
 
 struct Drop <: AbstractAggregation end
 
+"""
+All measurement will be dropped.
+"""
 const DROP = Drop()
 
 #####

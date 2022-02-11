@@ -1,7 +1,4 @@
-using OpenTelemetryAPI
-using OpenTelemetrySDK
-using OpenTelemetryProto
-using OpenTelemetryExporterOtlpProtoGrpc
+using OpenTelemetryUber
 
 using Documenter
 
@@ -16,12 +13,7 @@ open(joinpath(@__DIR__, "..", "README.md"), "r") do f_src
 end
 
 makedocs(
-    modules = [
-        OpenTelemetryAPI
-        OpenTelemetrySDK
-        OpenTelemetryProto
-        OpenTelemetryExporterOtlpProtoGrpc
-    ],
+    modules = [OpenTelemetryUber],
     format = Documenter.HTML(
         prettyurls = true,
         analytics = "G-YWC6SQHSVM",
@@ -31,7 +23,16 @@ makedocs(
     linkcheck = !("skiplinks" in ARGS),
     pages = [
         "Home" => "index.md",
-        "Design" => Any["API"=>"design_api.md", "SDK"=>"design_sdk.md"],
+        "Tutorial" => "tutorial.md",
+        "Tips for Developers" => "tips.md",
+        "FAQ" => "FAQ.md",
+        "Design" => Any[
+            "OpenTelemetryAPI.md",
+            "OpenTelemetrySDK.md",
+            "OpenTelemetryExporterOtlpProtoGrpc.md",
+            "OpenTelemetryExporterPrometheus.md",
+            "OpenTelemetryProto.md",
+        ],
     ],
 )
 

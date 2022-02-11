@@ -48,6 +48,18 @@ git-tree-sha1 = "4df9f7e06108728ebf00a0a11edee4b29a482bb2"
 uuid = "c27321d9-0574-5035-807b-f59d2c89b15c"
 version = "1.3.0"
 
+[[deps.HTTP]]
+deps = ["Base64", "Dates", "IniFile", "Logging", "MbedTLS", "NetworkOptions", "Sockets", "URIs"]
+git-tree-sha1 = "0fa77022fe4b511826b39c894c90daf5fce3334a"
+uuid = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+version = "0.9.17"
+
+[[deps.IniFile]]
+deps = ["Test"]
+git-tree-sha1 = "098e4d2c533924c921f9f9847274f2ad89e018b8"
+uuid = "83e8ac13-25f8-5344-8a64-a9f2b223428f"
+version = "0.5.0"
+
 [[deps.InteractiveUtils]]
 deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
@@ -84,6 +96,12 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
+[[deps.MbedTLS]]
+deps = ["Dates", "MbedTLS_jll", "Random", "Sockets"]
+git-tree-sha1 = "1c38e51c3d08ef2278062ebceade0e46cefc96fe"
+uuid = "739be429-bea8-5141-9913-cc70e7f3736d"
+version = "1.0.3"
+
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
@@ -96,19 +114,31 @@ uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 
 [[deps.OpenTelemetryAPI]]
 deps = ["Dates", "Logging", "Random", "UUIDs"]
-path = "../../../../api"
+path = "../api"
 uuid = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
 version = "0.2.0"
 
+[[deps.OpenTelemetryExporterOtlpProtoGrpc]]
+deps = ["OpenTelemetryAPI", "OpenTelemetryProto", "OpenTelemetrySDK", "URIs", "gRPCClient"]
+path = "../exporter/otlp/proto/grpc"
+uuid = "83e8ae56-efb3-499e-9158-b649d4f902fc"
+version = "0.2.0"
+
+[[deps.OpenTelemetryExporterPrometheus]]
+deps = ["HTTP", "OpenTelemetrySDK", "Sockets"]
+path = "../exporter/prometheus"
+uuid = "34e26579-e93c-4b5e-ba07-7afb633408c2"
+version = "0.1.2"
+
 [[deps.OpenTelemetryProto]]
 deps = ["CodecZlib", "Downloads", "ProtoBuf", "Tar", "gRPCClient"]
-path = "../../../../proto"
+path = "../proto"
 uuid = "cc651e92-2989-4f95-bcc3-32e6fb6ac025"
 version = "0.13.0"
 
 [[deps.OpenTelemetrySDK]]
 deps = ["Dates", "GarishPrint", "Glob", "OpenTelemetryAPI", "Random", "Reexport"]
-path = "../../../../sdk"
+path = "../sdk"
 uuid = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
 version = "0.2.0"
 

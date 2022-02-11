@@ -1,15 +1,17 @@
-# API
+# OpenTelemetryAPI
 
 The content in this page is organized in the same order as the [OpenTelemetry
 Specification](https://github.com/open-telemetry/opentelemetry-specification).
 
 ## Context
 
+All the **MUST** items in the original [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/context/context.md) are implemented.
+
 `Context` is implemented as a wrapper of `NamedTuple`, which means it is immutable. Each `Task` has exactly **ONE**
 `Context` instance, which is injected into the `task_local_storage` of the `current_task` by the parent task automatically.
 
 !!! warning
-    [Type piracy](https://docs.julialang.org/en/v1/manual/style-guide/#Avoid-type-piracy) is used to the propagate context between tasks.
+    [Type piracy](https://docs.julialang.org/en/v1/manual/style-guide/#Avoid-type-piracy) is used to the propagate context between tasks. See more discussions in [#32](https://github.com/oolong-dev/OpenTelemetry.jl/issues/32)
 
 `create_key` is used to create a context key. But it is not exported yet because it seems to be only used internally until now.
 
@@ -21,25 +23,25 @@ in Julia seems strange. We provide the [`with_context`](@ref) function to create
 pairs in the [`current_context`](@ref). This syntax is more common than the attach/detach operations in the original
 specification.
 
-```@docs
-with_context
-current_context
+```@autodocs
+Modules = [OpenTelemetryAPI]
+Pages = ["context.jl"]
+Private = false
 ```
 
 ## Propagators
 
-[`inject!`](@ref) and [`extract`](@ref) are provided to 
-
-The global propagator can be set to a `CompositePropagator`, with multiple dispatch, each inner propagator can be
-customized to handle different contexts and carriers.
-
-`TextMapPropagator` is not implemented yet! Personally I feel that every propagator may depends on a third party
+[`inject!`](@ref) and [`extract`](@ref) are provided based on the original [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/context/api-propagators.md). However, `TextMapPropagator` is not implemented yet! Personally I feel that every propagator may depends on a third party
 package. To minimize the dependencies of `OpenTelemetryAPI.jl`, those specialized propagators can be registered as
 independent packages.
 
-```@docs
-inject!
-extract
+The `GLOBAL_PROPAGATOR` is set to a `CompositePropagator`, with multiple dispatch, each inner propagator can be
+customized to handle different contexts and carriers. Since it's mainly used internally for now, it's not exposed yet.
+
+```@autodocs
+Modules = [OpenTelemetryAPI]
+Pages = ["propagator.jl"]
+Private = false
 ```
 
 ## Trace
@@ -48,13 +50,9 @@ The relationship between trace provider, tracer, span context and span is depict
 
 ```
 ┌────────────────────────────┐
-│Span                        │
-│                            │
-│ tracer                     │
+│ AbstractSpan               │
 │   ┌──────────────────────┐ │
-│   │Tracer                │ │
-│   │                      │ │
-│   │  provider            │ │
+│   │ Tracer               │ │
 │   │   ┌────────────────┐ │ │
 │   │   │    Abstract    │ │ │
 │   │   │ TracerProvider │ │ │
@@ -64,80 +62,21 @@ The relationship between trace provider, tracer, span context and span is depict
 │   │   │ name           │ │ │
 │   │   │ version        │ │ │
 │   │   └────────────────┘ │ │
-│   │                      │ │
 │   └──────────────────────┘ │
-│ span_context               │
-│   ┌──────────────────────┐ │
-│   │ trace_id             │ │
-│   │ span_id              │ │
-│   │ is_remote            │ │
-│   │ trace_flag           │ │
-│   │ trace_state          │ │
-│   └──────────────────────┘ │
-│ parent_span_context        │
-│ kind                       │
-│ start_time                 │
-│ end_time                   │
-│ attributes                 │
-│ links                      │
-│ events                     │
-│ status                     │
 └────────────────────────────┘
 ```
 
-- In `OpenTelemetryAPI.jl`, only one `AbstractTracerProvider` (`DummyTracerProvider`) is provided and is set as the [`global_tracer_provider`](@ref).
-- `Span` is immutable. Modifiable fields like `status`, `end_time` are set to `Ref`.
-- To add [`Event`](@ref)s and [`Link`](@ref)s, users can call `push!(span, event_or_link)`.
-- The `attributes` in the [`Span`](@ref) is a [`DynamicAttrs`](@ref), and can be updated with the syntax like `span[key]=value`.
-- `end_time` will be set by default after the call to [`with_span`](@ref).
-- Always use `set_status!` to update the status of span.
+In `OpenTelemetryAPI.jl`, only one concrete [`AbstractTracerProvider`](@ref)
+(the `DummyTracerProvider`) is provided. It is set as the  default
+[`global_tracer_provider`](@ref). Without SDK installed, the [`with_span`](@ref)
+will only create a `NonRecordingSpan`. This is to make the `OpenTelemetryAPI.jl`
+lightweight enough so that instrumentation package users can happily add it as a
+dependency without losing performance.
 
-!!! note
-    In some other languages, only a dummy span is defined in API and the concrete span is defined in SDK. Personally I
-    prefer to defined it in API, otherwise we need to define many *getter* methods.
-
-```@docs
-global_tracer_provider
-Tracer
-Span
-current_span
-with_span
-Base.push!(s::Span, ex::Exception)
-Base.push!(s::Span, link::Link)
-Base.setindex!(s::Span, val, key)
-Base.getindex(s::Span, key)
-set_status!
-end!
-is_recording
-```
-
-
-Some other exported symbols:
-
-```@docs
-TraceIdType
-SpanIdType
-INVALID_TRACE_ID
-INVALID_SPAN_ID
-current_span
-TraceFlag
-TraceState
-SpanContext
-INVALID_SPAN_CONTEXT
-span_context
-SPAN_KIND_UNSPECIFIED
-SPAN_KIND_INTERNAL
-SPAN_KIND_SERVER
-SPAN_KIND_CLIENT
-SPAN_KIND_PRODUCER
-SPAN_KIND_CONSUMER
-LimitInfo
-Link
-Event
-SPAN_STATUS_UNSET
-SPAN_STATUS_OK
-SPAN_STATUS_ERROR
-SpanStatu
+```@autodocs
+Modules = [OpenTelemetryAPI]
+Pages = ["tracer_provider.jl"]
+Private = false
 ```
 
 ## Metric
@@ -186,14 +125,33 @@ The relationship between `MeterProvider`, `Meter` and different instruments are 
 - An `Instrument` belongs to a `Meter`, each `Meter` may contain many different `Instrument`s. Similarly, a `Meter`
   belongs to a `MeterProvider` and a `MeterProvider` may contain many different `Meter`s.
 
-```@docs
-global_meter_provider
-Meter
-Measurement
-Counter
-ObservableCounter
-Histogram
-ObservableGauge
-UpDownCounter
-ObservableUpDownCounter
+```@autodocs
+Modules = [OpenTelemetryAPI]
+Pages = ["metric_provider.jl"]
+Private = false
+```
+### Instruments
+
+All instruments provided here can be classified into two categories: [`AbstractSyncInstrument`](@ref) and [`AbstractAsyncInstrument`](@ref).
+
+```@autodocs
+Modules = [OpenTelemetryAPI]
+Pages = ["instruments.jl"]
+Private = false
+```
+
+## Logging
+
+The idea is simple, a [`OtelLogTransformer`](@ref) is provided to transform each logging message into a [`LogRecord`](@ref). To understand how to use it, users should be familiar with how **TransformerLogger** from [LoggingExtras.jl](https://github.com/JuliaLogging/LoggingExtras.jl#transformerlogger-transformer) works.
+
+```@autodocs
+Modules = [OpenTelemetryAPI]
+Pages = ["log.jl"]
+Private = false
+```
+
+## Misc
+
+```@autodocs
+Modules = [OpenTelemetryAPI]
 ```

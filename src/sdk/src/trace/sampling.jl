@@ -1,5 +1,8 @@
 export ALWAYS_ON, ALWAYS_OFF, DEFAULT_ON, DEFAULT_OFF, TraceIdRatioBased
 
+"""
+A sampler controls whether to drop a span or not when creating new spans in a certain context. Each sampler should have the [`should_sample`](@ref) method implemented.
+"""
 abstract type AbstractSampler end
 
 @enum Decision begin
@@ -25,7 +28,14 @@ struct StaticSampler <: AbstractSampler
     decision::Decision
 end
 
+"""
+Always sample the span.
+"""
 const ALWAYS_ON = StaticSampler(DECISION_RECORD_AND_SAMPLE)
+
+"""
+Always drop the span.
+"""
 const ALWAYS_OFF = StaticSampler(DECISION_DROP)
 
 function Base.show(io::IO, s::StaticSampler)
@@ -35,6 +45,21 @@ function Base.show(io::IO, s::StaticSampler)
         print(io, "AlwaysOnSampler")
     end
 end
+
+"""
+    should_sample(s::AbstractSampler, args...)
+
+## Arguments
+
+  - `parent_context`::[`Context`](@ref),
+  - `trace_id`::[`TraceIdType`](@ref),
+  - `name::String`, the span name
+  - `kind`::[`SpanKind`](@ref),
+  - `attributes`, [`StaticAttrs`](@ref) or [`DynamicAttrs`](@ref)
+  - `links`, vector of [`Link`](@ref)
+  - `trace_state`::[`TraceState`](@ref),
+"""
+function should_sample end
 
 function should_sample(
     s::StaticSampler,
