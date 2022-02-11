@@ -45,6 +45,7 @@ jobs:
           julia --project --color=yes -e '
             using Pkg;
             Pkg.develop(path="..");
+            Pkg.build("OpenTelemetryProto");
             include("benchmark.jl")'
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
