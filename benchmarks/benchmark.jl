@@ -24,7 +24,7 @@ const TRACER = Tracer(
     ),
 )
 
-const DUMMY_TRACER = Tracer(; provider = global_tracer_provider())
+const DUMMY_TRACER = Tracer(provider = OpenTelemetryAPI.DUMMY_TRACER_PROVIDER)
 
 function create_span(t)
     with_span(

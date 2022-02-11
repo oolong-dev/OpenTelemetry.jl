@@ -293,7 +293,7 @@ function create_span(
     name::String,
     tracer::Tracer{DummyTracerProvider};
     context = current_context(),
-    kw...,
+    kw...
 )
     parent_span = current_span(context)
     if isnothing(parent_span)
@@ -316,6 +316,7 @@ Call function `f` with the current span set a newly created one of `name` with `
   - `end_on_exit=true`, controls whether to call [`end_span!`](@ref) after `f` or not.
   - `record_exception=true`, controls whether to record the exception.
   - `set_status_on_exception=true`, decides whether to set status to [`SPAN_STATUS_ERROR`](@ref) automatically when an exception is caught.
+  - The rest keyword arguments are forwarded to [`create_span`](@ref).
 """
 function with_span(
     f,
@@ -324,8 +325,9 @@ function with_span(
     end_on_exit = true,
     record_exception = true,
     set_status_on_exception = true,
+    kw...
 )
-    s = create_span(name, tracer)
+    s = create_span(name, tracer; kw...)
     with_context(; SPAN_KEY_IN_CONTEXT => s) do
         try
             f()
