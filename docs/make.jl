@@ -24,6 +24,9 @@ makedocs(
     linkcheck = !("skiplinks" in ARGS),
     pages = [
         "Home" => "index.md",
+        "Tutorial" => "tutorial.md",
+        "Tips for Developers" => "tips.md",
+        "FAQ" => "FAQ.md",
         "Design" => Any[
             "OpenTelemetryAPI" => "OpenTelemetryAPI.md",
             "OpenTelemetrySDK" => "OpenTelemetrySDK.md",

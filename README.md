@@ -19,33 +19,6 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 | `OpenTelemetryExporterPrometheus` | Provide an `AbstractExporter` to allow pulling metrics from Prometheus |[![version](https://juliahub.com/docs/OpenTelemetryExporterPrometheus/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterPrometheus/Xma7h) |
 | `OpenTelemetryUber` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetry` and necessary plugins or instrumentations explicitly. | | |
 
-## Progress
-
-- API
-    - [x] Tracing
-    - [x] Metrics
-    - [x] Logging
-
-- SDK
-    - [x] Tracing
-    - [x] Metric
-
-- Exporter
-    - OTLP
-        - [x] Tracing
-        - [ ] Metrics
-    - [x] Prometheus
-
-- Instrumentation
-    - Std Lib
-        - [ ] Core
-        - [ ] Sockets
-        - [ ] Distributed
-        - [ ] Downloads
-    - Common Packages
-        - [ ] HTTP
-        - [ ] Genie
-
 ## Get Started
 
 ### Traces
@@ -71,7 +44,6 @@ r = MetricReader();
 
 m = Meter("demo_metrics");
 c = Counter{Int}("fruit_counter", m);
-h = Histogram{Float64}("normal_distribution", m);
 
 c(; name = "apple", color = "red")
 c(2; name = "lemon", color = "yellow")
@@ -79,10 +51,6 @@ c(1; name = "lemon", color = "yellow")
 c(2; name = "apple", color = "green")
 c(5; name = "apple", color = "red")
 c(4; name = "lemon", color = "yellow")
-
-for _ in 1:1_000
-    h(randn() * 100)
-end
 
 r()
 
@@ -102,7 +70,7 @@ with_span("Hello") do
 end
 ```
 
-## Versioning and Stability
+For more advanced usage, please read the doc.
 
 ## Benchmarks
 
