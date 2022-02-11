@@ -240,7 +240,7 @@ end_span!(s::NonRecordingSpan, t) = @warn "the span is not recording."
 """
     Base.push!(s::AbstractSpan, ex::Exception; is_rethrow_followed = false)
 
-A specialized variant of [`add_event!`](@ref) to record exceptions. Usually used in a `try... catch...end` to capture the backtrace. If the `ex` is `rethrow`ed in the `catch...end`, `is_rethrow_followed` should be set to `true`.
+A specialized variant of [`Event`](@ref) to record exceptions. Usually used in a `try... catch...end` to capture the backtrace. If the `ex` is `rethrow`ed in the `catch...end`, `is_rethrow_followed` should be set to `true`.
 """
 Base.push!(s::NonRecordingSpan, ex::Exception; is_rethrow_followed = false) =
     @warn "the span is not recording."

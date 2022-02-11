@@ -3,6 +3,7 @@ module OpenTelemetryExporterOtlpProtoGrpc
 export OtlpProtoGrpcTraceExporter
 
 using gRPCClient
+using URIs
 
 import OpenTelemetryAPI
 import OpenTelemetrySDK
@@ -19,11 +20,27 @@ struct OtlpProtoGrpcTraceExporter{T} <: SDK.AbstractExporter
     client::T
 end
 
+"""
+    OtlpProtoGrpcTraceExporter(;kw...)
+
+## Keyword arguments
+
+  - `scheme=http`
+  - `host="localhost"`
+  - `port=4317`
+  - `is_blocking=true`, by default the `BlockingClient` is used.
+  - Rest keyword arguments will be forward to the gRPC client.
+
+`scheme`, `host` and `port` specifies the OTEL Collector to connect with.
+"""
 function OtlpProtoGrpcTraceExporter(;
-    url = "http://localhost:4317",
+    scheme = "http",
+    host = "localhost",
+    port = 4317,
     is_blocking = true,
-    kw...
+    kw...,
 )
+    url = string(URI(; scheme = scheme, host = host, port = port))
     if is_blocking
         client = Otlp.TraceServiceBlockingClient(url; kw...)
     else
@@ -71,7 +88,10 @@ function Base.convert(::Type{Otlp.ExportTraceServiceRequest}, spans)
             )
         end
 
-        push!(r.resource_spans[end].instrumentation_library_spans[end].spans, convert(Trace.Span, s))
+        push!(
+            r.resource_spans[end].instrumentation_library_spans[end].spans,
+            convert(Trace.Span, s),
+        )
 
         s_res_pre = s_res
         s_ins_pre = s_ins

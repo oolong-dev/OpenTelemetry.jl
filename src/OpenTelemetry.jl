@@ -4,6 +4,9 @@ using Reexport
 
 @reexport using OpenTelemetryAPI
 @reexport using OpenTelemetrySDK
+@reexport using OpenTelemetryExporterOtlpProtoGrpc
+@reexport using OpenTelemetryExporterPrometheus
+@reexport using OpenTelemetryProto
 
 function __init__()
     if global_tracer_provider() isa OpenTelemetryAPI.DummyTracerProvider

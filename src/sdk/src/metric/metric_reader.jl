@@ -41,14 +41,18 @@ struct MetricReader{P,E} <: AbstractMetricReader
     provider::P
     exporter::E
     function MetricReader(
-        provider::P = global_meter_provider(),
-        exporter::E = ConsoleExporter(),
-    ) where {P,E}
+        provider::P,
+        exporter::E,
+    ) where {P<:AbstractMeterProvider,E<:AbstractExporter}
         r = new{P,E}(provider, exporter)
         r()
         r
     end
 end
+
+MetricReader(p::AbstractMeterProvider) = MetricReader(p, ConsoleExporter())
+MetricReader(e::AbstractExporter) = MetricReader(global_meter_provider(), e)
+MetricReader() = MetricReader(global_meter_provider(), ConsoleExporter())
 
 """
     (r::MetricReader)()
@@ -80,7 +84,7 @@ struct PeriodicMetricReader{R<:AbstractMetricReader} <: AbstractMetricReader
     function PeriodicMetricReader(
         reader;
         export_interval_seconds = 60,
-        export_timeout_seconds = 30
+        export_timeout_seconds = 30,
     )
         timer = Timer(0; interval = export_interval_seconds) do t
             res = timedwait(export_timeout_seconds; pollint = 1) do
