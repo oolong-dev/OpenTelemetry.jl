@@ -48,7 +48,6 @@ Meter is responsible for creating instruments.
   - `provider::P = global_meter_provider()`
   - `version = v"0.0.1-dev"`
   - `schema_url = ""`
-  - `instrumentation_info = InstrumentationInfo()`
 """
 struct Meter{P<:AbstractMeterProvider}
     name::String
@@ -56,22 +55,13 @@ struct Meter{P<:AbstractMeterProvider}
     version::VersionNumber
     schema_url::String
     instruments::Vector{AbstractInstrument}
-    instrumentation_info::InstrumentationInfo
     function Meter(
         name::String;
         provider::P = global_meter_provider(),
         version = v"0.0.1-dev",
         schema_url = "",
-        instrumentation_info = InstrumentationInfo(),
     ) where {P<:AbstractMeterProvider}
-        m = new{P}(
-            name,
-            provider,
-            version,
-            schema_url,
-            AbstractInstrument[],
-            instrumentation_info,
-        )
+        m = new{P}(name, provider, version, schema_url, AbstractInstrument[])
         push!(provider, m)
         m
     end

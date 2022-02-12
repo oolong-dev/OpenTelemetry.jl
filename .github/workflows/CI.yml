@@ -41,17 +41,18 @@ jobs:
             ${{ runner.os }}-test-
             ${{ runner.os }}-
       - run: |
-          julia --code-coverage=user --color=yes -e '
+          cd docs
+          julia --project --code-coverage=user --color=yes -e '
             using Pkg;
-            Pkg.develop(path=joinpath("src", "api"))
-            Pkg.develop(path=joinpath("src", "sdk"))
-            Pkg.develop(path=joinpath("src", "proto"))
-            Pkg.develop(path=joinpath("src", "exporter", "otlp", "proto", "grpc"))
+            Pkg.instantiate();
             Pkg.build("OpenTelemetryProto")
             Pkg.test("OpenTelemetryAPI", coverage=true)
             Pkg.test("OpenTelemetrySDK", coverage=true)
             Pkg.test("OpenTelemetryProto", coverage=true)
-            Pkg.test("OpenTelemetryExporterOtlpProtoGrpc", coverage=true)'
+            Pkg.test("OpenTelemetryExporterOtlpProtoGrpc", coverage=true)
+            Pkg.test("OpenTelemetryExporterPrometheus", coverage=true)
+            Pkg.test("OpenTelemetryInstrumentationBase", coverage=true)
+            Pkg.test("OpenTelemetryUber", coverage=true)'
         shell: bash
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v1
