@@ -62,7 +62,7 @@ struct Meter{P<:AbstractMeterProvider}
         provider::P = global_meter_provider(),
         version = v"0.0.1-dev",
         schema_url = "",
-        instrumentation_info = InstrumentationInfo()
+        instrumentation_info = InstrumentationInfo(),
     ) where {P<:AbstractMeterProvider}
         m = new{P}(
             name,

@@ -21,7 +21,7 @@ function OpenTelemetryAPI.create_span(
     links = Link[],
     events = OpenTelemetryAPI.Event[],
     start_time = UInt(time() * 10^9),
-    is_remote = false
+    is_remote = false,
 )
     provider = tracer.provider
     parent_span_ctx = context |> current_span |> span_context
@@ -34,7 +34,7 @@ function OpenTelemetryAPI.create_span(
     attributes = DynamicAttrs(
         attributes;
         count_limit = provider.limit_info.span_attribute_count_limit,
-        value_length_limit = provider.limit_info.span_attribute_value_length_limit
+        value_length_limit = provider.limit_info.span_attribute_value_length_limit,
     )
 
     links = Limited(links; limit = provider.limit_info.span_link_count_limit)

@@ -120,7 +120,7 @@
 
     periodic_reader = PeriodicMetricReader(
         CompositMetricReader(r, MetricReader(p, ConsoleExporter()));
-        export_interval_seconds = 1
+        export_interval_seconds = 1,
     )
 
     sleep(3)
@@ -130,7 +130,7 @@ end
 @testset "AggregationStore" begin
     store = OpenTelemetrySDK.AggregationStore{OpenTelemetrySDK.DataPoint{Int,Nothing}}(;
         n_max_points = 3,
-        n_max_attrs = 4
+        n_max_attrs = 4,
     )
     init_data = () -> OpenTelemetrySDK.DataPoint{Int}()
 
@@ -162,7 +162,7 @@ end
             View(
                 "Bar";
                 instrument_name = "Y",
-                aggregation = HistogramAgg{Int}(boundaries = b)
+                aggregation = HistogramAgg{Int}(boundaries = b),
             ),
         ],
     )
@@ -215,7 +215,7 @@ end
                 instrument_type = Counter,
                 meter_name = "test",
                 meter_version = v"0.0.1-dev",
-                meter_schema_url = ""
+                meter_schema_url = "",
             ),
             View("X"; aggregation = DROP),
         ],
