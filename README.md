@@ -17,7 +17,8 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 | [`OpenTelemetryExporterOtlpProtoGrpc`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryExporterOtlpProtoGrpc/) | Provide an `AbstractExporter` in OTLP through gRPC | [![version](https://juliahub.com/docs/OpenTelemetryExporterOtlpProtoGrpc/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterOtlpProtoGrpc/S0kTL) |
 | [`OpenTelemetryExporterPrometheus`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryExporterPrometheus/) | Provide an `AbstractExporter` to allow pulling metrics from Prometheus |[![version](https://juliahub.com/docs/OpenTelemetryExporterPrometheus/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterPrometheus/Xma7h) |
 |`OpenTelemetry` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` and necessary plugins or instrumentations explicitly. | [![version](https://juliahub.com/docs/OpenTelemetry/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetry/L4aUb) |
-| `OpenTelemetryUber` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` and necessary plugins or instrumentations explicitly. | | |
+| [`OpenTelemetryInstrumentationBase`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationBase/) | Add basic metrics under the `Base` module in Julia runtime. | |
+| `OpenTelemetryUber` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` and necessary plugins or instrumentations explicitly. | |
 
 ## Get Started
 

@@ -116,7 +116,7 @@ uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 deps = ["Dates", "Logging", "Random", "UUIDs"]
 path = "../api"
 uuid = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
-version = "0.2.0"
+version = "0.2.1"
 
 [[deps.OpenTelemetryExporterOtlpProtoGrpc]]
 deps = ["OpenTelemetryAPI", "OpenTelemetryProto", "OpenTelemetrySDK", "URIs", "gRPCClient"]
@@ -129,6 +129,12 @@ deps = ["HTTP", "OpenTelemetrySDK", "Sockets"]
 path = "../exporter/prometheus"
 uuid = "34e26579-e93c-4b5e-ba07-7afb633408c2"
 version = "0.1.2"
+
+[[deps.OpenTelemetryInstrumentationBase]]
+deps = ["OpenTelemetryAPI", "TOML"]
+path = "../instrumentation/base"
+uuid = "4046903c-540b-416b-9793-ac8011f4a0e0"
+version = "0.1.0"
 
 [[deps.OpenTelemetryProto]]
 deps = ["CodecZlib", "Downloads", "ProtoBuf", "Tar", "gRPCClient"]

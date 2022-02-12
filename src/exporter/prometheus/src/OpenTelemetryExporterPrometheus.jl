@@ -35,16 +35,21 @@ mutable struct PrometheusExporter <: AbstractExporter
             if isnothing(exporter.provider)
                 write(http, "MeterProvider is not set yet!!!")
             else
-                for ins in exporter.provider.async_instruments
+                for ins in keys(exporter.provider.async_instruments)
                     ins()
                 end
                 text_based_format(http, exporter.provider)
             end
             return
         end
+        finalizer(exporter) do x
+            shut_down!(x)
+        end
         exporter
     end
 end
+
+OpenTelemetrySDK.shut_down!(r::PrometheusExporter) = close(r.server)
 
 function (r::MetricReader{<:MeterProvider,<:PrometheusExporter})()
     if isnothing(r.exporter.provider)

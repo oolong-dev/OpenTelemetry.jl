@@ -30,6 +30,13 @@ abstract type AbstractSyncInstrument{T} <: AbstractInstrument{T} end
 """
 Async instrument usually has a callback function (which is named *Observable* in
 OpenTelemetry) to get its measurement.
+
+!!! note
+    
+    If the return of the callback function is not a [`Measurement`](@ref),
+    it will be converted into a `Measurement` with an empty
+    [`StaticAttrs`](@ref) implicitly when being uploaded to the associated meter
+    provider.
 """
 abstract type AbstractAsyncInstrument{T} <: AbstractInstrument{T} end
 
