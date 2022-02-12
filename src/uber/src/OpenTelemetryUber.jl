@@ -9,7 +9,7 @@ using Reexport
 @reexport using OpenTelemetryProto
 
 # instrumentations
-import OpenTelemetryInstrumentationBase
+@reexport using OpenTelemetryInstrumentationBase
 
 function init(;
     meter_provider = global_meter_provider(),
