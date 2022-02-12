@@ -9,16 +9,15 @@ const pkg_version =
 """
 ## Schema
 
-| Meter Name | Instrument Name   | Instrument Type   | Description                           |
-|:---------- |:----------------- |:----------------- |:------------------------------------- |
-| `Base.Sys` | `Base.Sys.uptime` | `ObservableGauge` | The current system uptime in seconds. |
-| `Base.Sys` | `Base.Sys.uptime` | `ObservableGauge` | The current system uptime in seconds. |
-| `Base.Sys` | `Base.Sys.uptime` | `ObservableGauge` | The current system uptime in seconds. |
-| `Base.Sys` | `Base.Sys.uptime` | `ObservableGauge` | The current system uptime in seconds. |
-| `Base.Sys` | `Base.Sys.uptime` | `ObservableGauge` | The current system uptime in seconds. |
-| `Base.Sys` | `Base.Sys.uptime` | `ObservableGauge` | The current system uptime in seconds. |
-| `Base.Sys` | `Base.Sys.uptime` | `ObservableGauge` | The current system uptime in seconds. |
-| `Base.Sys` | `Base.Sys.uptime` | `ObservableGauge` | The current system uptime in seconds. |
+| Meter Name | Instrument Name              | Instrument Type   | Unit        | Description                                                                                                      |
+|:---------- |:---------------------------- |:----------------- |:----------- |:---------------------------------------------------------------------------------------------------------------- |
+| `Base.Sys` | `Base.Sys.uptime`            | `ObservableGauge` | second      | The current system uptime in seconds.                                                                            |
+| `Base.Sys` | `Base.Sys.free_memory`       | `ObservableGauge` | bytes       | The total free memory in RAM in bytes.                                                                           |
+| `Base.Sys` | `Base.Sys.free_memory_ratio` | `ObservableGauge` | %           | The ratio of free memory in percentage.                                                                          |
+| `Base.Sys` | `Base.Sys.maxrss`            | `ObservableGauge` | bytes       | The maximum resident set size utilized in bytes.The current system uptime in seconds.                            |
+| `Base`     | `Base.jit_total_bytes`       | `ObservableGauge` | bytes       | The total amount (in bytes) allocated by the just-in-time compiler.                                              |
+| `Base`     | `Base.gc_live_bytes`         | `ObservableGauge` | bytes       | The total size of live objects after the last garbage collection, plus the number of bytes allocated since then. |
+| `Base`     | `Base.gc_time_ns`            | `ObservableGauge` | nanoseconds | Total time spend in garbage collection, in nanoseconds                                                           |
 """
 function init(;
     meter_provider = global_meter_provider(),
@@ -53,22 +52,6 @@ function init(;
         m_sys;
         unit = "%",
         description = "The ratio of free memory in percentage.",
-    )
-
-    ObservableGauge{Float64}(
-        () -> Sys.free_memory() / Sys.total_memory() * 100,
-        "Base.Sys.free_memory_ratio",
-        m_sys;
-        unit = "%",
-        description = "The ratio of free memory in percentage.",
-    )
-
-    ObservableGauge{UInt64}(
-        Sys.maxrss,
-        "Base.Sys.maxrss",
-        m_sys;
-        unit = "bytes",
-        description = "The maximum resident set size utilized in bytes.",
     )
 
     ObservableGauge{UInt64}(

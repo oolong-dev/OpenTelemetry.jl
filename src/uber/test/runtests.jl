@@ -6,4 +6,6 @@ OpenTelemetryUber.init(
         span_processor = CompositSpanProcessor(SimpleSpanProcessor(ConsoleExporter())),
     ),
 )
-@testset "OpenTelemetryUber.jl" begin end
+
+reader = MetricReader(ConsoleExporter())
+reader()

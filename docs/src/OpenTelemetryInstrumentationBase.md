@@ -1,3 +1,5 @@
 # OpenTelemetryInstrumentationBase
 
-## Schema
+```@autodocs
+Modules = [OpenTelemetryInstrumentationBase]
+```

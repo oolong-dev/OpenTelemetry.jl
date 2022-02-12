@@ -32,6 +32,7 @@ makedocs(
             "OpenTelemetryExporterOtlpProtoGrpc.md",
             "OpenTelemetryExporterPrometheus.md",
             "OpenTelemetryProto.md",
+            "OpenTelemetryInstrumentationBase.md",
         ],
     ],
 )
