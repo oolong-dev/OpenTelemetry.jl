@@ -18,6 +18,7 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 | [`OpenTelemetryExporterPrometheus`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryExporterPrometheus/) | Provide an `AbstractExporter` to allow pulling metrics from Prometheus |[![version](https://juliahub.com/docs/OpenTelemetryExporterPrometheus/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterPrometheus/Xma7h) |
 |`OpenTelemetry` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` and necessary plugins or instrumentations explicitly. | [![version](https://juliahub.com/docs/OpenTelemetry/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetry/L4aUb) |
 | [`OpenTelemetryInstrumentationBase`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationBase/) | Add basic metrics under the `Base` module in Julia runtime. | |
+| [`OpenTelemetryInstrumentationDownloads`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationDownloads/) | Add metrics and inject context info in [`Downloads.jl`](https://github.com/JuliaLang/Downloads.jl).| |
 | `OpenTelemetryUber` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` and necessary plugins or instrumentations explicitly. | |
 
 ## Get Started
