@@ -41,8 +41,6 @@ end
 ```julia
 using OpenTelemetry
 
-r = MetricReader();
-
 m = Meter("demo_metrics");
 c = Counter{Int}("fruit_counter", m);
 
@@ -53,6 +51,7 @@ c(2; name = "apple", color = "green")
 c(5; name = "apple", color = "red")
 c(4; name = "lemon", color = "yellow")
 
+r = MetricReader();
 r()
 
 ```
