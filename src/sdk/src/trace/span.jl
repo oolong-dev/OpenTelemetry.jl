@@ -126,3 +126,23 @@ function OpenTelemetryAPI.span_name!(s::Span, name::String)
         @warn "the span is not recording."
     end
 end
+
+function Base.push!(s::Span, ex::Exception; is_rethrow_followed = false)
+    msg_io = IOBuffer()
+    showerror(msg_io, ex)
+    msg = String(take!(msg_io))
+
+    st_io = IOBuffer()
+    showerror(st_io, CapturedException(ex, catch_backtrace()))
+    st = String(take!(st_io))
+
+    attrs = StaticAttrs((;
+        Symbol("exception.type") => string(typeof(ex)),
+        Symbol("exception.type") => string(typeof(ex)),
+        Symbol("exception.message") => msg,
+        Symbol("exception.stacktrace") => st,
+        Symbol("exception.escaped") => is_rethrow_followed,
+    ))
+
+    push!(s, Event(name = "exception", attributes = attrs))
+end

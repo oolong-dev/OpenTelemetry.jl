@@ -33,6 +33,7 @@ makedocs(
             "OpenTelemetryExporterPrometheus.md",
             "OpenTelemetryProto.md",
             "OpenTelemetryInstrumentationBase.md",
+            "OpenTelemetryInstrumentationDownloads.md",
         ],
     ],
 )
