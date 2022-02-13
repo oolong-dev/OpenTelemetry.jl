@@ -174,12 +174,6 @@ path = "../src/exporter/prometheus"
 uuid = "34e26579-e93c-4b5e-ba07-7afb633408c2"
 version = "0.1.3"
 
-[[deps.OpenTelemetryInstrumentationBase]]
-deps = ["OpenTelemetryAPI", "TOML"]
-path = "../src/instrumentation/base"
-uuid = "4046903c-540b-416b-9793-ac8011f4a0e0"
-version = "0.1.0"
-
 [[deps.OpenTelemetryInstrumentationDownloads]]
 deps = ["ArgTools", "Downloads", "OpenTelemetryAPI", "TOML"]
 path = "../src/instrumentation/downloads"
