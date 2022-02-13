@@ -9,7 +9,8 @@ using Reexport
 @reexport using OpenTelemetryProto
 
 # instrumentations
-import OpenTelemetryInstrumentationBase
+@reexport using OpenTelemetryInstrumentationBase
+@reexport using OpenTelemetryInstrumentationDownloads
 
 function init(;
     meter_provider = global_meter_provider(),
@@ -17,7 +18,13 @@ function init(;
 )
     global_meter_provider!(meter_provider)
     global_tracer_provider!(tracer_provider)
+
     OpenTelemetryInstrumentationBase.init(;
+        meter_provider = meter_provider,
+        tracer_provider = tracer_provider,
+    )
+
+    OpenTelemetryInstrumentationDownloads.init(;
         meter_provider = meter_provider,
         tracer_provider = tracer_provider,
     )

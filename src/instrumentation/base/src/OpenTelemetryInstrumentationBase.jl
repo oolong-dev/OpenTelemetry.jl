@@ -9,15 +9,15 @@ const pkg_version =
 """
 ## Schema
 
-| Meter Name | Instrument Name              | Instrument Type   | Unit        | Description                                                                                                      |
-|:---------- |:---------------------------- |:----------------- |:----------- |:---------------------------------------------------------------------------------------------------------------- |
-| `Base.Sys` | `Base.Sys.uptime`            | `ObservableGauge` | second      | The current system uptime in seconds.                                                                            |
-| `Base.Sys` | `Base.Sys.free_memory`       | `ObservableGauge` | bytes       | The total free memory in RAM in bytes.                                                                           |
-| `Base.Sys` | `Base.Sys.free_memory_ratio` | `ObservableGauge` | %           | The ratio of free memory in percentage.                                                                          |
-| `Base.Sys` | `Base.Sys.maxrss`            | `ObservableGauge` | bytes       | The maximum resident set size utilized in bytes.The current system uptime in seconds.                            |
-| `Base`     | `Base.jit_total_bytes`       | `ObservableGauge` | bytes       | The total amount (in bytes) allocated by the just-in-time compiler.                                              |
-| `Base`     | `Base.gc_live_bytes`         | `ObservableGauge` | bytes       | The total size of live objects after the last garbage collection, plus the number of bytes allocated since then. |
-| `Base`     | `Base.gc_time_ns`            | `ObservableGauge` | nanoseconds | Total time spend in garbage collection, in nanoseconds                                                           |
+| Meter Name | Instrument Name     | Instrument Type   | Unit        | Description                                                                                                      |
+|:---------- |:------------------- |:----------------- |:----------- |:---------------------------------------------------------------------------------------------------------------- |
+| `Base.Sys` | `uptime`            | `ObservableGauge` | second      | The current system uptime in seconds.                                                                            |
+| `Base.Sys` | `free_memory`       | `ObservableGauge` | bytes       | The total free memory in RAM in bytes.                                                                           |
+| `Base.Sys` | `free_memory_ratio` | `ObservableGauge` | %           | The ratio of free memory in percentage.                                                                          |
+| `Base.Sys` | `maxrss`            | `ObservableGauge` | bytes       | The maximum resident set size utilized in bytes.The current system uptime in seconds.                            |
+| `Base`     | `jit_total_bytes`   | `ObservableGauge` | bytes       | The total amount (in bytes) allocated by the just-in-time compiler.                                              |
+| `Base`     | `gc_live_bytes`     | `ObservableGauge` | bytes       | The total size of live objects after the last garbage collection, plus the number of bytes allocated since then. |
+| `Base`     | `gc_time_ns`        | `ObservableGauge` | nanoseconds | Total time spend in garbage collection, in nanoseconds                                                           |
 """
 function init(;
     meter_provider = global_meter_provider(),
@@ -27,12 +27,12 @@ function init(;
         "Base.Sys";
         provider = meter_provider,
         version = pkg_version,
-        schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationBase/#Schema",
+        schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationBase/",
     )
 
     ObservableGauge{Float64}(
         Sys.uptime,
-        "Base.Sys.uptime",
+        "uptime",
         m_sys;
         unit = "second",
         description = "The current system uptime in seconds.",
@@ -40,7 +40,7 @@ function init(;
 
     ObservableGauge{UInt64}(
         Sys.free_memory,
-        "Base.Sys.free_memory",
+        "free_memory",
         m_sys;
         unit = "bytes",
         description = "The total free memory in RAM in bytes.",
@@ -48,7 +48,7 @@ function init(;
 
     ObservableGauge{Float64}(
         () -> Sys.free_memory() / Sys.total_memory() * 100,
-        "Base.Sys.free_memory_ratio",
+        "free_memory_ratio",
         m_sys;
         unit = "%",
         description = "The ratio of free memory in percentage.",
@@ -56,7 +56,7 @@ function init(;
 
     ObservableGauge{UInt64}(
         Sys.maxrss,
-        "Base.Sys.maxrss",
+        "maxrss",
         m_sys;
         unit = "bytes",
         description = "The maximum resident set size utilized in bytes.",
@@ -71,7 +71,7 @@ function init(;
 
     ObservableGauge{Int64}(
         Base.jit_total_bytes,
-        "Base.jit_total_bytes",
+        "jit_total_bytes",
         m;
         unit = "bytes",
         description = "The total amount (in bytes) allocated by the just-in-time compiler.",
@@ -79,7 +79,7 @@ function init(;
 
     ObservableGauge{Int64}(
         Base.gc_live_bytes,
-        "Base.gc_live_bytes",
+        "gc_live_bytes",
         m;
         unit = "bytes",
         description = "The total size of live objects after the last garbage collection, plus the number of bytes allocated since then",
@@ -87,7 +87,7 @@ function init(;
 
     ObservableGauge{UInt64}(
         Base.gc_time_ns,
-        "Base.gc_time_ns",
+        "gc_time_ns",
         m;
         unit = "nanoseconds",
         description = "Total time spend in garbage collection, in nanoseconds",
