@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1644734233377,
+  "lastUpdate": 1644808172870,
   "repoUrl": "https://github.com/oolong-dev/OpenTelemetry.jl",
   "entries": {
     "Benchmark Result with Julia v1.7": [
@@ -508,6 +508,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "Trace/Create Dummy Span",
             "value": 1500,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=960\nallocs=17\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":10,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "41898282+github-actions[bot]@users.noreply.github.com",
+            "name": "github-actions[bot]",
+            "username": "github-actions[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3247c1c77a0862804fdd5ba8a3efbbcdb80fd518",
+          "message": "Format .jl files (#45)\n\nCo-authored-by: findmyway <findmyway@users.noreply.github.com>",
+          "timestamp": "2022-02-14T11:07:38+08:00",
+          "tree_id": "6ac9e9b2f16aaecd05c6a3b3bb3a39c4dd5c3b1d",
+          "url": "https://github.com/oolong-dev/OpenTelemetry.jl/commit/3247c1c77a0862804fdd5ba8a3efbbcdb80fd518"
+        },
+        "date": 1644808171582,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Meter/Update Counter",
+            "value": 1680.05,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=608\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":10,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Meter/Update Histogram",
+            "value": 2544.4444444444443,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1360\nallocs=29\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":9,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Trace/Create Span",
+            "value": 4012.625,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4672\nallocs=49\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":8,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Trace/Create Dummy Span",
+            "value": 1460,
             "unit": "ns",
             "extra": "gctime=0\nmemory=960\nallocs=17\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":10,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
