@@ -147,7 +147,13 @@ end_time(::NonRecordingSpan) = UInt(0)
 
 Set the attributes in span `s`. Only valid when the span is not ended yet.
 """
-Base.setindex!(s::AbstractSpan, val, key) = setindex!(attributes(s), val, key)
+function Base.setindex!(s::AbstractSpan, val, key)
+    if is_recording(s)
+        setindex!(attributes(s), val, key)
+    else
+        @debug "the span is not recording."
+    end
+end
 
 """
     Base.getindex(s::AbstractSpan, key)
@@ -234,8 +240,8 @@ Set the end time of the span and trigger span processors. Note `t` is the nanose
 """
 end_span!() = end_span!(current_span())
 end_span!(s::AbstractSpan) = end_span!(s, UInt(time() * 10^9))
-end_span!(s::NonRecordingSpan) = @warn "the span is not recording."
-end_span!(s::NonRecordingSpan, t) = @warn "the span is not recording."
+end_span!(s::NonRecordingSpan) = @debug "the span is not recording."
+end_span!(s::NonRecordingSpan, t) = @debug "the span is not recording."
 
 """
     Base.push!(s::AbstractSpan, ex::Exception; is_rethrow_followed = false)
@@ -294,7 +300,7 @@ function create_span(
     name::String,
     tracer::Tracer{DummyTracerProvider};
     context = current_context(),
-    kw...,
+    kw...
 )
     parent_span = current_span(context)
     if isnothing(parent_span)
@@ -326,7 +332,7 @@ function with_span(
     end_on_exit = true,
     record_exception = true,
     set_status_on_exception = true,
-    kw...,
+    kw...
 )
     s = create_span(name, tracer; kw...)
     with_context(; SPAN_KEY_IN_CONTEXT => s) do

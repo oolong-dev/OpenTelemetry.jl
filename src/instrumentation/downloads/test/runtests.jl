@@ -2,4 +2,4 @@ using Pkg
 using Downloads
 using OpenTelemetryInstrumentationDownloads
 
-Pkg.test("Downloads")
+include(joinpath(dirname(pathof(Downloads)), "..", "test", "runtests.jl"))
