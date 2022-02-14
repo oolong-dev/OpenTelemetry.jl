@@ -8,3 +8,10 @@ ArgTools = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
 Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 OpenTelemetryAPI = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
 TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+
+[extras]
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test", "Pkg"]

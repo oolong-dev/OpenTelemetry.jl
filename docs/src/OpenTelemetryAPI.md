@@ -31,16 +31,14 @@ Private = false
 
 ## Propagators
 
-[`inject!`](@ref) and [`extract`](@ref) are provided based on the original [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/context/api-propagators.md). However, `TextMapPropagator` is not implemented yet! Personally I feel that every propagator may depends on a third party
-package. To minimize the dependencies of `OpenTelemetryAPI.jl`, those specialized propagators can be registered as
-independent packages.
+[`inject!`](@ref) and [`extract`](@ref) are provided based on the original [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/context/api-propagators.md).
 
 The `GLOBAL_PROPAGATOR` is set to a `CompositePropagator`, with multiple dispatch, each inner propagator can be
 customized to handle different contexts and carriers. Since it's mainly used internally for now, it's not exposed yet.
 
 ```@autodocs
 Modules = [OpenTelemetryAPI]
-Pages = ["propagator.jl"]
+Pages = ["propagator_basic.jl", "textmap_propagator.jl"]
 Private = false
 ```
 
