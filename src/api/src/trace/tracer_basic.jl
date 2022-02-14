@@ -43,6 +43,16 @@ Base.@kwdef struct TraceFlag
     sampled::Bool = false
 end
 
+function Base.parse(::Type{TraceFlag}, s::AbstractString)
+    if s == "00"
+        TraceFlag(false)
+    elseif s == "01"
+        TraceFlag(true)
+    else
+        throw(ArgumentError("unknown input $s"))
+    end
+end
+
 const MAXIMUM_TRACESTATE_KEYS = 32
 const TRACESTATE_KEY_PATTERN =
     r"^[a-z][_0-9a-z\\-\\*\\/]{0,255}|[a-z0-9][_0-9a-z\\-\\*\\/]{0,240}@[a-z][_0-9a-z\\-\\*\\/]{0,13}$"
@@ -94,6 +104,10 @@ function Base.show(io::IO, ts::TraceState)
             print(io, ',')
         end
     end
+end
+
+function Base.parse(::Type{TraceState}, s::AbstractString)
+    TraceState(Pair(split(kv, '=')...) for kv in split(s, ','))
 end
 
 """

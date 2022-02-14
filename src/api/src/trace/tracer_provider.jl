@@ -266,7 +266,8 @@ Get the [`SpanContext`](@ref) from a span `s`. If `s` is not specified,
 [`current_span()`](@ref) will be used. `nothing` is returned if no span context
 found.
 """
-span_context() = span_context(current_span())
+span_context() = span_context(current_context())
+span_context(ctx::Context) = span_context(current_span(ctx))
 span_context(::Nothing) = nothing
 span_context(s::NonRecordingSpan) = s.span_context
 
