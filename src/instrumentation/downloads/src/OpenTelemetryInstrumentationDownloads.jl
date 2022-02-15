@@ -27,7 +27,16 @@ if VERSION <= v"1.7.2"
         verbose::Bool = false,
         downloader::Union{Downloader,Nothing} = nothing,
     )::ArgWrite
-        with_span("download", DOWNLOAD_TRACER[]) do
+        with_span(
+            "Downloads $method",
+            DOWNLOAD_TRACER[];
+            kind = SPAN_KIND_CLIENT,
+            attributes = Dict{String,TAttrVal}(
+                "http.method" => isnothing(method) ? "" : method,
+                "http.url" => url,
+            ),
+        ) do
+            s = current_span()
             arg_write(output) do output
                 response = request(
                     url,
@@ -40,9 +49,8 @@ if VERSION <= v"1.7.2"
                     downloader = downloader,
                 )::Response
                 DOWNLOAD_METRICS[](; proto = response.proto, status = response.status)
-                s = current_span()
-                s["proto"] = response.proto
-                s["status"] = response.status
+                s["http.scheme"] = response.proto
+                s["http.status_code"] = response.status
                 status_ok(response.proto, response.status) && return output
                 throw(RequestError(url, Curl.CURLE_OK, "", response))
             end
@@ -51,11 +59,27 @@ if VERSION <= v"1.7.2"
 end
 
 """
-## Schema
+## Metrics
 
 | Meter Name  | Instrument Name | Instrument Type | Unit | Description          |
 |:----------- |:--------------- |:--------------- |:---- |:-------------------- |
 | `Downloads` | `download`      | `Counter{UInt}` |      | Number of downloads. |
+
+## Spans
+
+We try to follow [semantic conventions for HTTP
+spans](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md)
+here.
+
+The following attributes are added on span creation:
+
+  - `http.method`
+  - `http.url`
+
+The following attributes are added when response is received:
+
+  - `http.scheme`
+  - `http.status_code`
 """
 function init(;
     meter_provider = global_meter_provider(),

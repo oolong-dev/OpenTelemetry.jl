@@ -12,18 +12,6 @@ uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
-[[deps.CodecZlib]]
-deps = ["TranscodingStreams", "Zlib_jll"]
-git-tree-sha1 = "ded953804d019afa9a3f98981d99b33e3db7b6da"
-uuid = "944b1d66-785c-5afd-91f1-9de20f533193"
-version = "0.7.0"
-
-[[deps.Configurations]]
-deps = ["ExproniconLite", "OrderedCollections", "TOML"]
-git-tree-sha1 = "d780a43fea44c8aa9f8f3d452a19afa2deff74ce"
-uuid = "5218b696-f38b-4ac9-8b61-a12ec717816d"
-version = "0.17.1"
-
 [[deps.Dates]]
 deps = ["Printf"]
 uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
@@ -31,22 +19,6 @@ uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 [[deps.Downloads]]
 deps = ["ArgTools", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
-
-[[deps.ExproniconLite]]
-git-tree-sha1 = "8b08cc88844e4d01db5a2405a08e9178e19e479e"
-uuid = "55351af7-c7e9-48d6-89ff-24e801d99491"
-version = "0.6.13"
-
-[[deps.GarishPrint]]
-deps = ["Configurations", "Preferences"]
-git-tree-sha1 = "41136d24cc02c4d7c2b8c8982823fedac66d0a45"
-uuid = "b0ab02a7-8576-43f7-aa76-eaa7c3897c54"
-version = "0.5.1"
-
-[[deps.Glob]]
-git-tree-sha1 = "4df9f7e06108728ebf00a0a11edee4b29a482bb2"
-uuid = "c27321d9-0574-5035-807b-f59d2c89b15c"
-version = "1.3.0"
 
 [[deps.HTTP]]
 deps = ["Base64", "Dates", "IniFile", "Logging", "MbedTLS", "NetworkOptions", "Sockets", "URIs"]
@@ -63,12 +35,6 @@ version = "0.5.0"
 [[deps.InteractiveUtils]]
 deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
-
-[[deps.JLLWrappers]]
-deps = ["Preferences"]
-git-tree-sha1 = "abc9885a7ca2052a736a600f7fa66209f96506e1"
-uuid = "692b3bcd-3c85-4b1f-b108-f13ce0eb3210"
-version = "1.4.1"
 
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
@@ -114,76 +80,17 @@ uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 
 [[deps.OpenTelemetryAPI]]
 deps = ["Dates", "Logging", "Random", "UUIDs"]
-path = "../api"
+path = "../../api"
 uuid = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
 version = "0.2.2"
-
-[[deps.OpenTelemetryExporterOtlpProtoGrpc]]
-deps = ["OpenTelemetryAPI", "OpenTelemetryProto", "OpenTelemetrySDK", "URIs", "gRPCClient"]
-path = "../exporter/otlp/proto/grpc"
-uuid = "83e8ae56-efb3-499e-9158-b649d4f902fc"
-version = "0.2.0"
-
-[[deps.OpenTelemetryExporterPrometheus]]
-deps = ["HTTP", "OpenTelemetrySDK", "Sockets"]
-path = "../exporter/prometheus"
-uuid = "34e26579-e93c-4b5e-ba07-7afb633408c2"
-version = "0.1.3"
-
-[[deps.OpenTelemetryInstrumentationBase]]
-deps = ["OpenTelemetryAPI", "TOML"]
-path = "../instrumentation/base"
-uuid = "4046903c-540b-416b-9793-ac8011f4a0e0"
-version = "0.1.0"
-
-[[deps.OpenTelemetryInstrumentationDownloads]]
-deps = ["ArgTools", "Downloads", "OpenTelemetryAPI", "TOML"]
-path = "../instrumentation/downloads"
-uuid = "0e26c271-1f4f-4c29-8c08-075e43f1441d"
-version = "0.1.0"
-
-[[deps.OpenTelemetryInstrumentationHTTP]]
-deps = ["HTTP", "OpenTelemetryAPI", "URIs"]
-path = "../instrumentation/http"
-uuid = "577d865d-be4b-4832-bb11-7a55ac2f173f"
-version = "0.1.0"
-
-[[deps.OpenTelemetryProto]]
-deps = ["CodecZlib", "Downloads", "ProtoBuf", "Tar", "gRPCClient"]
-path = "../proto"
-uuid = "cc651e92-2989-4f95-bcc3-32e6fb6ac025"
-version = "0.13.0"
-
-[[deps.OpenTelemetrySDK]]
-deps = ["Dates", "GarishPrint", "Glob", "OpenTelemetryAPI", "Random", "Reexport"]
-path = "../sdk"
-uuid = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
-version = "0.2.0"
-
-[[deps.OrderedCollections]]
-git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
-uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
-version = "1.4.1"
 
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
-[[deps.Preferences]]
-deps = ["TOML"]
-git-tree-sha1 = "2cf929d64681236a2e074ffafb8d568733d2e6af"
-uuid = "21216c6a-2e73-6563-6e65-726566657250"
-version = "1.2.3"
-
 [[deps.Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
-
-[[deps.ProtoBuf]]
-deps = ["Logging", "protoc_jll"]
-git-tree-sha1 = "283ac3b9db33300a933a261a16f9aa036d33ac18"
-uuid = "3349acd9-ac6a-5e09-bcdb-63829b23a429"
-version = "0.11.4"
 
 [[deps.REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
@@ -192,11 +99,6 @@ uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 [[deps.Random]]
 deps = ["SHA", "Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
-
-[[deps.Reexport]]
-git-tree-sha1 = "45e428421666073eab6f2da5c9d310d99bb12f9b"
-uuid = "189a3867-3050-52da-a836-e630ba90ab69"
-version = "1.2.2"
 
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
@@ -219,12 +121,6 @@ uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
-[[deps.TranscodingStreams]]
-deps = ["Random", "Test"]
-git-tree-sha1 = "216b95ea110b5972db65aa90f88d8d89dcb8851c"
-uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
-version = "0.9.6"
-
 [[deps.URIs]]
 git-tree-sha1 = "97bbe755a53fe859669cd907f2d96aee8d2c1355"
 uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
@@ -241,12 +137,6 @@ uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
 
-[[deps.gRPCClient]]
-deps = ["Downloads", "LibCURL", "ProtoBuf"]
-git-tree-sha1 = "4af4d0cf47018ce4bd5cd8f0d172ed7dbca87380"
-uuid = "aaca4a50-36af-4a1d-b878-4c443f2061ad"
-version = "0.1.2"
-
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
@@ -254,9 +144,3 @@ uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
-
-[[deps.protoc_jll]]
-deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "cd74748e54f76134ddf000a6e3022901485c2d26"
-uuid = "c7845625-083e-5bbe-8504-b32d602b7110"
-version = "3.19.4+0"
