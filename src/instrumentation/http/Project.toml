@@ -1,0 +1,9 @@
+name = "OpenTelemetryInstrumentationHTTP"
+uuid = "577d865d-be4b-4832-bb11-7a55ac2f173f"
+authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+OpenTelemetryAPI = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
+URIs = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
