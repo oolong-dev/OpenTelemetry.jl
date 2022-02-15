@@ -3,6 +3,7 @@ module OpenTelemetryInstrumentationHTTP
 using OpenTelemetryAPI
 
 using HTTP
+using Sockets
 using URIs
 
 using TOML
@@ -117,7 +118,7 @@ function HTTP.serve(
     stream::Bool = false,
     kw...,
 )
-    handler = if f isa Handler
+    handler = if f isa HTTP.Handlers.Handler
         f
     elseif stream
         HTTP.StreamHandlerFunction(f)
@@ -129,7 +130,11 @@ end
 
 otel_handle(handler, x) = HTTP.handle(handler, x)
 
-function otel_handle(r::HTTP.Router, req::HTTP.Request)
+function otel_handle(r::HTTP.Router, http::HTTP.Stream)
+    req::HTTP.Request = http.message
+    req.body = read(http)
+    closeread(http)
+
     # directly taken from https://github.com/JuliaWeb/HTTP.jl/blob/46687c8e594cbde40cdcfa63fe66123ebad1ea5c/src/Handlers.jl#L459-L468
     #
     # BEGIN
@@ -137,7 +142,7 @@ function otel_handle(r::HTTP.Router, req::HTTP.Request)
     m = Val(Symbol(req.method))
     # get scheme, host, split path into strings and get Vals
     uri = URI(req.target)
-    s = get(SCHEMES, uri.scheme, HTTP.Handlers.EMPTYVAL)
+    s = get(HTTP.Handlers.SCHEMES, uri.scheme, HTTP.Handlers.EMPTYVAL)
     h = Val(Symbol(uri.host))
     p = uri.path
     segments = split(p, '/'; keepempty = false)
@@ -145,15 +150,17 @@ function otel_handle(r::HTTP.Router, req::HTTP.Request)
     vals = (get(r.segments, s, Val(Symbol(s))) for s in segments)
     # END
 
-    handler = which(
+    m_handler = which(
         HTTP.Handlers.gethandler,
         (typeof(r), typeof(m), typeof(s), typeof(h), map(typeof, vals)...),
     )
 
+    handler = HTTP.Handlers.gethandler(r, m, s, h, vals...)
+
     name = if handler === r.default
         "DEFAULT ROUTE"
     else
-        join(map(type2segment, handler.sig.parameters), "/")
+        "/" * join(map(type2segment, m_handler.sig.parameters[6:end]), "/")
     end
 
     with_span(
@@ -169,16 +176,16 @@ function otel_handle(r::HTTP.Router, req::HTTP.Request)
         ),
     ) do
         s = current_span()
-        try
-            HTTP.Handlers.handle(handler, req)
-        catch e
-            rethrow(e)
-        finally
-            s["http.status_code"] = string(req.response.status)
-            s["http.response_content_length"] = length(req.response.body)
-            HTTP_METRICS[](; route = name, status = req.response.status)
-        end
+        resp = HTTP.Handlers.handle(handler, req)
+        req.response::HTTP.Response = resp
+        req.response.request = req
+        startwrite(http)
+        write(http, req.response.body)
+        s["http.status_code"] = string(resp.status)
+        s["http.response_content_length"] = length(resp.body)
+        HTTP_METRICS[](; route = name, status = Int(resp.status))
     end
+    nothing
 end
 
 type2segment(x) = ""
