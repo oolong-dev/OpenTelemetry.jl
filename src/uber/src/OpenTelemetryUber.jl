@@ -11,6 +11,7 @@ using Reexport
 # instrumentations
 @reexport using OpenTelemetryInstrumentationBase
 @reexport using OpenTelemetryInstrumentationDownloads
+@reexport using OpenTelemetryInstrumentationHTTP
 
 function init(;
     meter_provider = global_meter_provider(),
