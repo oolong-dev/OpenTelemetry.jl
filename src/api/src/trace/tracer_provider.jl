@@ -300,7 +300,7 @@ function create_span(
     name::String,
     tracer::Tracer{DummyTracerProvider};
     context = current_context(),
-    kw...
+    kw...,
 )
     parent_span = current_span(context)
     if isnothing(parent_span)
@@ -332,7 +332,7 @@ function with_span(
     end_on_exit = true,
     record_exception = true,
     set_status_on_exception = true,
-    kw...
+    kw...,
 )
     s = create_span(name, tracer; kw...)
     with_context(; SPAN_KEY_IN_CONTEXT => s) do
