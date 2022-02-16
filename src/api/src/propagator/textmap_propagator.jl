@@ -8,7 +8,10 @@ This propagator follows the [W3C format](https://www.w3.org/TR/trace-context/#tr
 struct TraceContextTextMapPropagator <: AbstractPropagator end
 
 function inject!(
-    carrier::Union{AbstractVector{<:Pair{<:AbstractString,<:AbstractString}},AbstractDict{<:AbstractString,<:AbstractString}},
+    carrier::Union{
+        AbstractVector{<:Pair{<:AbstractString,<:AbstractString}},
+        AbstractDict{<:AbstractString,<:AbstractString},
+    },
     propagator::TraceContextTextMapPropagator,
     ctx::Context = current_context(),
 )
@@ -25,7 +28,11 @@ function inject!(
 end
 
 # fallback
-function inject!(carrier::T, ::TraceContextTextMapPropagator, ctx::Context = current_context()) where {T}
+function inject!(
+    carrier::T,
+    ::TraceContextTextMapPropagator,
+    ctx::Context = current_context(),
+) where {T}
     @warn "unknown carrier type $T"
     carrier
 end
@@ -34,7 +41,10 @@ TRACEPARENT_HEADER_FORMAT =
     r"^[ \t]*(?P<version>[0-9a-f]{2})-(?P<trace_id>[0-9a-f]{32})-(?P<span_id>[0-9a-f]{16})-(?P<trace_flag>[0-9a-f]{2})(?P<rest>-.*)?[ \t]*$"
 
 function extract(
-    carrier::Union{AbstractVector{<:Pair{<:AbstractString,<:AbstractString}},AbstractDict{<:AbstractString,<:AbstractString}},
+    carrier::Union{
+        AbstractVector{<:Pair{<:AbstractString,<:AbstractString}},
+        AbstractDict{<:AbstractString,<:AbstractString},
+    },
     propagator::TraceContextTextMapPropagator,
     ctx::Context = current_context(),
 )
@@ -70,7 +80,11 @@ function extract(
 end
 
 # fallback
-function extract(carrier::T, ::TraceContextTextMapPropagator, ctx::Context = current_context()) where {T}
+function extract(
+    carrier::T,
+    ::TraceContextTextMapPropagator,
+    ctx::Context = current_context(),
+) where {T}
     @warn "unknown carrier type $T"
     ctx
 end
