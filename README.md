@@ -19,7 +19,7 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 |`OpenTelemetry` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` and necessary plugins or instrumentations explicitly. | [![version](https://juliahub.com/docs/OpenTelemetry/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetry/L4aUb) |
 | [`OpenTelemetryInstrumentationBase`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationBase/) | Add basic metrics under the `Base` module in Julia runtime. | |
 | [`OpenTelemetryInstrumentationDownloads`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationDownloads/) | Add metrics and inject context info in [`Downloads.jl`](https://github.com/JuliaLang/Downloads.jl).| |
-| [`OpenTelemetryInstrumentationHTTP`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationHTTP/) | Add metrics and inject context info in [`Downloads.jl`](https://github.com/JuliaLang/Downloads.jl).| |
+| [`OpenTelemetryInstrumentationHTTP`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationHTTP/) | Add metrics and inject context info in [`HTTP.jl`](https://github.com/JuliaWeb/HTTP.jl).| |
 | `OpenTelemetryUber` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` and necessary plugins or instrumentations explicitly. | |
 
 ## Get Started
