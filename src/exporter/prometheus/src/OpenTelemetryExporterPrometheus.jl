@@ -73,7 +73,7 @@ function text_based_format(io, provider::MeterProvider)
                             write(io, "$(m.name)_bucket{")
                             # TODO: escape
                             join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
-                            write(io, "le=\"+Inf\"} $c\n")
+                            write(io, ",le=\"+Inf\"} $c\n")
     
                             write(io, "$(m.name)_count{")
                             # TODO: escape
@@ -83,7 +83,7 @@ function text_based_format(io, provider::MeterProvider)
                             write(io, "$(m.name)_bucket{")
                             # TODO: escape
                             join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
-                            write(io, "le=\"$(val.boundaries[i])\"} $c\n")
+                            write(io, ",le=\"$(val.boundaries[i])\"} $c\n")
                         end
                     else
                         if i == length(val.counts)
