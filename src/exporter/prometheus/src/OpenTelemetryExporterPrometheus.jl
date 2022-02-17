@@ -72,7 +72,10 @@ function text_based_format(io, provider::MeterProvider)
                         write(io, "$(m.name)_bucket{le=\"+Inf\"} $c\n")
                         write(io, "$(m.name)_count $c\n")
                     else
-                        write(io, "$(m.name)_bucket{le=\"$(val.boundaries[i])\"} $c\n")
+                        write(io, "$(m.name)_bucket{")
+                        # TODO: escape
+                        join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
+                        write(io, "le=\"$(val.boundaries[i])\"} $c\n")
                     end
                 end
                 # ???
