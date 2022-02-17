@@ -23,11 +23,9 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 | [`OpenTelemetryInstrumentationGenie`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationGenie/) | Add metrics and inject context info in [`Genie.jl`](https://github.com/GenieFramework/Genie.jl).| |
 | `OpenTelemetryUber` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` and necessary plugins or instrumentations explicitly. | |
 
-## 🏹 Get Started
+## Get Started
 
 ### Traces
-
-To show traces in your console:
 
 ```julia
 using OpenTelemetry
@@ -99,4 +97,4 @@ Some frequently asked questions are maintained [here](https://oolong.dev/OpenTel
 
 ## Benchmarks
 
-Check out the benchmark results with [Julia@v1.6](https://oolong-dev.github.io/OpenTelemetry.jl/benchmarks/Julia-v1.6/), [Julia@v1.7](https://oolong-dev.github.io/OpenTelemetry.jl/benchmarks/Julia-v1.7/).
+Check out the benchmark results of some essential operations with [Julia@v1.6](https://oolong-dev.github.io/OpenTelemetry.jl/benchmarks/Julia-v1.6/), [Julia@v1.7](https://oolong-dev.github.io/OpenTelemetry.jl/benchmarks/Julia-v1.7/).
