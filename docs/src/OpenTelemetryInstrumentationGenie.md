@@ -1,0 +1,5 @@
+# OpenTelemetryInstrumentationGenie
+
+```@autodocs
+Modules = [OpenTelemetryInstrumentationGenie]
+```
