@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1644979609248,
+  "lastUpdate": 1645116184371,
   "repoUrl": "https://github.com/oolong-dev/OpenTelemetry.jl",
   "entries": {
     "Benchmark Result with Julia v1.6": [
@@ -796,6 +796,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "Trace/Create Dummy Span",
             "value": 1590,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1056\nallocs=17\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":10,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tianjun.cpp@gmail.com",
+            "name": "Jun Tian",
+            "username": "findmyway"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "91a9baadc47b20c5e809333640f92a82a3c27fb4",
+          "message": "Add instrumentation of Genie (#50)\n\n* sync local change\r\n\r\n* update doc\r\n\r\n* add tests\r\n\r\n* test on stable version only",
+          "timestamp": "2022-02-18T00:41:09+08:00",
+          "tree_id": "c5176c3dcd3e62e0e40912495d2d45d3ec98556a",
+          "url": "https://github.com/oolong-dev/OpenTelemetry.jl/commit/91a9baadc47b20c5e809333640f92a82a3c27fb4"
+        },
+        "date": 1645116183012,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Meter/Update Counter",
+            "value": 1800.1,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=576\nallocs=11\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":10,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Meter/Update Histogram",
+            "value": 3500,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1536\nallocs=29\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":9,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Trace/Create Span",
+            "value": 4328.571428571428,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4912\nallocs=49\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":7,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Trace/Create Dummy Span",
+            "value": 1520,
             "unit": "ns",
             "extra": "gctime=0\nmemory=1056\nallocs=17\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":10,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
