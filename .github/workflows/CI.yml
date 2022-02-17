@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.6'  # LTS
+          # - '1.6'  # LTS ; commented due to manifest
           - '1'
         os:
           - ubuntu-latest
