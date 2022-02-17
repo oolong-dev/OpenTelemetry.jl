@@ -70,9 +70,9 @@ end
 """
 ## Metrics
 
-| Meter Name | Instrument Name | Instrument Type | Unit | Description         |
-|:---------- |:--------------- |:--------------- |:---- |:------------------- |
-| `http`     | `request`       | `Counter{UInt}` |      | Number of requests. |
+| Meter Name | Instrument Name | Instrument Type | Unit | Dimensions        | Description         |
+|:---------- |:--------------- |:--------------- |:---- |:----------------- |:------------------- |
+| `http`     | `request`       | `Counter{UInt}` |      | `route`, `status` | Number of requests. |
 
 ## Spans
 
@@ -172,7 +172,7 @@ function otel_handle(r::HTTP.Router, http::HTTP.Stream)
             "http.target" => req.target,
             "http.flavor" => string(req.version),
             "http.request_content_length" => length(req.body),
-            "http_route" => name,
+            "http.route" => name,
         ),
     ) do
         s = current_span()

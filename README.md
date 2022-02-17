@@ -20,9 +20,10 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 | [`OpenTelemetryInstrumentationBase`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationBase/) | Add basic metrics under the `Base` module in Julia runtime. | |
 | [`OpenTelemetryInstrumentationDownloads`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationDownloads/) | Add metrics and inject context info in [`Downloads.jl`](https://github.com/JuliaLang/Downloads.jl).| |
 | [`OpenTelemetryInstrumentationHTTP`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationHTTP/) | Add metrics and inject context info in [`HTTP.jl`](https://github.com/JuliaWeb/HTTP.jl).| |
+| [`OpenTelemetryInstrumentationGenie`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationGenie/) | Add metrics and inject context info in [`Genie.jl`](https://github.com/GenieFramework/Genie.jl).| |
 | `OpenTelemetryUber` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` and necessary plugins or instrumentations explicitly. | |
 
-## Get Started
+## 🏹 Get Started
 
 ### Traces
 
@@ -72,7 +73,29 @@ with_span("Hello") do
 end
 ```
 
-For more details, please read the [tutorial](https://oolong.dev/OpenTelemetry.jl/dev/tutorial).
+## Tutorial
+
+(WIP)
+
+- View Metrics in Prometheus
+- View Metrics in Prometheus with Open Telemetry Collector
+- Combine Logging, Tracing and Metrics
+- An End-to-end Toy Example with Auto Instrumentation
+- Case Study 1: Empower `Dagger.jl` with `OpenTelemetry.jl`
+- Case Study 2: Empower `AlphaZero.jl` with `OpenTelemetry.jl`
+
+## Tips for Developers
+
+(WIP)
+
+- Understand the Architecture of `OpenTelemetry.jl`
+- How to Add Instrumentation to a Third-party Package?
+- How to Extend `OpenTelemetrySDK`?
+- Best Practices to Instrument Your Application
+
+## FAQ
+
+Some frequently asked questions are maintained [here](https://oolong.dev/OpenTelemetry.jl/dev/FAQ/). If you can't find the answer to your question there, please [create an issue](https://github.com/oolong-dev/OpenTelemetry.jl/issues). Your feedback is VERY IMPORTANT to the quality of this package.
 
 ## Benchmarks
 
