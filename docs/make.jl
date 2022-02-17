@@ -35,6 +35,7 @@ makedocs(
             "OpenTelemetryInstrumentationBase.md",
             "OpenTelemetryInstrumentationDownloads.md",
             "OpenTelemetryInstrumentationHTTP.md",
+            "OpenTelemetryInstrumentationGenie.md",
         ],
     ],
 )

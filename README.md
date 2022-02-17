@@ -78,7 +78,7 @@ end
 - View Metrics in Prometheus
 - View Metrics in Prometheus with Open Telemetry Collector
 - Combine Logging, Tracing and Metrics
-- An End-to-end Toy Example with Auto Instrumentation
+- An End-to-end Toy Example with Auto Instrumentation across Different Languages
 - Case Study 1: Empower `Dagger.jl` with `OpenTelemetry.jl`
 - Case Study 2: Empower `AlphaZero.jl` with `OpenTelemetry.jl`
 

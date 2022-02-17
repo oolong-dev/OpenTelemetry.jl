@@ -13,10 +13,8 @@ const PKG_VERSION =
 const GENIE_TRACER = Ref{Tracer}()
 const GENIE_METRICS = Ref{Counter{UInt}}()
 
-function _instrument(req, resp, params, action) end
-
 function instrument(req, resp, params)
-    if Genie.PARAMS_ROUTE_KEY in params
+    if haskey(params, Genie.PARAMS_ROUTE_KEY)
         r = params[Genie.PARAMS_ROUTE_KEY]
         a = r.action
         r.action =
@@ -26,16 +24,16 @@ function instrument(req, resp, params)
                 kind = SPAN_KIND_SERVER,
                 attributes = Dict{String,TAttrVal}(
                     "http.method" => r.method,
-                    "http.target" => req.resource,
-                    "http.request_content_length" => length(req.data),
+                    "http.target" => req.target,
+                    "http.request_content_length" => length(req.body),
                     "http.route" => r.path,
-                ),
+                )
             ) do
-                res = a() |> Genie.to_response
+                res = a() |> Genie.Router.to_response
                 s = current_span()
                 s["http.status_code"] = string(res.status)
-                s["http.response_content_length"] = length(res.data)
-                GENIE_METRICS[](; route = r.path, status = res.status)
+                s["http.response_content_length"] = length(res.body)
+                GENIE_METRICS[](; route = r.path, status = Int(res.status))
                 r.action = a  # recover action
                 res
             end
@@ -70,15 +68,12 @@ The following attributes are added when response is received:
 """
 function init(;
     tracer_provider = global_tracer_provider(),
-    meter_provider = global_meter_provider(),
+    meter_provider = global_meter_provider()
 )
-    if any(h isa InstrumentHook for h in Genie.Router.content_negotiation_hooks)
+    if instrument in Genie.Router.content_negotiation_hooks
         # already initialized
     else
-        push!(
-            Genie.Router.content_negotiation_hooks,
-            InstrumentHook(tracer_provider, meter_provider),
-        )
+        push!(Genie.Router.content_negotiation_hooks, instrument)
     end
 
     GENIE_METRICS[] = Counter{UInt}(
@@ -87,12 +82,12 @@ function init(;
             "request";
             provider = meter_provider,
             version = PKG_VERSION,
-            schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationGenie/",
+            schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationGenie/"
         );
         unit = "",
-        description = "Number of requests received.",
+        description = "Number of requests received."
     )
-    GENIE_TRACER[] = Tracer("Geni", PKG_VERSION; provider = tracer_provider)
+    GENIE_TRACER[] = Tracer("Genie", PKG_VERSION; provider = tracer_provider)
 end
 
 function __init__()
