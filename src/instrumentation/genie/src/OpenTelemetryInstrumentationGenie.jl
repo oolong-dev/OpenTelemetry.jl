@@ -18,24 +18,26 @@ function instrument(req, resp, params)
         r = params[Genie.PARAMS_ROUTE_KEY]
         a = r.action
         r.action =
-            () -> with_span(
-                "Genie $(r.path)",
-                GENIE_TRACER[];
-                kind = SPAN_KIND_SERVER,
-                attributes = Dict{String,TAttrVal}(
-                    "http.method" => r.method,
-                    "http.target" => req.target,
-                    "http.request_content_length" => length(req.body),
-                    "http.route" => r.path,
-                )
-            ) do
-                res = a() |> Genie.Router.to_response
-                s = current_span()
-                s["http.status_code"] = string(res.status)
-                s["http.response_content_length"] = length(res.body)
-                GENIE_METRICS[](; route = r.path, status = Int(res.status))
-                r.action = a  # recover action
-                res
+            () -> with_context(extract(req.headers, TraceContextTextMapPropagator())) do
+                with_span(
+                    "Genie $(r.path)",
+                    GENIE_TRACER[];
+                    kind = SPAN_KIND_SERVER,
+                    attributes = Dict{String,TAttrVal}(
+                        "http.method" => r.method,
+                        "http.target" => req.target,
+                        "http.request_content_length" => length(req.body),
+                        "http.route" => r.path,
+                    ),
+                ) do
+                    res = a() |> Genie.Router.to_response
+                    s = current_span()
+                    s["http.status_code"] = string(res.status)
+                    s["http.response_content_length"] = length(res.body)
+                    GENIE_METRICS[](; route = r.path, status = Int(res.status))
+                    r.action = a  # recover action
+                    res
+                end
             end
     end
     req, resp, params
@@ -68,7 +70,7 @@ The following attributes are added when response is received:
 """
 function init(;
     tracer_provider = global_tracer_provider(),
-    meter_provider = global_meter_provider()
+    meter_provider = global_meter_provider(),
 )
     if instrument in Genie.Router.content_negotiation_hooks
         # already initialized
@@ -82,10 +84,10 @@ function init(;
             "request";
             provider = meter_provider,
             version = PKG_VERSION,
-            schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationGenie/"
+            schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationGenie/",
         );
         unit = "",
-        description = "Number of requests received."
+        description = "Number of requests received.",
     )
     GENIE_TRACER[] = Tracer("Genie", PKG_VERSION; provider = tracer_provider)
 end

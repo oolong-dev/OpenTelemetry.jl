@@ -109,6 +109,8 @@ function init(;
         description = "Number of requests received.",
     )
     HTTP_TRACER[] = Tracer("HTTP", PKG_VERSION; provider = tracer_provider)
+    top = HTTP.top_layer(stack())
+    insert_default!(top, OpenTelemetryLayer)
 end
 
 function HTTP.serve(
@@ -163,27 +165,29 @@ function otel_handle(r::HTTP.Router, http::HTTP.Stream)
         "/" * join(map(type2segment, m_handler.sig.parameters[6:end]), "/")
     end
 
-    with_span(
-        name,
-        HTTP_TRACER[];
-        kind = SPAN_KIND_SERVER,
-        attributes = Dict{String,TAttrVal}(
-            "http.method" => req.method,
-            "http.target" => req.target,
-            "http.flavor" => string(req.version),
-            "http.request_content_length" => length(req.body),
-            "http.route" => name,
-        ),
-    ) do
-        s = current_span()
-        resp = HTTP.Handlers.handle(handler, req)
-        req.response::HTTP.Response = resp
-        req.response.request = req
-        startwrite(http)
-        write(http, req.response.body)
-        s["http.status_code"] = string(resp.status)
-        s["http.response_content_length"] = length(resp.body)
-        HTTP_METRICS[](; route = name, status = Int(resp.status))
+    with_context(extract(req.headers, TraceContextTextMapPropagator())) do
+        with_span(
+            name,
+            HTTP_TRACER[];
+            kind = SPAN_KIND_SERVER,
+            attributes = Dict{String,TAttrVal}(
+                "http.method" => req.method,
+                "http.target" => req.target,
+                "http.flavor" => string(req.version),
+                "http.request_content_length" => length(req.body),
+                "http.route" => name,
+            ),
+        ) do
+            s = current_span()
+            resp = HTTP.Handlers.handle(handler, req)
+            req.response::HTTP.Response = resp
+            req.response.request = req
+            startwrite(http)
+            write(http, req.response.body)
+            s["http.status_code"] = string(resp.status)
+            s["http.response_content_length"] = length(resp.body)
+            HTTP_METRICS[](; route = name, status = Int(resp.status))
+        end
     end
     nothing
 end
