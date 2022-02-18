@@ -13,6 +13,8 @@ const API = OpenTelemetryAPI
 const SDK = OpenTelemetrySDK
 const Otlp = OpenTelemetryProto.OpentelemetryClients
 const Trace = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.trace.v1
+const Metrics = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.metrics.v1
+const Logs = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.logs.v1
 const Resource = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.resource.v1
 const Common = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.common.v1
 
@@ -204,7 +206,7 @@ end
 
 `scheme`, `host` and `port` specifies the OTEL Collector to connect with.
 """
-function OtlpProtoGrpcMetricExporter(;
+function OtlpProtoGrpcMetricsExporter(;
     scheme = "http",
     host = "localhost",
     port = 4317,
@@ -213,11 +215,94 @@ function OtlpProtoGrpcMetricExporter(;
 )
     url = string(URI(; scheme = scheme, host = host, port = port))
     if is_blocking
-        client = Otlp.TraceServiceBlockingClient(url; kw...)
+        client = Otlp.MetricsServiceBlockingClient(url; kw...)
     else
-        client = Otlp.TraceServiceClient(url; kw...)
+        client = Otlp.MetricsServiceClient(url; kw...)
     end
-    OtlpProtoGrpcTraceExporter(client)
+    OtlpProtoGrpcMetricsExporter(client)
+end
+
+function SDK.export!(e::OtlpProtoGrpcMetricsExporter, ms)
+    res, status = Otlp.Export(e.client, convert(Otlp.ExportMetricsServiceRequest, ms))
+    if gRPCClient.gRPCCheck(status; throw_error = false)
+        SDK.EXPORT_SUCCESS
+    else
+        SDK.EXPORT_FAILURE
+    end
+end
+
+Base.convert(t::Type{Otlp.ExportMetricsServiceRequest}, s::SDK.Metric) = convert(t, [s])
+
+function Base.convert(t::Type{Otlp.ExportMetricsServiceRequest}, ms)
+    # ??? instrumentation_library can not be inferred based on current definition of SDK.Metric
+    ExportMetricsServiceRequest(
+        resource_metrics = [
+            Metrics.ResourceMetrics(
+                resource = convert(Resource.Resource, first(ms)),
+                instrumentation_library_metrics = [
+                    OpentelemetryClients.opentelemetry.proto.metrics.v1.InstrumentationLibraryMetrics(
+                        instrumentation_library = OpentelemetryClients.opentelemetry.proto.common.v1.InstrumentationLibrary(;
+                            name = "julia",
+                            version = "1.0.0",
+                        ),
+                        metrics = [
+                            OpentelemetryClients.opentelemetry.proto.metrics.v1.Metric(
+                                name = "test_metric",
+                                description = "just for test",
+                                unit = "",
+                                gauge = OpentelemetryClients.opentelemetry.proto.metrics.v1.Gauge(
+                                    data_points = [
+                                        OpentelemetryClients.opentelemetry.proto.metrics.v1.NumberDataPoint(
+                                            start_time_unix_nano = 0xe3c6aac9ebe5b6f8,
+                                            time_unix_nano = 0xe3c6aac9ebe5b6f9,
+                                            as_int = 123
+                                        )
+                                    ]
+                                )
+                            )
+                        ],
+                        schema_url = "http://localhost:7777",
+                    )
+                ],
+                schema_url = "http://localhost:8888",
+            )
+        ]
+    )
+    r = Otlp.ExportMetricsServiceRequest(; resource_metrics = [])
+    m_res_pre = nothing
+    for m in ms
+        m_res = API.resource(m)
+        if m_res != m_res_pre
+            push!(
+                r.resource_metrics,
+                Metrics.ResourceMetrics(
+                    resource = convert(Resource.Resource, s_res),
+                    schema_url = s_res.schema_url,
+                    instrumentation_library_metrics = [],
+                ),
+            )
+        end
+        #
+        if s_ins != s_ins_pre
+            push!(
+                r.resource_spans[end].instrumentation_library_spans,
+                Trace.InstrumentationLibrarySpans(
+                    instrumentation_library = convert(Common.InstrumentationLibrary, s_ins),
+                    schema_url = "",
+                    spans = [],
+                ),
+            )
+        end
+
+        push!(
+            r.resource_spans[end].instrumentation_library_spans[end].spans,
+            convert(Trace.Span, s),
+        )
+
+        s_res_pre = s_res
+        s_ins_pre = s_ins
+    end
+    r
 end
 
 end # module
