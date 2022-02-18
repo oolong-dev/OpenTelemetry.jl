@@ -18,13 +18,12 @@ const HTTP_METRICS = Ref{Counter{UInt}}()
 
 function HTTP.request(
     ::Type{OpenTelemetryLayer{Next}},
-    io::IO,
     method,
     url::URI,
     headers,
     body;
-    kw...,
-)::Response where {Next}
+    kw...
+)::HTTP.Response where {Next}
     with_span(
         "http $method",
         HTTP_TRACER[];
@@ -39,30 +38,29 @@ function HTTP.request(
                     port = url.port,
                     path = url.path,
                     query = url.query,
-                    fragment = url.fragment,
+                    fragment = url.fragment
                 ),
             ),
             "http.target" => url.path * "?" * url.query,
-            "http.host" => url.host,
-            "http.scheme" => url.scheme,
-            "net.peer.name" => url.host,
-            "net.peer.port" => url.port,
-        ),
+            "http.host" => url.host |> string,
+            "http.scheme" => url.scheme |> string,
+            "net.peer.name" => url.host |> string,
+            "net.peer.port" => parse(Int, url.port),
+        )
     ) do
-        resp = request(
+        resp = HTTP.request(
             Next,
-            io,
             method,
             url,
             inject!(headers, TraceContextTextMapPropagator()),
             body;
-            kw...,
+            kw...
         )
-        attr = attributes(current_span())
-        attr["http.status_code"] = resp.status
-        attr["http.flavor"] = string(resp.version)
-        attr["http.response_content_length"] = length(resp.body)
-        HTTP_METRICS[](; scheme = url.scheme, status = resp.status)
+        s = current_span()
+        s["http.status_code"] = resp.status |> Int
+        s["http.flavor"] = string(resp.version)
+        s["http.response_content_length"] = length(resp.body)
+        HTTP_METRICS[](; scheme = string(url.scheme), status = Int(resp.status))
         resp
     end
 end
@@ -95,7 +93,7 @@ The following attributes are added when response is received:
 """
 function init(;
     tracer_provider = global_tracer_provider(),
-    meter_provider = global_meter_provider(),
+    meter_provider = global_meter_provider()
 )
     HTTP_METRICS[] = Counter{UInt}(
         "http",
@@ -103,12 +101,14 @@ function init(;
             "request";
             provider = meter_provider,
             version = PKG_VERSION,
-            schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationHTTP/",
+            schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationHTTP/"
         );
         unit = "",
-        description = "Number of requests received.",
+        description = "Number of requests received."
     )
     HTTP_TRACER[] = Tracer("HTTP", PKG_VERSION; provider = tracer_provider)
+    top = HTTP.top_layer(stack())
+    insert_default!(top, OpenTelemetryLayer)
 end
 
 function HTTP.serve(
@@ -116,7 +116,7 @@ function HTTP.serve(
     host::Union{IPAddr,String} = Sockets.localhost,
     port::Integer = 8081;
     stream::Bool = false,
-    kw...,
+    kw...
 )
     handler = if f isa HTTP.Handlers.Handler
         f
@@ -163,27 +163,29 @@ function otel_handle(r::HTTP.Router, http::HTTP.Stream)
         "/" * join(map(type2segment, m_handler.sig.parameters[6:end]), "/")
     end
 
-    with_span(
-        name,
-        HTTP_TRACER[];
-        kind = SPAN_KIND_SERVER,
-        attributes = Dict{String,TAttrVal}(
-            "http.method" => req.method,
-            "http.target" => req.target,
-            "http.flavor" => string(req.version),
-            "http.request_content_length" => length(req.body),
-            "http.route" => name,
-        ),
-    ) do
-        s = current_span()
-        resp = HTTP.Handlers.handle(handler, req)
-        req.response::HTTP.Response = resp
-        req.response.request = req
-        startwrite(http)
-        write(http, req.response.body)
-        s["http.status_code"] = string(resp.status)
-        s["http.response_content_length"] = length(resp.body)
-        HTTP_METRICS[](; route = name, status = Int(resp.status))
+    with_context(extract(req.headers, TraceContextTextMapPropagator())) do
+        with_span(
+            name,
+            HTTP_TRACER[];
+            kind = SPAN_KIND_SERVER,
+            attributes = Dict{String,TAttrVal}(
+                "http.method" => req.method,
+                "http.target" => req.target,
+                "http.flavor" => string(req.version),
+                "http.request_content_length" => length(req.body),
+                "http.route" => name,
+            )
+        ) do
+            s = current_span()
+            resp = HTTP.Handlers.handle(handler, req)
+            req.response::HTTP.Response = resp
+            req.response.request = req
+            startwrite(http)
+            write(http, req.response.body)
+            s["http.status_code"] = string(resp.status)
+            s["http.response_content_length"] = length(resp.body)
+            HTTP_METRICS[](; route = name, status = Int(resp.status))
+        end
     end
     nothing
 end

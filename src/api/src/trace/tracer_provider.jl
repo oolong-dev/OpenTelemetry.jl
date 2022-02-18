@@ -10,6 +10,7 @@ export AbstractTracerProvider,
     span_context,
     span_kind,
     parent_span_context,
+    attributes,
     is_recording,
     span_status!,
     end_span!,
@@ -125,6 +126,12 @@ is_recording(s::NonRecordingSpan) = false
     attributes(s::AbstractSpan)
 
 Return either [`StaticAttrs`](@ref) or [`DynamicAttrs`](@ref) in the span `s`.
+
+!!! warning
+    
+    Do not modify the returned attributes directly. Users should always
+    modify attributes through `(s::AbstractSpan)[key]=val` because it will check
+    the `is_recording(s)` first.
 """
 attributes(s::NonRecordingSpan) = StaticAttrs()
 
