@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1645166421421,
+  "lastUpdate": 1645166602481,
   "repoUrl": "https://github.com/oolong-dev/OpenTelemetry.jl",
   "entries": {
     "Benchmark Result with Julia v1.7": [
@@ -936,6 +936,54 @@ window.BENCHMARK_DATA = {
             "value": 4112.5,
             "unit": "ns",
             "extra": "gctime=0\nmemory=4672\nallocs=49\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":8,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Trace/Create Dummy Span",
+            "value": 1500,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=960\nallocs=17\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":10,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tianjun.cpp@gmail.com",
+            "name": "Jun Tian",
+            "username": "findmyway"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d5571b14bc63e6d6f35b4f4b3c1b4d9812c7a2b2",
+          "message": "Add badge to Slack channel",
+          "timestamp": "2022-02-18T14:41:28+08:00",
+          "tree_id": "82217e04cbb213c4334e55d2d536acf64f9a6e67",
+          "url": "https://github.com/oolong-dev/OpenTelemetry.jl/commit/d5571b14bc63e6d6f35b4f4b3c1b4d9812c7a2b2"
+        },
+        "date": 1645166601167,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Meter/Update Counter",
+            "value": 1630,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=576\nallocs=11\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":10,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Meter/Update Histogram",
+            "value": 2544.4444444444443,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1328\nallocs=28\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":9,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Trace/Create Span",
+            "value": 4114.285714285715,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4672\nallocs=49\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":7,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           },
           {
             "name": "Trace/Create Dummy Span",
