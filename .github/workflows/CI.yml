@@ -48,7 +48,7 @@ jobs:
             Pkg.build("OpenTelemetryProto")
             Pkg.test("OpenTelemetryAPI", coverage=true)
             Pkg.test("OpenTelemetrySDK", coverage=true)
-            Pkg.test("OpenTelemetryProto", coverage=true)
+            Pkg.test("OpenTelemetryProto", coverage=false)  # auto generated, no need to measure coverage
             Pkg.test("OpenTelemetryExporterOtlpProtoGrpc", coverage=true)
             Pkg.test("OpenTelemetryExporterPrometheus", coverage=true)
             Pkg.test("OpenTelemetryInstrumentationBase", coverage=true)

@@ -16,6 +16,8 @@ const Trace = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.trace.
 const Resource = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.resource.v1
 const Common = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.common.v1
 
+#####
+
 struct OtlpProtoGrpcTraceExporter{T} <: SDK.AbstractExporter
     client::T
 end
@@ -181,6 +183,41 @@ end
 
 function Base.convert(::Type{Trace.Status}, status::API.SpanStatus)
     Trace.Status(code = Int32(status.code), message = something(status.description, ""))
+end
+
+#####
+
+struct OtlpProtoGrpcMetricsExporter{T} <: SDK.AbstractExporter
+    client::T
+end
+
+"""
+    OtlpProtoGrpcMetricsExporter(;kw...)
+
+## Keyword arguments
+
+  - `scheme=http`
+  - `host="localhost"`
+  - `port=4317`
+  - `is_blocking=true`, by default the `BlockingClient` is used.
+  - Rest keyword arguments will be forward to the gRPC client.
+
+`scheme`, `host` and `port` specifies the OTEL Collector to connect with.
+"""
+function OtlpProtoGrpcMetricExporter(;
+    scheme = "http",
+    host = "localhost",
+    port = 4317,
+    is_blocking = true,
+    kw...,
+)
+    url = string(URI(; scheme = scheme, host = host, port = port))
+    if is_blocking
+        client = Otlp.TraceServiceBlockingClient(url; kw...)
+    else
+        client = Otlp.TraceServiceClient(url; kw...)
+    end
+    OtlpProtoGrpcTraceExporter(client)
 end
 
 end # module
