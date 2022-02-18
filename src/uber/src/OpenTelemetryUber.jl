@@ -11,6 +11,7 @@ using Reexport
 # instrumentations
 @reexport using OpenTelemetryInstrumentationBase
 @reexport using OpenTelemetryInstrumentationDownloads
+@reexport using OpenTelemetryInstrumentationDistributed
 @reexport using OpenTelemetryInstrumentationHTTP
 @reexport using OpenTelemetryInstrumentationGenie
 

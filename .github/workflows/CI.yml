@@ -53,6 +53,7 @@ jobs:
             Pkg.test("OpenTelemetryExporterPrometheus", coverage=true)
             Pkg.test("OpenTelemetryInstrumentationBase", coverage=true)
             Pkg.test("OpenTelemetryInstrumentationDownloads", coverage=true)
+            Pkg.test("OpenTelemetryInstrumentationDistributed", coverage=true)
             Pkg.test("OpenTelemetryInstrumentationHTTP", coverage=true)
             Pkg.test("OpenTelemetryInstrumentationGenie", coverage=true)
             Pkg.test("OpenTelemetryUber", coverage=true)'
