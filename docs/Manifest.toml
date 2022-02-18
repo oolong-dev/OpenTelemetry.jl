@@ -310,7 +310,7 @@ version = "0.2.0"
 deps = ["Dates", "Logging", "Random", "UUIDs"]
 path = "../src/api"
 uuid = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
-version = "0.2.2"
+version = "0.2.3"
 
 [[deps.OpenTelemetryExporterOtlpProtoGrpc]]
 deps = ["OpenTelemetryAPI", "OpenTelemetryProto", "OpenTelemetrySDK", "URIs", "gRPCClient"]
@@ -328,6 +328,12 @@ version = "0.1.3"
 deps = ["OpenTelemetryAPI", "TOML"]
 path = "../src/instrumentation/base"
 uuid = "4046903c-540b-416b-9793-ac8011f4a0e0"
+version = "0.1.0"
+
+[[deps.OpenTelemetryInstrumentationDistributed]]
+deps = ["Distributed", "OpenTelemetryAPI", "TOML"]
+path = "../src/instrumentation/distributed"
+uuid = "ed5ebfc2-13f9-492a-b560-e6faf81e7e39"
 version = "0.1.0"
 
 [[deps.OpenTelemetryInstrumentationDownloads]]
@@ -361,7 +367,7 @@ uuid = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
 version = "0.2.0"
 
 [[deps.OpenTelemetryUber]]
-deps = ["OpenTelemetryAPI", "OpenTelemetryExporterOtlpProtoGrpc", "OpenTelemetryExporterPrometheus", "OpenTelemetryInstrumentationBase", "OpenTelemetryInstrumentationDownloads", "OpenTelemetryInstrumentationGenie", "OpenTelemetryInstrumentationHTTP", "OpenTelemetryProto", "OpenTelemetrySDK", "Reexport"]
+deps = ["OpenTelemetryAPI", "OpenTelemetryExporterOtlpProtoGrpc", "OpenTelemetryExporterPrometheus", "OpenTelemetryInstrumentationBase", "OpenTelemetryInstrumentationDistributed", "OpenTelemetryInstrumentationDownloads", "OpenTelemetryInstrumentationGenie", "OpenTelemetryInstrumentationHTTP", "OpenTelemetryProto", "OpenTelemetrySDK", "Reexport"]
 path = "../src/uber"
 uuid = "463ee90e-87a9-4aee-9dc9-6a5c2417ebf4"
 version = "0.1.0"

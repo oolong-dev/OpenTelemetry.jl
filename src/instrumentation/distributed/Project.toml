@@ -1,0 +1,15 @@
+name = "OpenTelemetryInstrumentationDistributed"
+uuid = "ed5ebfc2-13f9-492a-b560-e6faf81e7e39"
+authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
+OpenTelemetryAPI = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
+TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
