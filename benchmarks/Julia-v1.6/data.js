@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1645116184371,
+  "lastUpdate": 1645155776864,
   "repoUrl": "https://github.com/oolong-dev/OpenTelemetry.jl",
   "entries": {
     "Benchmark Result with Julia v1.6": [
@@ -844,6 +844,54 @@ window.BENCHMARK_DATA = {
           {
             "name": "Trace/Create Dummy Span",
             "value": 1520,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1056\nallocs=17\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":10,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "2692329+rory-linehan@users.noreply.github.com",
+            "name": "Rory Linehan",
+            "username": "rory-linehan"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "37e85724e3f010b50b8d732442840c2339e8a854",
+          "message": "Adding histogram label generation for prometheus exporter (#51)\n\n* adding label generation in prometheus exporter\r\n\r\n* adding extra logic\r\n\r\n* forgot a comma for buckets",
+          "timestamp": "2022-02-18T11:40:16+08:00",
+          "tree_id": "8e0599e04c92a051dadf1389c8367c2409017681",
+          "url": "https://github.com/oolong-dev/OpenTelemetry.jl/commit/37e85724e3f010b50b8d732442840c2339e8a854"
+        },
+        "date": 1645155775565,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Meter/Update Counter",
+            "value": 2150,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=576\nallocs=11\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":10,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Meter/Update Histogram",
+            "value": 4675.125,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1536\nallocs=29\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":8,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Trace/Create Span",
+            "value": 7640,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4912\nallocs=49\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":5,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Trace/Create Dummy Span",
+            "value": 2090.1,
             "unit": "ns",
             "extra": "gctime=0\nmemory=1056\nallocs=17\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":10,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
