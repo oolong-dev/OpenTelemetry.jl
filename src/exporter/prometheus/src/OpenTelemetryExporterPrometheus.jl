@@ -68,16 +68,42 @@ function text_based_format(io, provider::MeterProvider)
             if point.value isa OpenTelemetrySDK.HistogramValue
                 val = point.value
                 for (i, c) in enumerate(Iterators.accumulate(+, val.counts))
-                    if i == length(val.counts)
-                        write(io, "$(m.name)_bucket{le=\"+Inf\"} $c\n")
-                        write(io, "$(m.name)_count $c\n")
+                    if length(attrs) > 0
+                        if i == length(val.counts)
+                            write(io, "$(m.name)_bucket{")
+                            # TODO: escape
+                            join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
+                            write(io, ",le=\"+Inf\"} $c\n")
+    
+                            write(io, "$(m.name)_count{")
+                            # TODO: escape
+                            join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
+                            write(io, "} $c\n")
+                        else
+                            write(io, "$(m.name)_bucket{")
+                            # TODO: escape
+                            join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
+                            write(io, ",le=\"$(val.boundaries[i])\"} $c\n")
+                        end
                     else
-                        write(io, "$(m.name)_bucket{le=\"$(val.boundaries[i])\"} $c\n")
+                        if i == length(val.counts)
+                            write(io, "$(m.name)_bucket{le=\"+Inf\"} $c\n")
+                            write(io, "$(m.name)_count $c\n")
+                        else
+                            write(io, "$(m.name)_bucket{le=\"$(val.boundaries[i])\"} $c\n")
+                        end
                     end
                 end
                 # ???
                 if !isnothing(val.sum)
-                    write(io, "$(m.name)_sum $(val.sum)\n")
+                    if length(attrs) > 0
+                        write(io, "$(m.name)_sum{")
+                        # TODO: escape
+                        join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
+                        write(io, "} $(val.sum)\n")
+                    else
+                        write(io, "$(m.name)_sum $(val.sum)\n")
+                    end
                 end
             else
                 write(io, "$(m.name){")
