@@ -20,6 +20,7 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 |`OpenTelemetry` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` and necessary plugins or instrumentations explicitly. | [![version](https://juliahub.com/docs/OpenTelemetry/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetry/L4aUb) |
 | [`OpenTelemetryInstrumentationBase`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationBase/) | Add basic metrics under the `Base` module in Julia runtime. | |
 | [`OpenTelemetryInstrumentationDownloads`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationDownloads/) | Add metrics and inject context info in [`Downloads.jl`](https://github.com/JuliaLang/Downloads.jl).| |
+| [`OpenTelemetryInstrumentationDistributed`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationDistributed/) | Add metrics and inject context info in [`Distributed.jl`](https://docs.julialang.org/en/v1/stdlib/Distributed/#man-distributed).| |
 | [`OpenTelemetryInstrumentationHTTP`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationHTTP/) | Add metrics and inject context info in [`HTTP.jl`](https://github.com/JuliaWeb/HTTP.jl).| |
 | [`OpenTelemetryInstrumentationGenie`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationGenie/) | Add metrics and inject context info in [`Genie.jl`](https://github.com/GenieFramework/Genie.jl).| |
 | `OpenTelemetryUber` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` and necessary plugins or instrumentations explicitly. | |
@@ -78,7 +79,7 @@ end
 
 - View Metrics in Prometheus
 - View Metrics in Prometheus with Open Telemetry Collector
-- Combine Logging, Tracing and Metrics
+- View Logs, Traces, and Metrics Together in Grafana and Logstash
 - An End-to-end Toy Example with Auto Instrumentation across Different Languages
 - Case Study 1: Empower `Dagger.jl` with `OpenTelemetry.jl`
 - Case Study 2: Empower `AlphaZero.jl` with `OpenTelemetry.jl`
@@ -90,7 +91,7 @@ end
 - Understand the Architecture of `OpenTelemetry.jl`
 - How to Add Instrumentation to a Third-party Package?
 - How to Extend `OpenTelemetrySDK`?
-- Best Practices to Instrument Your Application
+- Conventions and Best Practices to Instrument Your Application
 
 ## FAQ
 
