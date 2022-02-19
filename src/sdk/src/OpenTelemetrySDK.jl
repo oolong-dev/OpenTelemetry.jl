@@ -8,5 +8,6 @@ using Reexport
 include("exporter.jl")
 include("trace/trace.jl")
 include("metric/metric.jl")
+include("patch.jl")
 
 end # module

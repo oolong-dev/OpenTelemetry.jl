@@ -15,6 +15,8 @@ Base.@kwdef struct DummyMeterProvider <: AbstractMeterProvider end
 
 Base.push!(p::DummyMeterProvider, x) = nothing
 
+resource(::DummyMeterProvider) = Resource()
+
 const GLOBAL_METER_PROVIDER = Ref{AbstractMeterProvider}(DummyMeterProvider())
 
 """
@@ -34,9 +36,19 @@ global_meter_provider!(p) = GLOBAL_METER_PROVIDER[] = p
 """
 `AbstractInstrument`` is the super type of all instruments, which are used to report [`Measurement`](@ref)s.
 
+Each concrete subtype should at least have the following fields:
+
+  - `name`
+  - `description`
+  - `unit`
+  - `meter`, the associated [`Meter`](@ref)
+
 See also [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/api.md#instrument):
 """
 abstract type AbstractInstrument{T} end
+
+provider(ins::AbstractInstrument) = provider(ins.meter)
+resource(ins::AbstractInstrument) = resource(ins.meter)
 
 """
     Meter(name::String;kw...)
@@ -66,3 +78,7 @@ struct Meter{P<:AbstractMeterProvider}
         m
     end
 end
+
+provider(m::Meter) = m.provider
+
+resource(m::Meter) = resource(provider(m))
