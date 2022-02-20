@@ -22,6 +22,8 @@ with_span("Hello") do
 end
 ```
 
+[![asciicast](https://asciinema.org/a/mbnd9T7jB6MVUhKnvFPi3M3wp.svg)](https://asciinema.org/a/mbnd9T7jB6MVUhKnvFPi3M3wp)
+
 ### Metrics
 
 ```julia
@@ -42,6 +44,8 @@ r()
 
 ```
 
+[![asciicast](https://asciinema.org/a/470278.svg)](https://asciinema.org/a/470278)
+
 ### Logging
 
 ```julia
@@ -53,6 +57,8 @@ with_logger(TransformerLogger(OtelLogTransformer(), global_logger())) do
     @info "World!"
 end
 ```
+
+[![asciicast](https://asciinema.org/a/470279.svg)](https://asciinema.org/a/470279)
 
 ## Tutorial
 
