@@ -1,4 +1,5 @@
 using Test
+using Logging
 using OpenTelemetryAPI
 using OpenTelemetrySDK
 using OpenTelemetryProto
@@ -6,7 +7,7 @@ using OpenTelemetryExporterOtlpProtoGrpc
 
 # exporter = OtlpProtoGrpcTraceExporter()
 
-@testset "OtlpProtoGrpc" begin
+@testset "OtlpProtoGrpc Trace" begin
     # NonRecordingSpan
     with_span("foo") do
         req = convert(
@@ -22,4 +23,29 @@ using OpenTelemetryExporterOtlpProtoGrpc
             current_span(),
         )
     end
+end
+
+@testset "OtlpProtoGrpc Metrics" begin
+    p = MeterProvider()
+    m = Meter("abc"; provider = p)
+    c = Counter{Int}("fruit_counter", m)
+    c(1; name = "lemon", color = "yellow")
+    convert(OpenTelemetryProto.OpentelemetryClients.ExportMetricsServiceRequest, metrics(p))
+end
+
+@testset "OtlpProtoGrpc Logs" begin
+    r = LogRecord(;
+        timestamp = UInt(time() * 10^9),
+        trace_id = INVALID_TRACE_ID,
+        span_id = INVALID_SPAN_ID,
+        trace_flags = TraceFlag(),
+        severity_text = "INFO",
+        severity_number = 1,
+        name = "",
+        body = "Hi",
+        resource = Resource(),
+        attributes = StaticAttrs(),
+        instrumentation_info = InstrumentationInfo(),
+    )
+    convert(OpenTelemetryProto.OpentelemetryClients.ExportLogsServiceRequest, r)
 end

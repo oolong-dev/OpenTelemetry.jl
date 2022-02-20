@@ -30,13 +30,13 @@ function Base.occursin(ins::AbstractInstrument, c::Criteria)
     end
 
     if !isnothing(c.meter_version)
-        if ins.meter.version != c.meter_version
+        if ins.meter.instrumentation_info.version != c.meter_version
             return false
         end
     end
 
     if !isnothing(c.meter_schema_url)
-        if ins.meter.schema_url != c.meter_schema_url
+        if ins.meter.instrumentation_info.schema_url != c.meter_schema_url
             return false
         end
     end

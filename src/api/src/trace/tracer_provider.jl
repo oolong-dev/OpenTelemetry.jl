@@ -48,22 +48,15 @@ Set the global tracer provider to `p`.
 """
 global_tracer_provider!(p) = GLOBAL_TRACER_PROVIDER[] = p
 
-struct Tracer{P<:AbstractTracerProvider}
-    instrumentation::InstrumentationInfo
-    provider::P
+"""
+    Tracer(;instrumentation_info=InstrumentationInfo(), provider=global_meter_provider())
+"""
+Base.@kwdef struct Tracer{P<:AbstractTracerProvider}
+    instrumentation_info::InstrumentationInfo = InstrumentationInfo()
+    provider::P = global_tracer_provider()
 end
 
 provider(t::Tracer) = t.provider
-
-"""
-    Tracer(name="Main", version=v"0.0.1-dev";provider=global_tracer_provider())
-
-The `name` and `version` will form the [`InstrumentationInfo`](@ref).
-value.
-"""
-function Tracer(name = "Main", version = v"0.0.1-dev"; provider = global_tracer_provider())
-    Tracer(InstrumentationInfo(name, version), provider)
-end
 
 """
 Each concrete span should have the following interfaces implemented.

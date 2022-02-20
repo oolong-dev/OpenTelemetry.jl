@@ -61,7 +61,7 @@ end
 
 # TODO: support exemplars
 function text_based_format(io, provider::MeterProvider)
-    for m in values(provider.metrics)
+    for m in metrics(provider)
         write(io, "# HELP $(m.name) $(m.description)\n")
         write(io, "# TYPE $(m.name) $(prometheus_type(m.aggregation))\n")
         for (attrs, point) in m
@@ -74,7 +74,7 @@ function text_based_format(io, provider::MeterProvider)
                             # TODO: escape
                             join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
                             write(io, ",le=\"+Inf\"} $c\n")
-    
+
                             write(io, "$(m.name)_count{")
                             # TODO: escape
                             join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")

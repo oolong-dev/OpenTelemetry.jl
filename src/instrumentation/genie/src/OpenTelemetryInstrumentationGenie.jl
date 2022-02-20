@@ -9,6 +9,11 @@ const ACTION_BEFORE_INSTRUMENT = :ACTION_BEFORE_INSTRUMENT
 
 const PKG_VERSION =
     VersionNumber(TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))["version"])
+const INSTRUMENTATION_INFO = InstrumentationInfo(
+    name = string(@__MODULE__),
+    version = PKG_VERSION,
+    schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationGenie/",
+)
 
 const GENIE_TRACER = Ref{Tracer}()
 const GENIE_METRICS = Ref{Counter{UInt}}()
@@ -83,13 +88,13 @@ function init(;
         Meter(
             "request";
             provider = meter_provider,
-            version = PKG_VERSION,
-            schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationGenie/",
+            instrumentation_info = INSTRUMENTATION_INFO,
         );
         unit = "",
         description = "Number of requests received.",
     )
-    GENIE_TRACER[] = Tracer("Genie", PKG_VERSION; provider = tracer_provider)
+    GENIE_TRACER[] =
+        Tracer(; provider = tracer_provider, instrumentation_info = INSTRUMENTATION_INFO)
 end
 
 function __init__()

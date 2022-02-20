@@ -19,6 +19,7 @@ Base.@kwdef struct LogRecord{B,R<:Resource}
     body::B
     resource::R
     attributes::StaticAttrs
+    instrumentation_info::InstrumentationInfo
 end
 
 """
@@ -29,9 +30,17 @@ After applying this transformer, a [`LogRecord`](@ref) will be returned.
 """
 struct OtelLogTransformer{R<:Resource}
     resource::R
+    instrumentation_info::InstrumentationInfo
 end
 
-OtelLogTransformer() = OtelLogTransformer(Resource())
+OtelLogTransformer() = OtelLogTransformer(
+    Resource(),
+    InstrumentationInfo(
+        "OpenTelemetryAPI",
+        PKG_VERSION,
+        "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryAPI/",
+    ),
+)
 
 function (L::OtelLogTransformer)(log)
     span_ctx = span_context()
@@ -60,6 +69,7 @@ function (L::OtelLogTransformer)(log)
                 body = log.message,
                 resource = L.resource,
                 attributes = StaticAttrs(NamedTuple(log.kwargs)),
+                instrumentation_info = L.instrumentation_info,
             ),
             kwargs = NamedTuple(),
         ),

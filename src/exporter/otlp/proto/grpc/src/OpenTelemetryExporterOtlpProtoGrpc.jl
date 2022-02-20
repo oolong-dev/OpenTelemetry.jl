@@ -9,12 +9,18 @@ import OpenTelemetryAPI
 import OpenTelemetrySDK
 import OpenTelemetryProto
 
+import Logging
+
 const API = OpenTelemetryAPI
 const SDK = OpenTelemetrySDK
 const Otlp = OpenTelemetryProto.OpentelemetryClients
 const Trace = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.trace.v1
+const Metrics = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.metrics.v1
+const Logs = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.logs.v1
 const Resource = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.resource.v1
 const Common = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.common.v1
+
+##### Traces
 
 struct OtlpProtoGrpcTraceExporter{T} <: SDK.AbstractExporter
     client::T
@@ -76,13 +82,13 @@ function Base.convert(::Type{Otlp.ExportTraceServiceRequest}, spans)
                 ),
             )
         end
-        s_ins = API.tracer(s).instrumentation
+        s_ins = API.tracer(s).instrumentation_info
         if s_ins != s_ins_pre
             push!(
                 r.resource_spans[end].instrumentation_library_spans,
                 Trace.InstrumentationLibrarySpans(
                     instrumentation_library = convert(Common.InstrumentationLibrary, s_ins),
-                    schema_url = "",
+                    schema_url = s_ins.schema_url,
                     spans = [],
                 ),
             )
@@ -140,7 +146,7 @@ function Base.convert(
     attrs::Union{API.StaticAttrs,API.DynamicAttrs},
 )
     [
-        Common.KeyValue(key = k, value = convert(Common.AnyValue, v)) for
+        Common.KeyValue(key = string(k), value = convert(Common.AnyValue, v)) for
         (k, v) in pairs(attrs)
     ]
 end
@@ -183,4 +189,291 @@ function Base.convert(::Type{Trace.Status}, status::API.SpanStatus)
     Trace.Status(code = Int32(status.code), message = something(status.description, ""))
 end
 
+##### Metrics
+
+export OtlpProtoGrpcMetricsExporter
+
+struct OtlpProtoGrpcMetricsExporter{T} <: SDK.AbstractExporter
+    client::T
+end
+
+"""
+    OtlpProtoGrpcMetricsExporter(;kw...)
+
+This exporter is push-based.
+
+## Keyword arguments
+
+  - `scheme=http`
+  - `host="localhost"`
+  - `port=4317`
+  - `is_blocking=true`, by default the `BlockingClient` is used.
+  - Rest keyword arguments will be forward to the gRPC client.
+
+`scheme`, `host` and `port` specifies the OTEL Collector to connect with.
+"""
+function OtlpProtoGrpcMetricsExporter(;
+    scheme = "http",
+    host = "localhost",
+    port = 4317,
+    is_blocking = true,
+    kw...,
+)
+    url = string(URI(; scheme = scheme, host = host, port = port))
+    if is_blocking
+        client = Otlp.MetricsServiceBlockingClient(url; kw...)
+    else
+        client = Otlp.MetricsServiceClient(url; kw...)
+    end
+    OtlpProtoGrpcMetricsExporter(client)
+end
+
+function SDK.export!(e::OtlpProtoGrpcMetricsExporter, ms)
+    res, status = Otlp.Export(e.client, convert(Otlp.ExportMetricsServiceRequest, ms))
+    if gRPCClient.gRPCCheck(status; throw_error = false)
+        SDK.EXPORT_SUCCESS
+    else
+        SDK.EXPORT_FAILURE
+    end
+end
+
+Base.convert(t::Type{Otlp.ExportMetricsServiceRequest}, s::SDK.Metric) = convert(t, [s])
+
+function Base.convert(t::Type{Otlp.ExportMetricsServiceRequest}, ms)
+    r = Otlp.ExportMetricsServiceRequest(; resource_metrics = [])
+    m_res_pre = nothing
+    m_ins_pre = nothing
+    for m in ms
+        m_res = API.resource(m)
+        if m_res != m_res_pre
+            push!(
+                r.resource_metrics,
+                Metrics.ResourceMetrics(
+                    resource = convert(Resource.Resource, m_res),
+                    schema_url = m_res.schema_url,
+                    instrumentation_library_metrics = [],
+                ),
+            )
+        end
+        m_ins = m.instrument.meter.instrumentation_info
+        if m_ins != m_ins_pre
+            push!(
+                r.resource_metrics[end].instrumentation_library_metrics,
+                Metrics.InstrumentationLibraryMetrics(
+                    instrumentation_library = convert(Common.InstrumentationLibrary, m_ins),
+                    schema_url = m_ins.schema_url,
+                    metrics = [],
+                ),
+            )
+        end
+
+        push!(
+            r.resource_metrics[end].instrumentation_library_metrics[end].metrics,
+            convert(Metrics.Metric, m),
+        )
+
+        m_res_pre = m_res
+        m_ins_pre = m_ins
+    end
+    r
+end
+
+function Base.convert(::Type{Metrics.Metric}, m::SDK.Metric{<:SDK.LastValueAgg})
+    Metrics.Metric(
+        name = m.name,
+        description = m.description,
+        unit = m.instrument.unit,
+        gauge = convert(Metrics.Gauge, m.aggregation),
+    )
+end
+
+function Base.convert(::Type{Metrics.Gauge}, agg::SDK.LastValueAgg)
+    Metrics.Gauge(data_points = convert(Vector{Metrics.NumberDataPoint}, agg.agg_store))
+end
+
+function Base.convert(
+    ::Type{Vector{Metrics.NumberDataPoint}},
+    agg_store::SDK.AggregationStore,
+)
+    data_points = Metrics.NumberDataPoint[]
+    for (attr, data_point) in agg_store
+        if data_point.value isa Integer
+            push!(
+                data_points,
+                Metrics.NumberDataPoint(
+                    attributes = convert(Vector{Common.KeyValue}, attr),
+                    start_time_unix_nano = data_point.start_time_unix_nano,
+                    time_unix_nano = data_point.time_unix_nano,
+                    as_int = convert(Int, data_point.value),
+                    exemplars = [], # TODO
+                    flags = Metrics.DataPointFlags.FLAG_NONE,
+                ),
+            )
+        else
+            push!(
+                data_points,
+                Metrics.NumberDataPoint(
+                    attributes = convert(Vector{Common.KeyValue}, attr),
+                    start_time_unix_nano = data_point.start_time_unix_nano,
+                    time_unix_nano = data_point.time_unix_nano,
+                    as_int = convert(Float64, data_point.value),
+                    exemplars = [], # TODO
+                    flags = Metrics.DataPointFlags.FLAG_NONE,
+                ),
+            )
+        end
+    end
+    data_points
+end
+
+function Base.convert(::Type{Metrics.Metric}, m::SDK.Metric{<:SDK.SumAgg})
+    Metrics.Metric(
+        name = m.name,
+        description = m.description,
+        unit = m.instrument.unit,
+        sum = convert(Metrics.Sum, m.aggregation),
+    )
+end
+
+function Base.convert(::Type{Metrics.Sum}, agg::SDK.SumAgg)
+    Metrics.Sum(
+        data_points = convert(Vector{Metrics.NumberDataPoint}, agg.agg_store),
+        aggregation_temporality = Metrics.AggregationTemporality.AGGREGATION_TEMPORALITY_CUMULATIVE,  # TODO
+        is_monotonic = false, # TODO
+    )
+end
+
+function Base.convert(::Type{Metrics.Metric}, m::SDK.Metric{<:SDK.HistogramAgg})
+    Metrics.Metric(
+        name = m.name,
+        description = m.description,
+        unit = m.instrument.unit,
+        histogram = convert(Metrics.Histogram, m.aggregation),
+    )
+end
+
+function Base.convert(::Type{Metrics.Histogram}, agg::SDK.HistogramAgg)
+    Metrics.Histogram(
+        data_points = convert(Vector{Metrics.HistogramDataPoint}, agg.agg_store),
+        aggregation_temporality = Metrics.AggregationTemporality.AGGREGATION_TEMPORALITY_CUMULATIVE,  # TODO
+    )
+end
+
+function Base.convert(
+    ::Type{Vector{Metrics.HistogramDataPoint}},
+    agg_store::SDK.AggregationStore,
+)
+    [
+        Metrics.HistogramDataPoint(
+            attributes = convert(Vector{Common.KeyValue}, attr),
+            start_time_unix_nano = data_point.start_time_unix_nano,
+            time_unix_nano = data_point.time_unix_nano,
+            count = sum(data_point.value.counts),
+            sum = something(data_point.value.sum, 0),
+            bucket_counts = map(Float64, data_point.value.counts),
+            explicit_bounds = collect(data_point.value.boundaries),
+            exemplars = [], # TODO
+            flags = Metrics.DataPointFlags.FLAG_NONE,
+        ) for (attr, data_point) in agg.agg_store
+    ]
+end
+
+##### Logs
+
+export OtlpProtoGrpcLogsExporter
+
+struct OtlpProtoGrpcLogsExporter{T} <: SDK.AbstractExporter
+    client::T
+end
+
+"""
+    OtlpProtoGrpcLogsExporter(;kw...)
+
+This can be used as a **sink** in [`LoggingExtras.jl`](https://github.com/JuliaLogging/LoggingExtras.jl).
+
+!!! note
+    
+    This logger only export one [`LogRecord`](@ref) at a time. A batched version may be provided later.
+
+## Keyword arguments
+
+  - `scheme=http`
+  - `host="localhost"`
+  - `port=4317`
+  - `is_blocking=true`, by default the `BlockingClient` is used.
+  - Rest keyword arguments will be forward to the gRPC client.
+
+`scheme`, `host` and `port` specifies the OTEL Collector to connect with.
+"""
+function OtlpProtoGrpcLogsExporter(;
+    scheme = "http",
+    host = "localhost",
+    port = 4317,
+    is_blocking = true,
+    kw...,
+)
+    url = string(URI(; scheme = scheme, host = host, port = port))
+    if is_blocking
+        client = Otlp.LogsServiceBlockingClient(url; kw...)
+    else
+        client = Otlp.LogsServiceClient(url; kw...)
+    end
+    OtlpProtoGrpcLogsExporter(client)
+end
+
+function SDK.export!(e::OtlpProtoGrpcLogsExporter, logs)
+    res, status = Otlp.Export(e.client, convert(Otlp.ExportLogsServiceRequest, logs))
+    if gRPCClient.gRPCCheck(status; throw_error = false)
+        SDK.EXPORT_SUCCESS
+    else
+        SDK.EXPORT_FAILURE
+    end
+end
+
+Base.convert(t::Type{Otlp.ExportLogsServiceRequest}, s::SDK.LogRecord) = convert(t, [s])
+
+function Base.convert(t::Type{Otlp.ExportLogsServiceRequest}, log_records)
+    Otlp.ExportLogsServiceRequest(
+        resource_logs = [
+            Logs.ResourceLogs(
+                resource = convert(Resource.Resource, first(log_records).resource),
+                schema_url = first(log_records).resource.schema_url,
+                instrumentation_library_logs = [
+                    Logs.InstrumentationLibraryLogs(
+                        instrumentation_library = convert(
+                            Common.InstrumentationLibrary,
+                            first(log_records).instrumentation_info,
+                        ),
+                        log_records = [
+                            Logs.LogRecord(
+                                time_unix_nano = r.timestamp,
+                                observed_time_unix_nano = UInt(time() * 10^9),
+                                severity_number = r.severity_number,
+                                severity_text = r.severity_text,
+                                body = convert(Common.AnyValue, r.body),
+                                attributes = convert(Vector{Common.KeyValue}, r.attributes),
+                                dropped_attributes_count = API.n_dropped(r.attributes),
+                                trace_id = reinterpret(UInt8, [r.trace_id]),
+                                span_id = reinterpret(UInt8, [r.span_id]),
+                                flags = r.trace_flags.sampled ? Int32(1) : Int32(0),
+                            ) for r in log_records
+                        ],
+                        schema_url = first(log_records).instrumentation_info.schema_url,
+                    ),
+                ],
+            ),
+        ],
+    )
+end
+
+function Logging.handle_message(
+    logger::OtlpProtoGrpcLogsExporter,
+    log_record, # single LogRecord or an iterator of LogRecords
+)
+    SDK.export!(logger, log_record)
+end
+
+Logging.shouldlog(logger::OtlpProtoGrpcLogsExporter, arg...) = true
+Logging.min_enabled_level(logger::OtlpProtoGrpcLogsExporter) = Logging.BelowMinLevel
+Logging.catch_exceptions(logger::OtlpProtoGrpcLogsExporter) = true
 end # module

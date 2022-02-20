@@ -10,6 +10,11 @@ using TOML
 
 const PKG_VERSION =
     VersionNumber(TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))["version"])
+const INSTRUMENTATION_INFO = InstrumentationInfo(
+    name = string(@__MODULE__),
+    version = PKG_VERSION,
+    schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationDownloads/",
+)
 
 const download = Downloads.download
 
@@ -90,14 +95,14 @@ function init(;
         Meter(
             "Downloads";
             provider = meter_provider,
-            version = PKG_VERSION,
-            schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationDownloads/",
+            instrumentation_info = INSTRUMENTATION_INFO,
         );
         unit = "",
         description = "Number of downloads.",
     )
 
-    DOWNLOAD_TRACER[] = Tracer("Downloads", PKG_VERSION; provider = tracer_provider)
+    DOWNLOAD_TRACER[] =
+        Tracer(; provider = tracer_provider, instrumentation_info = INSTRUMENTATION_INFO)
 end
 
 function __init__()

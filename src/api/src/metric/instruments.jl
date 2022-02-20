@@ -79,7 +79,7 @@ struct Counter{T} <: AbstractSyncInstrument{T}
     function Counter{T}(name, meter; unit = "", description = "") where {T}
         c = new{T}(meter, name, unit, description)
         examine_instrument(c)
-        push!(meter.provider, c)
+        push!(meter, c)
         c
     end
 end
@@ -90,7 +90,7 @@ function (c::Counter)(m::Measurement)
     if m.value < 0
         throw(ArgumentError("amount must be non-negative, got $(m.value)"))
     end
-    push!(c.meter.provider, c => m)
+    push!(c.meter, c => m)
 end
 
 """
@@ -115,7 +115,7 @@ struct ObservableCounter{T,F} <: AbstractAsyncInstrument{T}
     ) where {T,F}
         c = new{T,F}(callback, meter, name, unit, description)
         examine_instrument(c)
-        push!(meter.provider, c)
+        push!(meter, c)
         c
     end
 end
@@ -135,7 +135,7 @@ struct Histogram{T} <: AbstractSyncInstrument{T}
     function Histogram{T}(name, meter; unit = "", description = "") where {T}
         h = new{T}(meter, name, unit, description)
         examine_instrument(h)
-        push!(meter.provider, h)
+        push!(meter, h)
         h
     end
 end
@@ -162,7 +162,7 @@ struct ObservableGauge{T,F} <: AbstractAsyncInstrument{T}
     ) where {T,F}
         g = new{T,F}(callback, meter, name, unit, description)
         examine_instrument(g)
-        push!(meter.provider, g)
+        push!(meter, g)
         g
     end
 end
@@ -182,7 +182,7 @@ struct UpDownCounter{T} <: AbstractSyncInstrument{T}
     function UpDownCounter{T}(name, meter; unit = "", description = "") where {T}
         c = new{T}(meter, name, unit, description)
         examine_instrument(c)
-        push!(meter.provider, c)
+        push!(meter, c)
         c
     end
 end
@@ -209,7 +209,7 @@ struct ObservableUpDownCounter{T,F} <: AbstractAsyncInstrument{T}
     ) where {T,F}
         c = new{T,F}(callback, meter, name, unit, description)
         examine_instrument(c)
-        push!(meter.provider, c)
+        push!(meter, c)
         c
     end
 end
