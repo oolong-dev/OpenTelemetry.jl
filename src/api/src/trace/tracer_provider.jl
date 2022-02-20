@@ -49,20 +49,24 @@ Set the global tracer provider to `p`.
 global_tracer_provider!(p) = GLOBAL_TRACER_PROVIDER[] = p
 
 struct Tracer{P<:AbstractTracerProvider}
-    instrumentation::InstrumentationInfo
+    instrumentation_info::InstrumentationInfo
     provider::P
 end
 
 provider(t::Tracer) = t.provider
 
 """
-    Tracer(name="Main", version=v"0.0.1-dev";provider=global_tracer_provider())
+    Tracer(name="Main", version=v"0.0.1-dev", schema_url="";provider=global_tracer_provider())
 
-The `name` and `version` will form the [`InstrumentationInfo`](@ref).
-value.
+The `name`, `version` and `schema_url` will form the [`InstrumentationInfo`](@ref).
 """
-function Tracer(name = "Main", version = v"0.0.1-dev"; provider = global_tracer_provider())
-    Tracer(InstrumentationInfo(name, version), provider)
+function Tracer(
+    name = "Main",
+    version = v"0.0.1-dev",
+    schema_url = "";
+    provider = global_tracer_provider(),
+)
+    Tracer(InstrumentationInfo(name, version, schema_url), provider)
 end
 
 """

@@ -19,7 +19,9 @@ function GarishPrint.pprint_struct(
     for i in 1:nf
         f = fieldname(t, i)
         value = getfield(x, i)
-        if !io.include_defaults && GarishPrint.is_option(x) && value == GarishPrint.field_default(t, f)
+        if !io.include_defaults &&
+           GarishPrint.is_option(x) &&
+           value == GarishPrint.field_default(t, f)
         elseif f in fields  # !!! only change
             push!(fields_to_print, i)
         end
@@ -62,9 +64,9 @@ end
 function GarishPrint.pprint_struct(
     io::GarishPrint.GarishIO,
     mime::MIME"text/plain",
-    a::MeterProvider,
+    a::AbstractInstrument,
 )
-    GarishPrint.pprint_struct(io, mime, a, (:resource, :views, :n_max_metrics))
+    GarishPrint.pprint_struct(io, mime, a, (:name, :description, :unit))
 end
 
 function GarishPrint.pprint_struct(

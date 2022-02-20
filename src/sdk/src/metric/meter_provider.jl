@@ -21,6 +21,7 @@ end
 Base.iterate(m::Metric, args...) = iterate(m.aggregation, args...)
 Base.getindex(m::Metric, k) = getindex(m.aggregation, k)
 Base.length(m::Metric) = length(m.aggregation)
+OpenTelemetryAPI.resource(m::Metric) = resource(m.instrument)
 
 function (metric::Metric)(m::Measurement)
     if isnothing(metric.attribute_keys)

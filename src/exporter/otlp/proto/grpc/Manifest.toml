@@ -12,17 +12,11 @@ uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
-[[deps.CodecZlib]]
-deps = ["TranscodingStreams", "Zlib_jll"]
-git-tree-sha1 = "ded953804d019afa9a3f98981d99b33e3db7b6da"
-uuid = "944b1d66-785c-5afd-91f1-9de20f533193"
-version = "0.7.0"
-
 [[deps.Configurations]]
 deps = ["ExproniconLite", "OrderedCollections", "TOML"]
-git-tree-sha1 = "b0dcafb34cfff977df79fc9927b70a9157a702ad"
+git-tree-sha1 = "ab9b7c51e8acdd20c769bccde050b5615921c533"
 uuid = "5218b696-f38b-4ac9-8b61-a12ec717816d"
-version = "0.17.0"
+version = "0.17.3"
 
 [[deps.Dates]]
 deps = ["Printf"]
@@ -95,22 +89,22 @@ uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 
 [[deps.OpenTelemetryAPI]]
-deps = ["Dates", "Logging", "Random", "UUIDs"]
+deps = ["Dates", "Logging", "Random", "TOML", "UUIDs"]
 path = "../../../../api"
 uuid = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
-version = "0.2.0"
+version = "0.2.3"
 
 [[deps.OpenTelemetryProto]]
-deps = ["CodecZlib", "Downloads", "ProtoBuf", "Tar", "gRPCClient"]
+deps = ["ProtoBuf", "gRPCClient"]
 path = "../../../../proto"
 uuid = "cc651e92-2989-4f95-bcc3-32e6fb6ac025"
-version = "0.13.0"
+version = "0.13.1"
 
 [[deps.OpenTelemetrySDK]]
 deps = ["Dates", "GarishPrint", "Glob", "OpenTelemetryAPI", "Random", "Reexport"]
 path = "../../../../sdk"
 uuid = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
-version = "0.2.0"
+version = "0.2.1"
 
 [[deps.OrderedCollections]]
 git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
@@ -166,16 +160,6 @@ uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
-
-[[deps.Test]]
-deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
-uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-
-[[deps.TranscodingStreams]]
-deps = ["Random", "Test"]
-git-tree-sha1 = "216b95ea110b5972db65aa90f88d8d89dcb8851c"
-uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
-version = "0.9.6"
 
 [[deps.URIs]]
 git-tree-sha1 = "97bbe755a53fe859669cd907f2d96aee8d2c1355"
