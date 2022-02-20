@@ -60,7 +60,7 @@ end
 
 - View Metrics in Prometheus
 - View Metrics in Prometheus with Open Telemetry Collector
-- View Logs, Traces, and Metrics Together in Grafana and Logstash
+- View Logs, Traces, and Metrics Together in Grafana/Logstash/SigNoz
 - An End-to-end Toy Example with Auto Instrumentation across Different Languages
 - Case Study 1: Empower `Dagger.jl` with `OpenTelemetry.jl`
 - Case Study 2: Empower `AlphaZero.jl` with `OpenTelemetry.jl`

@@ -23,7 +23,8 @@ makedocs(
     linkcheck = !("skiplinks" in ARGS),
     pages = [
         "Home" => "index.md",
-        "Tutorial" => "tutorial.md",
+        "Tutorial" =>
+            Any["View Metrics in Prometheus"=>"tutorials/View_Metrics_in_Prometheus/index.md"],
         "Tips for Developers" => "tips.md",
         "FAQ" => "FAQ.md",
         "Design" => Any[
