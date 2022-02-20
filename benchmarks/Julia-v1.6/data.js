@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1645188090840,
+  "lastUpdate": 1645336148071,
   "repoUrl": "https://github.com/oolong-dev/OpenTelemetry.jl",
   "entries": {
     "Benchmark Result with Julia v1.6": [
@@ -1134,6 +1134,54 @@ window.BENCHMARK_DATA = {
             "value": 1510,
             "unit": "ns",
             "extra": "gctime=0\nmemory=1056\nallocs=17\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":10,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tianjun.cpp@gmail.com",
+            "name": "Jun Tian",
+            "username": "findmyway"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cdcc64b733e3f74235370782e5661f4b4ede7a0a",
+          "message": "Add grpc metrics and logs (#56)\n\n* fix propergation\r\n\r\n* fix errors\r\n\r\n* instrument Distributed.jl\r\n\r\n* add test coverage of Distributed.jl\r\n\r\n* add metrics and logs\r\n\r\n* sync\r\n\r\n* ignore proto in codecov\r\n\r\n* fix views in metrics based on the official specification\r\n\r\n* pass tets\r\n\r\n* bump version",
+          "timestamp": "2022-02-20T13:47:40+08:00",
+          "tree_id": "9e779c1bff34719a623b85407e12ca27b7407e17",
+          "url": "https://github.com/oolong-dev/OpenTelemetry.jl/commit/cdcc64b733e3f74235370782e5661f4b4ede7a0a"
+        },
+        "date": 1645336147555,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Meter/Update Counter",
+            "value": 1810,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=592\nallocs=11\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":10,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Meter/Update Histogram",
+            "value": 3544.4444444444443,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1552\nallocs=29\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":9,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Trace/Create Span",
+            "value": 4285.714285714285,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5120\nallocs=49\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":7,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Trace/Create Dummy Span",
+            "value": 1510,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1072\nallocs=17\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"samples\":10000,\"evals\":10,\"gcsample\":false,\"seconds\":5,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
         ]
       }
