@@ -11,9 +11,9 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[deps.Configurations]]
 deps = ["ExproniconLite", "OrderedCollections", "TOML"]
-git-tree-sha1 = "b0dcafb34cfff977df79fc9927b70a9157a702ad"
+git-tree-sha1 = "ab9b7c51e8acdd20c769bccde050b5615921c533"
 uuid = "5218b696-f38b-4ac9-8b61-a12ec717816d"
-version = "0.17.0"
+version = "0.17.3"
 
 [[deps.Dates]]
 deps = ["Printf"]
@@ -75,16 +75,16 @@ uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 
 [[deps.OpenTelemetryAPI]]
-deps = ["Dates", "Logging", "Random", "UUIDs"]
+deps = ["Dates", "Logging", "Random", "TOML", "UUIDs"]
 path = "../../api"
 uuid = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
-version = "0.1.0"
+version = "0.3.0"
 
 [[deps.OpenTelemetrySDK]]
 deps = ["Dates", "GarishPrint", "Glob", "OpenTelemetryAPI", "Random", "Reexport"]
 path = "../../sdk"
 uuid = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
-version = "0.1.0"
+version = "0.2.1"
 
 [[deps.OrderedCollections]]
 git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"

@@ -10,6 +10,11 @@ using TOML
 
 const PKG_VERSION =
     VersionNumber(TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))["version"])
+const INSTRUMENTATION_INFO = InstrumentationInfo(
+    name = string(@__MODULE__),
+    version = PKG_VERSION,
+    schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationHTTP/",
+)
 
 abstract type OpenTelemetryLayer{Next<:HTTP.Layer} <: HTTP.Layer{Next} end
 
@@ -22,7 +27,7 @@ function HTTP.request(
     url::URI,
     headers,
     body;
-    kw...
+    kw...,
 )::HTTP.Response where {Next}
     with_span(
         "http $method",
@@ -38,7 +43,7 @@ function HTTP.request(
                     port = url.port,
                     path = url.path,
                     query = url.query,
-                    fragment = url.fragment
+                    fragment = url.fragment,
                 ),
             ),
             "http.target" => url.path * "?" * url.query,
@@ -46,7 +51,7 @@ function HTTP.request(
             "http.scheme" => url.scheme |> string,
             "net.peer.name" => url.host |> string,
             "net.peer.port" => parse(Int, url.port),
-        )
+        ),
     ) do
         resp = HTTP.request(
             Next,
@@ -54,7 +59,7 @@ function HTTP.request(
             url,
             inject!(headers, TraceContextTextMapPropagator()),
             body;
-            kw...
+            kw...,
         )
         s = current_span()
         s["http.status_code"] = resp.status |> Int
@@ -93,20 +98,20 @@ The following attributes are added when response is received:
 """
 function init(;
     tracer_provider = global_tracer_provider(),
-    meter_provider = global_meter_provider()
+    meter_provider = global_meter_provider(),
 )
     HTTP_METRICS[] = Counter{UInt}(
         "http",
         Meter(
             "request";
             provider = meter_provider,
-            version = PKG_VERSION,
-            schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationHTTP/"
+            instrumentation_info = INSTRUMENTATION_INFO,
         );
         unit = "",
-        description = "Number of requests received."
+        description = "Number of requests received.",
     )
-    HTTP_TRACER[] = Tracer("HTTP", PKG_VERSION; provider = tracer_provider)
+    HTTP_TRACER[] =
+        Tracer(; provider = tracer_provider, instrumentation_info = INSTRUMENTATION_INFO)
     top = HTTP.top_layer(stack())
     insert_default!(top, OpenTelemetryLayer)
 end
@@ -116,7 +121,7 @@ function HTTP.serve(
     host::Union{IPAddr,String} = Sockets.localhost,
     port::Integer = 8081;
     stream::Bool = false,
-    kw...
+    kw...,
 )
     handler = if f isa HTTP.Handlers.Handler
         f
@@ -174,7 +179,7 @@ function otel_handle(r::HTTP.Router, http::HTTP.Stream)
                 "http.flavor" => string(req.version),
                 "http.request_content_length" => length(req.body),
                 "http.route" => name,
-            )
+            ),
         ) do
             s = current_span()
             resp = HTTP.Handlers.handle(handler, req)
