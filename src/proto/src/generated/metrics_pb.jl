@@ -3,16 +3,16 @@ using ProtoBuf
 import ProtoBuf.meta
 import ._ProtoBuf_Top_.opentelemetry
 
-const AggregationTemporality = (;[
-    Symbol("AGGREGATION_TEMPORALITY_UNSPECIFIED") => Int32(0),
-    Symbol("AGGREGATION_TEMPORALITY_DELTA") => Int32(1),
-    Symbol("AGGREGATION_TEMPORALITY_CUMULATIVE") => Int32(2),
-]...)
+const AggregationTemporality = (;
+    [
+        Symbol("AGGREGATION_TEMPORALITY_UNSPECIFIED") => Int32(0),
+        Symbol("AGGREGATION_TEMPORALITY_DELTA") => Int32(1),
+        Symbol("AGGREGATION_TEMPORALITY_CUMULATIVE") => Int32(2),
+    ]...,
+)
 
-const DataPointFlags = (;[
-    Symbol("FLAG_NONE") => Int32(0),
-    Symbol("FLAG_NO_RECORDED_VALUE") => Int32(1),
-]...)
+const DataPointFlags =
+    (; [Symbol("FLAG_NONE") => Int32(0), Symbol("FLAG_NO_RECORDED_VALUE") => Int32(1)]...)
 
 mutable struct SummaryDataPoint_ValueAtQuantile <: ProtoType
     __protobuf_jl_internal_meta::ProtoMeta
@@ -26,7 +26,8 @@ mutable struct SummaryDataPoint_ValueAtQuantile <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -38,9 +39,21 @@ const __meta_SummaryDataPoint_ValueAtQuantile = Ref{ProtoMeta}()
 function meta(::Type{SummaryDataPoint_ValueAtQuantile})
     ProtoBuf.metalock() do
         if !isassigned(__meta_SummaryDataPoint_ValueAtQuantile)
-            __meta_SummaryDataPoint_ValueAtQuantile[] = target = ProtoMeta(SummaryDataPoint_ValueAtQuantile)
-            allflds = Pair{Symbol,Union{Type,String}}[:quantile => Float64, :value => Float64]
-            meta(target, SummaryDataPoint_ValueAtQuantile, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            __meta_SummaryDataPoint_ValueAtQuantile[] =
+                target = ProtoMeta(SummaryDataPoint_ValueAtQuantile)
+            allflds = Pair{Symbol,Union{Type,String}}[:quantile=>Float64, :value=>Float64]
+            meta(
+                target,
+                SummaryDataPoint_ValueAtQuantile,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_SummaryDataPoint_ValueAtQuantile[]
     end
@@ -67,7 +80,8 @@ mutable struct SummaryDataPoint <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -80,17 +94,42 @@ function meta(::Type{SummaryDataPoint})
     ProtoBuf.metalock() do
         if !isassigned(__meta_SummaryDataPoint)
             __meta_SummaryDataPoint[] = target = ProtoMeta(SummaryDataPoint)
-            fnum = Int[7,2,3,4,5,6,8]
-            wtype = Dict(:start_time_unix_nano => :fixed64, :time_unix_nano => :fixed64, :count => :fixed64)
-            allflds = Pair{Symbol,Union{Type,String}}[:attributes => Base.Vector{opentelemetry.proto.common.v1.KeyValue}, :start_time_unix_nano => UInt64, :time_unix_nano => UInt64, :count => UInt64, :sum => Float64, :quantile_values => Base.Vector{SummaryDataPoint_ValueAtQuantile}, :flags => UInt32]
-            meta(target, SummaryDataPoint, allflds, ProtoBuf.DEF_REQ, fnum, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, wtype, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            fnum = Int[7, 2, 3, 4, 5, 6, 8]
+            wtype = Dict(
+                :start_time_unix_nano => :fixed64,
+                :time_unix_nano => :fixed64,
+                :count => :fixed64,
+            )
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :attributes=>Base.Vector{opentelemetry.proto.common.v1.KeyValue},
+                :start_time_unix_nano=>UInt64,
+                :time_unix_nano=>UInt64,
+                :count=>UInt64,
+                :sum=>Float64,
+                :quantile_values=>Base.Vector{SummaryDataPoint_ValueAtQuantile},
+                :flags=>UInt32,
+            ]
+            meta(
+                target,
+                SummaryDataPoint,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                fnum,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                wtype,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_SummaryDataPoint[]
     end
 end
 function Base.getproperty(obj::SummaryDataPoint, name::Symbol)
     if name === :attributes
-        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{opentelemetry.proto.common.v1.KeyValue}
+        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{
+            opentelemetry.proto.common.v1.KeyValue,
+        }
     elseif name === :start_time_unix_nano
         return (obj.__protobuf_jl_internal_values[name])::UInt64
     elseif name === :time_unix_nano
@@ -100,7 +139,9 @@ function Base.getproperty(obj::SummaryDataPoint, name::Symbol)
     elseif name === :sum
         return (obj.__protobuf_jl_internal_values[name])::Float64
     elseif name === :quantile_values
-        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{SummaryDataPoint_ValueAtQuantile}
+        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{
+            SummaryDataPoint_ValueAtQuantile,
+        }
     elseif name === :flags
         return (obj.__protobuf_jl_internal_values[name])::UInt32
     else
@@ -120,7 +161,8 @@ mutable struct Summary <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -133,8 +175,20 @@ function meta(::Type{Summary})
     ProtoBuf.metalock() do
         if !isassigned(__meta_Summary)
             __meta_Summary[] = target = ProtoMeta(Summary)
-            allflds = Pair{Symbol,Union{Type,String}}[:data_points => Base.Vector{SummaryDataPoint}]
-            meta(target, Summary, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds =
+                Pair{Symbol,Union{Type,String}}[:data_points=>Base.Vector{SummaryDataPoint}]
+            meta(
+                target,
+                Summary,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_Summary[]
     end
@@ -159,7 +213,8 @@ mutable struct Exemplar <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -172,19 +227,39 @@ function meta(::Type{Exemplar})
     ProtoBuf.metalock() do
         if !isassigned(__meta_Exemplar)
             __meta_Exemplar[] = target = ProtoMeta(Exemplar)
-            fnum = Int[7,2,3,6,4,5]
+            fnum = Int[7, 2, 3, 6, 4, 5]
             wtype = Dict(:time_unix_nano => :fixed64, :as_int => :sfixed64)
-            allflds = Pair{Symbol,Union{Type,String}}[:filtered_attributes => Base.Vector{opentelemetry.proto.common.v1.KeyValue}, :time_unix_nano => UInt64, :as_double => Float64, :as_int => Int64, :span_id => Vector{UInt8}, :trace_id => Vector{UInt8}]
-            oneofs = Int[0,0,1,1,0,0]
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :filtered_attributes=>Base.Vector{opentelemetry.proto.common.v1.KeyValue},
+                :time_unix_nano=>UInt64,
+                :as_double=>Float64,
+                :as_int=>Int64,
+                :span_id=>Vector{UInt8},
+                :trace_id=>Vector{UInt8},
+            ]
+            oneofs = Int[0, 0, 1, 1, 0, 0]
             oneof_names = Symbol[Symbol("value")]
-            meta(target, Exemplar, allflds, ProtoBuf.DEF_REQ, fnum, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, wtype, oneofs, oneof_names)
+            meta(
+                target,
+                Exemplar,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                fnum,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                wtype,
+                oneofs,
+                oneof_names,
+            )
         end
         __meta_Exemplar[]
     end
 end
 function Base.getproperty(obj::Exemplar, name::Symbol)
     if name === :filtered_attributes
-        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{opentelemetry.proto.common.v1.KeyValue}
+        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{
+            opentelemetry.proto.common.v1.KeyValue,
+        }
     elseif name === :time_unix_nano
         return (obj.__protobuf_jl_internal_values[name])::UInt64
     elseif name === :as_double
@@ -212,7 +287,8 @@ mutable struct NumberDataPoint <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -225,19 +301,44 @@ function meta(::Type{NumberDataPoint})
     ProtoBuf.metalock() do
         if !isassigned(__meta_NumberDataPoint)
             __meta_NumberDataPoint[] = target = ProtoMeta(NumberDataPoint)
-            fnum = Int[7,2,3,4,6,5,8]
-            wtype = Dict(:start_time_unix_nano => :fixed64, :time_unix_nano => :fixed64, :as_int => :sfixed64)
-            allflds = Pair{Symbol,Union{Type,String}}[:attributes => Base.Vector{opentelemetry.proto.common.v1.KeyValue}, :start_time_unix_nano => UInt64, :time_unix_nano => UInt64, :as_double => Float64, :as_int => Int64, :exemplars => Base.Vector{Exemplar}, :flags => UInt32]
-            oneofs = Int[0,0,0,1,1,0,0]
+            fnum = Int[7, 2, 3, 4, 6, 5, 8]
+            wtype = Dict(
+                :start_time_unix_nano => :fixed64,
+                :time_unix_nano => :fixed64,
+                :as_int => :sfixed64,
+            )
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :attributes=>Base.Vector{opentelemetry.proto.common.v1.KeyValue},
+                :start_time_unix_nano=>UInt64,
+                :time_unix_nano=>UInt64,
+                :as_double=>Float64,
+                :as_int=>Int64,
+                :exemplars=>Base.Vector{Exemplar},
+                :flags=>UInt32,
+            ]
+            oneofs = Int[0, 0, 0, 1, 1, 0, 0]
             oneof_names = Symbol[Symbol("value")]
-            meta(target, NumberDataPoint, allflds, ProtoBuf.DEF_REQ, fnum, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, wtype, oneofs, oneof_names)
+            meta(
+                target,
+                NumberDataPoint,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                fnum,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                wtype,
+                oneofs,
+                oneof_names,
+            )
         end
         __meta_NumberDataPoint[]
     end
 end
 function Base.getproperty(obj::NumberDataPoint, name::Symbol)
     if name === :attributes
-        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{opentelemetry.proto.common.v1.KeyValue}
+        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{
+            opentelemetry.proto.common.v1.KeyValue,
+        }
     elseif name === :start_time_unix_nano
         return (obj.__protobuf_jl_internal_values[name])::UInt64
     elseif name === :time_unix_nano
@@ -261,13 +362,18 @@ mutable struct ExponentialHistogramDataPoint_Buckets <: ProtoType
     __protobuf_jl_internal_defaultset::Set{Symbol}
 
     function ExponentialHistogramDataPoint_Buckets(; kwargs...)
-        obj = new(meta(ExponentialHistogramDataPoint_Buckets), Dict{Symbol,Any}(), Set{Symbol}())
+        obj = new(
+            meta(ExponentialHistogramDataPoint_Buckets),
+            Dict{Symbol,Any}(),
+            Set{Symbol}(),
+        )
         values = obj.__protobuf_jl_internal_values
         symdict = obj.__protobuf_jl_internal_meta.symdict
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -279,11 +385,26 @@ const __meta_ExponentialHistogramDataPoint_Buckets = Ref{ProtoMeta}()
 function meta(::Type{ExponentialHistogramDataPoint_Buckets})
     ProtoBuf.metalock() do
         if !isassigned(__meta_ExponentialHistogramDataPoint_Buckets)
-            __meta_ExponentialHistogramDataPoint_Buckets[] = target = ProtoMeta(ExponentialHistogramDataPoint_Buckets)
+            __meta_ExponentialHistogramDataPoint_Buckets[] =
+                target = ProtoMeta(ExponentialHistogramDataPoint_Buckets)
             pack = Symbol[:bucket_counts]
             wtype = Dict(:offset => :sint32)
-            allflds = Pair{Symbol,Union{Type,String}}[:offset => Int32, :bucket_counts => Base.Vector{UInt64}]
-            meta(target, ExponentialHistogramDataPoint_Buckets, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, pack, wtype, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :offset=>Int32,
+                :bucket_counts=>Base.Vector{UInt64},
+            ]
+            meta(
+                target,
+                ExponentialHistogramDataPoint_Buckets,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                pack,
+                wtype,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_ExponentialHistogramDataPoint_Buckets[]
     end
@@ -310,7 +431,8 @@ mutable struct ExponentialHistogramDataPoint <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -322,17 +444,49 @@ const __meta_ExponentialHistogramDataPoint = Ref{ProtoMeta}()
 function meta(::Type{ExponentialHistogramDataPoint})
     ProtoBuf.metalock() do
         if !isassigned(__meta_ExponentialHistogramDataPoint)
-            __meta_ExponentialHistogramDataPoint[] = target = ProtoMeta(ExponentialHistogramDataPoint)
-            wtype = Dict(:start_time_unix_nano => :fixed64, :time_unix_nano => :fixed64, :count => :fixed64, :scale => :sint32, :zero_count => :fixed64)
-            allflds = Pair{Symbol,Union{Type,String}}[:attributes => Base.Vector{opentelemetry.proto.common.v1.KeyValue}, :start_time_unix_nano => UInt64, :time_unix_nano => UInt64, :count => UInt64, :sum => Float64, :scale => Int32, :zero_count => UInt64, :positive => ExponentialHistogramDataPoint_Buckets, :negative => ExponentialHistogramDataPoint_Buckets, :flags => UInt32, :exemplars => Base.Vector{Exemplar}]
-            meta(target, ExponentialHistogramDataPoint, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, wtype, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            __meta_ExponentialHistogramDataPoint[] =
+                target = ProtoMeta(ExponentialHistogramDataPoint)
+            wtype = Dict(
+                :start_time_unix_nano => :fixed64,
+                :time_unix_nano => :fixed64,
+                :count => :fixed64,
+                :scale => :sint32,
+                :zero_count => :fixed64,
+            )
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :attributes=>Base.Vector{opentelemetry.proto.common.v1.KeyValue},
+                :start_time_unix_nano=>UInt64,
+                :time_unix_nano=>UInt64,
+                :count=>UInt64,
+                :sum=>Float64,
+                :scale=>Int32,
+                :zero_count=>UInt64,
+                :positive=>ExponentialHistogramDataPoint_Buckets,
+                :negative=>ExponentialHistogramDataPoint_Buckets,
+                :flags=>UInt32,
+                :exemplars=>Base.Vector{Exemplar},
+            ]
+            meta(
+                target,
+                ExponentialHistogramDataPoint,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                wtype,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_ExponentialHistogramDataPoint[]
     end
 end
 function Base.getproperty(obj::ExponentialHistogramDataPoint, name::Symbol)
     if name === :attributes
-        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{opentelemetry.proto.common.v1.KeyValue}
+        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{
+            opentelemetry.proto.common.v1.KeyValue,
+        }
     elseif name === :start_time_unix_nano
         return (obj.__protobuf_jl_internal_values[name])::UInt64
     elseif name === :time_unix_nano
@@ -370,7 +524,8 @@ mutable struct HistogramDataPoint <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -383,18 +538,46 @@ function meta(::Type{HistogramDataPoint})
     ProtoBuf.metalock() do
         if !isassigned(__meta_HistogramDataPoint)
             __meta_HistogramDataPoint[] = target = ProtoMeta(HistogramDataPoint)
-            fnum = Int[9,2,3,4,5,6,7,8,10]
-            pack = Symbol[:bucket_counts,:explicit_bounds]
-            wtype = Dict(:start_time_unix_nano => :fixed64, :time_unix_nano => :fixed64, :count => :fixed64, :bucket_counts => :fixed64)
-            allflds = Pair{Symbol,Union{Type,String}}[:attributes => Base.Vector{opentelemetry.proto.common.v1.KeyValue}, :start_time_unix_nano => UInt64, :time_unix_nano => UInt64, :count => UInt64, :sum => Float64, :bucket_counts => Base.Vector{UInt64}, :explicit_bounds => Base.Vector{Float64}, :exemplars => Base.Vector{Exemplar}, :flags => UInt32]
-            meta(target, HistogramDataPoint, allflds, ProtoBuf.DEF_REQ, fnum, ProtoBuf.DEF_VAL, pack, wtype, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            fnum = Int[9, 2, 3, 4, 5, 6, 7, 8, 10]
+            pack = Symbol[:bucket_counts, :explicit_bounds]
+            wtype = Dict(
+                :start_time_unix_nano => :fixed64,
+                :time_unix_nano => :fixed64,
+                :count => :fixed64,
+                :bucket_counts => :fixed64,
+            )
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :attributes=>Base.Vector{opentelemetry.proto.common.v1.KeyValue},
+                :start_time_unix_nano=>UInt64,
+                :time_unix_nano=>UInt64,
+                :count=>UInt64,
+                :sum=>Float64,
+                :bucket_counts=>Base.Vector{UInt64},
+                :explicit_bounds=>Base.Vector{Float64},
+                :exemplars=>Base.Vector{Exemplar},
+                :flags=>UInt32,
+            ]
+            meta(
+                target,
+                HistogramDataPoint,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                fnum,
+                ProtoBuf.DEF_VAL,
+                pack,
+                wtype,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_HistogramDataPoint[]
     end
 end
 function Base.getproperty(obj::HistogramDataPoint, name::Symbol)
     if name === :attributes
-        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{opentelemetry.proto.common.v1.KeyValue}
+        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{
+            opentelemetry.proto.common.v1.KeyValue,
+        }
     elseif name === :start_time_unix_nano
         return (obj.__protobuf_jl_internal_values[name])::UInt64
     elseif name === :time_unix_nano
@@ -428,7 +611,8 @@ mutable struct Sum <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -441,8 +625,23 @@ function meta(::Type{Sum})
     ProtoBuf.metalock() do
         if !isassigned(__meta_Sum)
             __meta_Sum[] = target = ProtoMeta(Sum)
-            allflds = Pair{Symbol,Union{Type,String}}[:data_points => Base.Vector{NumberDataPoint}, :aggregation_temporality => Int32, :is_monotonic => Bool]
-            meta(target, Sum, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :data_points=>Base.Vector{NumberDataPoint},
+                :aggregation_temporality=>Int32,
+                :is_monotonic=>Bool,
+            ]
+            meta(
+                target,
+                Sum,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_Sum[]
     end
@@ -471,7 +670,8 @@ mutable struct Gauge <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -484,8 +684,20 @@ function meta(::Type{Gauge})
     ProtoBuf.metalock() do
         if !isassigned(__meta_Gauge)
             __meta_Gauge[] = target = ProtoMeta(Gauge)
-            allflds = Pair{Symbol,Union{Type,String}}[:data_points => Base.Vector{NumberDataPoint}]
-            meta(target, Gauge, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds =
+                Pair{Symbol,Union{Type,String}}[:data_points=>Base.Vector{NumberDataPoint}]
+            meta(
+                target,
+                Gauge,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_Gauge[]
     end
@@ -510,7 +722,8 @@ mutable struct ExponentialHistogram <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -523,15 +736,31 @@ function meta(::Type{ExponentialHistogram})
     ProtoBuf.metalock() do
         if !isassigned(__meta_ExponentialHistogram)
             __meta_ExponentialHistogram[] = target = ProtoMeta(ExponentialHistogram)
-            allflds = Pair{Symbol,Union{Type,String}}[:data_points => Base.Vector{ExponentialHistogramDataPoint}, :aggregation_temporality => Int32]
-            meta(target, ExponentialHistogram, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :data_points=>Base.Vector{ExponentialHistogramDataPoint},
+                :aggregation_temporality=>Int32,
+            ]
+            meta(
+                target,
+                ExponentialHistogram,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_ExponentialHistogram[]
     end
 end
 function Base.getproperty(obj::ExponentialHistogram, name::Symbol)
     if name === :data_points
-        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{ExponentialHistogramDataPoint}
+        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{
+            ExponentialHistogramDataPoint,
+        }
     elseif name === :aggregation_temporality
         return (obj.__protobuf_jl_internal_values[name])::Int32
     else
@@ -551,7 +780,8 @@ mutable struct Histogram <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -564,8 +794,22 @@ function meta(::Type{Histogram})
     ProtoBuf.metalock() do
         if !isassigned(__meta_Histogram)
             __meta_Histogram[] = target = ProtoMeta(Histogram)
-            allflds = Pair{Symbol,Union{Type,String}}[:data_points => Base.Vector{HistogramDataPoint}, :aggregation_temporality => Int32]
-            meta(target, Histogram, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :data_points=>Base.Vector{HistogramDataPoint},
+                :aggregation_temporality=>Int32,
+            ]
+            meta(
+                target,
+                Histogram,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_Histogram[]
     end
@@ -592,7 +836,8 @@ mutable struct Metric <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -605,11 +850,31 @@ function meta(::Type{Metric})
     ProtoBuf.metalock() do
         if !isassigned(__meta_Metric)
             __meta_Metric[] = target = ProtoMeta(Metric)
-            fnum = Int[1,2,3,5,7,9,10,11]
-            allflds = Pair{Symbol,Union{Type,String}}[:name => AbstractString, :description => AbstractString, :unit => AbstractString, :gauge => Gauge, :sum => Sum, :histogram => Histogram, :exponential_histogram => ExponentialHistogram, :summary => Summary]
-            oneofs = Int[0,0,0,1,1,1,1,1]
+            fnum = Int[1, 2, 3, 5, 7, 9, 10, 11]
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :name=>AbstractString,
+                :description=>AbstractString,
+                :unit=>AbstractString,
+                :gauge=>Gauge,
+                :sum=>Sum,
+                :histogram=>Histogram,
+                :exponential_histogram=>ExponentialHistogram,
+                :summary=>Summary,
+            ]
+            oneofs = Int[0, 0, 0, 1, 1, 1, 1, 1]
             oneof_names = Symbol[Symbol("data")]
-            meta(target, Metric, allflds, ProtoBuf.DEF_REQ, fnum, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, oneofs, oneof_names)
+            meta(
+                target,
+                Metric,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                fnum,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                oneofs,
+                oneof_names,
+            )
         end
         __meta_Metric[]
     end
@@ -648,7 +913,8 @@ mutable struct InstrumentationLibraryMetrics <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -660,9 +926,25 @@ const __meta_InstrumentationLibraryMetrics = Ref{ProtoMeta}()
 function meta(::Type{InstrumentationLibraryMetrics})
     ProtoBuf.metalock() do
         if !isassigned(__meta_InstrumentationLibraryMetrics)
-            __meta_InstrumentationLibraryMetrics[] = target = ProtoMeta(InstrumentationLibraryMetrics)
-            allflds = Pair{Symbol,Union{Type,String}}[:instrumentation_library => opentelemetry.proto.common.v1.InstrumentationLibrary, :metrics => Base.Vector{Metric}, :schema_url => AbstractString]
-            meta(target, InstrumentationLibraryMetrics, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            __meta_InstrumentationLibraryMetrics[] =
+                target = ProtoMeta(InstrumentationLibraryMetrics)
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :instrumentation_library=>opentelemetry.proto.common.v1.InstrumentationLibrary,
+                :metrics=>Base.Vector{Metric},
+                :schema_url=>AbstractString,
+            ]
+            meta(
+                target,
+                InstrumentationLibraryMetrics,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_InstrumentationLibraryMetrics[]
     end
@@ -691,7 +973,8 @@ mutable struct ResourceMetrics <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -704,8 +987,25 @@ function meta(::Type{ResourceMetrics})
     ProtoBuf.metalock() do
         if !isassigned(__meta_ResourceMetrics)
             __meta_ResourceMetrics[] = target = ProtoMeta(ResourceMetrics)
-            allflds = Pair{Symbol,Union{Type,String}}[:resource => opentelemetry.proto.resource.v1.Resource, :instrumentation_library_metrics => Base.Vector{InstrumentationLibraryMetrics}, :schema_url => AbstractString]
-            meta(target, ResourceMetrics, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :resource=>opentelemetry.proto.resource.v1.Resource,
+                :instrumentation_library_metrics=>Base.Vector{
+                    InstrumentationLibraryMetrics,
+                },
+                :schema_url=>AbstractString,
+            ]
+            meta(
+                target,
+                ResourceMetrics,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_ResourceMetrics[]
     end
@@ -714,7 +1014,9 @@ function Base.getproperty(obj::ResourceMetrics, name::Symbol)
     if name === :resource
         return (obj.__protobuf_jl_internal_values[name])::opentelemetry.proto.resource.v1.Resource
     elseif name === :instrumentation_library_metrics
-        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{InstrumentationLibraryMetrics}
+        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{
+            InstrumentationLibraryMetrics,
+        }
     elseif name === :schema_url
         return (obj.__protobuf_jl_internal_values[name])::AbstractString
     else
@@ -734,7 +1036,8 @@ mutable struct MetricsData <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -747,8 +1050,21 @@ function meta(::Type{MetricsData})
     ProtoBuf.metalock() do
         if !isassigned(__meta_MetricsData)
             __meta_MetricsData[] = target = ProtoMeta(MetricsData)
-            allflds = Pair{Symbol,Union{Type,String}}[:resource_metrics => Base.Vector{ResourceMetrics}]
-            meta(target, MetricsData, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds = Pair{Symbol,Union{Type,String}}[:resource_metrics=>Base.Vector{
+                ResourceMetrics,
+            }]
+            meta(
+                target,
+                MetricsData,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_MetricsData[]
     end
@@ -761,4 +1077,21 @@ function Base.getproperty(obj::MetricsData, name::Symbol)
     end
 end
 
-export AggregationTemporality, DataPointFlags, MetricsData, ResourceMetrics, InstrumentationLibraryMetrics, Metric, Gauge, Sum, Histogram, ExponentialHistogram, Summary, NumberDataPoint, HistogramDataPoint, ExponentialHistogramDataPoint_Buckets, ExponentialHistogramDataPoint, SummaryDataPoint_ValueAtQuantile, SummaryDataPoint, Exemplar
+export AggregationTemporality,
+    DataPointFlags,
+    MetricsData,
+    ResourceMetrics,
+    InstrumentationLibraryMetrics,
+    Metric,
+    Gauge,
+    Sum,
+    Histogram,
+    ExponentialHistogram,
+    Summary,
+    NumberDataPoint,
+    HistogramDataPoint,
+    ExponentialHistogramDataPoint_Buckets,
+    ExponentialHistogramDataPoint,
+    SummaryDataPoint_ValueAtQuantile,
+    SummaryDataPoint,
+    Exemplar

@@ -120,10 +120,19 @@ struct ObservableCounter{T,F} <: AbstractAsyncInstrument{T}
     end
 end
 
+function (ins::ObservableCounter{T})() where T
+    v = ins.callback()
+    if v >= zero(T)
+        push!(ins.meter.provider, ins => v)
+    else
+        throw(ArgumentError("amount must be non-negative, got $v"))
+    end
+end
+
 """
     Histogram{T}(name, meter; unit = "", description = "") where {T}
 
-`Histogram`` is `AbstractSyncInstrument` which can be used to report arbitrary values that are likely to be statistically meaningful. It is intended for statistics such as histograms, summaries, and percentile.
+`Histogram` is an `AbstractSyncInstrument` which can be used to report arbitrary values that are likely to be statistically meaningful. It is intended for statistics such as histograms, summaries, and percentile.
 
 See more details from [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/api.md#histogram)
 """

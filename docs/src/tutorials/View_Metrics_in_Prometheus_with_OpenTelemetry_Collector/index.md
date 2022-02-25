@@ -28,6 +28,11 @@ What we want to do in this tutorial is described as follows:
 
 This time we setup the Prometheus and OTel Collector first.
 
+```bash
+cd docs/src/tutorials/View_Metrics_in_Prometheus_with_OpenTelemetry_Collector
+docker-compose up -d
+```
+
 The docker compose file and related configurations are listed below:
 
 (TODO: insert)
@@ -35,10 +40,42 @@ The docker compose file and related configurations are listed below:
 Then open the Julia REPL as usual and add some metrics like what we did in the previous tutorial.
 
 ```julia
+using OpenTelemetry
+
+m = Meter("demo_metrics");
+c = Counter{UInt}("fruit_counter", m)
+c(2; name = "apple", color = "green")
+
+r = MetricReader(OtlpProtoGrpcMetricsExporter())
 ```
 
-Then head to []() and select the `fruit_counter` metrics.
+Then head to the Prometheus portal at [http://localhost:9090](http://localhost:9090) and select the `fruit_counter` metric to view the number of fruits. Try adding more different fruits to see how they are displayed on the portal.
 
 ## Beyond `Counter`
 
-## Understand `View`s
+[`Counter`](@ref) is the most frequently used metric. Beyond that, many other instruments are also provided. If you try to set a negative value to the counter we created above, an `ArgumentError` will be thrown. That's because a `Counter` can only accept non-negative values. You can use the [`UpDownCounter`](@ref) instead if you want.
+
+```julia
+b = UpDownCounter{Float64}("balance", m)
+b(1.8)
+b(-2)
+r()  # upload measurements
+
+b(3.3)
+r()  # upload measurements
+```
+
+If you want to measure the latest value of some metrics instead of the cumulative value. Then the [`ObservableGauge`](@ref) is the best suitable instrument.
+
+```julia
+g = ObservableGauge{Float64}("temperature", m) do
+    rand() * 30 - 10
+end
+
+for _ in 1:10
+    r()
+    sleep(3)
+end
+```
+
+You're encouraged to try some other instruments listed under [Instruments](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryAPI/#Instruments).
