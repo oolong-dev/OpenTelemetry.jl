@@ -29,7 +29,7 @@ What we want to do in this tutorial is described as follows:
 This time we setup the Prometheus and OTel Collector first.
 
 ```bash
-cd docs/src/tutorials/View_Metrics_in_Prometheus_with_OpenTelemetry_Collector
+cd docs/src/tutorials/View_Metrics_in_Prometheus_through_Open_Telemetry_Collector
 docker-compose up -d
 ```
 

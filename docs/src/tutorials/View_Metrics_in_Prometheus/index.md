@@ -78,4 +78,4 @@ Now open your browser and head to `127.0.0.1:9090`. You'll see the Prometheus po
 
 Then click the icon near the **Execute** button to select the `fruit_counter`, and finally click the **Execute** button to execute the query. You'll see the metrics in the **Table** tab. Now switch to the **Graph** tab, you can see historical values of the fruit counter in each dimension. Come back to the Julia REPL. Try to add more fruits and see how the graph in the Prometheus portal changes.
 
-In [the next tutorial](../View_Metrics_in_Prometheus_with_OpenTelemetry_Collector/), we'll learn more about [OpenTelemetry](https://opentelemetry.io/) and advanced metrics related usages.
+In [the next tutorial](../View_Metrics_in_Prometheus_through_OpenTelemetry_Collector/), we'll learn more about [OpenTelemetry](https://opentelemetry.io/) and advanced metrics related usages.
