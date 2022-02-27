@@ -298,19 +298,19 @@ uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
 deps = ["OpenTelemetryAPI", "OpenTelemetryExporterOtlpProtoGrpc", "OpenTelemetryExporterPrometheus", "OpenTelemetryProto", "OpenTelemetrySDK", "Reexport"]
 path = ".."
 uuid = "c1912aec-9d41-432b-84fe-e17fd97255be"
-version = "0.2.0"
+version = "0.3.0"
 
 [[deps.OpenTelemetryAPI]]
 deps = ["Dates", "Logging", "Random", "TOML", "UUIDs"]
 path = "../src/api"
 uuid = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
-version = "0.2.3"
+version = "0.3.0"
 
 [[deps.OpenTelemetryExporterOtlpProtoGrpc]]
-deps = ["Logging", "OpenTelemetryAPI", "OpenTelemetryProto", "OpenTelemetrySDK", "URIs", "gRPCClient"]
+deps = ["Logging", "OpenTelemetryAPI", "OpenTelemetryProto", "OpenTelemetrySDK", "ProtoBuf", "URIs", "gRPCClient"]
 path = "../src/exporter/otlp/proto/grpc"
 uuid = "83e8ae56-efb3-499e-9158-b649d4f902fc"
-version = "0.2.0"
+version = "0.2.1"
 
 [[deps.OpenTelemetryExporterPrometheus]]
 deps = ["HTTP", "OpenTelemetrySDK", "Sockets"]

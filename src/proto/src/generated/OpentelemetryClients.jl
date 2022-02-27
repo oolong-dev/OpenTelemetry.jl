@@ -40,22 +40,22 @@ show(io::IO, client::TraceServiceBlockingClient) =
 show(io::IO, client::TraceServiceClient) =
     print(io, "TraceServiceClient(", client.channel.baseurl, ")")
 
-import .opentelemetry.proto.collector.trace.v1: Export
 """
     Export
 
   - input: opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest
   - output: opentelemetry.proto.collector.trace.v1.ExportTraceServiceResponse
 """
-Export(
+opentelemetry.proto.collector.trace.v1.Export(
     client::TraceServiceBlockingClient,
     inp::opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest,
-) = Export(client.stub, client.controller, inp)
-Export(
+) = opentelemetry.proto.collector.trace.v1.Export(client.stub, client.controller, inp)
+
+opentelemetry.proto.collector.trace.v1.Export(
     client::TraceServiceClient,
     inp::opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest,
     done::Function,
-) = Export(client.stub, client.controller, inp, done)
+) = opentelemetry.proto.collector.trace.v1.Export(client.stub, client.controller, inp, done)
 
 # end service: opentelemetry.proto.collector.trace.v1.TraceService
 
@@ -96,22 +96,21 @@ show(io::IO, client::MetricsServiceBlockingClient) =
 show(io::IO, client::MetricsServiceClient) =
     print(io, "MetricsServiceClient(", client.channel.baseurl, ")")
 
-import .opentelemetry.proto.collector.metrics.v1: Export
 """
     Export
 
   - input: opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest
   - output: opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceResponse
 """
-Export(
+opentelemetry.proto.collector.metrics.v1.Export(
     client::MetricsServiceBlockingClient,
     inp::opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest,
-) = Export(client.stub, client.controller, inp)
-Export(
+) = opentelemetry.proto.collector.metrics.v1.Export(client.stub, client.controller, inp)
+opentelemetry.proto.collector.metrics.v1.Export(
     client::MetricsServiceClient,
     inp::opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest,
     done::Function,
-) = Export(client.stub, client.controller, inp, done)
+) = opentelemetry.proto.collector.metrics.v1.Export(client.stub, client.controller, inp, done)
 
 # end service: opentelemetry.proto.collector.metrics.v1.MetricsService
 
@@ -152,22 +151,21 @@ show(io::IO, client::LogsServiceBlockingClient) =
 show(io::IO, client::LogsServiceClient) =
     print(io, "LogsServiceClient(", client.channel.baseurl, ")")
 
-import .opentelemetry.proto.collector.logs.v1: Export
 """
     Export
 
   - input: opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest
   - output: opentelemetry.proto.collector.logs.v1.ExportLogsServiceResponse
 """
-Export(
+opentelemetry.proto.collector.logs.v1.Export(
     client::LogsServiceBlockingClient,
     inp::opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest,
-) = Export(client.stub, client.controller, inp)
-Export(
+) = opentelemetry.proto.collector.logs.v1.Export(client.stub, client.controller, inp)
+opentelemetry.proto.collector.logs.v1.Export(
     client::LogsServiceClient,
     inp::opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest,
     done::Function,
-) = Export(client.stub, client.controller, inp, done)
+) = opentelemetry.proto.collector.logs.v1.Export(client.stub, client.controller, inp, done)
 
 # end service: opentelemetry.proto.collector.logs.v1.LogsService
 

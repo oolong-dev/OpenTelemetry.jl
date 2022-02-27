@@ -30,3 +30,5 @@ docs/site/
 docs/src/index.md
 benchmarks/output.json
 benchmarks/Manifest.toml
+
+.env

@@ -1,5 +1,7 @@
 module OpenTelemetryExporterOtlpProtoGrpc
 
+include("patch.jl")
+
 export OtlpProtoGrpcTraceExporter
 
 using gRPCClient
@@ -17,6 +19,12 @@ const Otlp = OpenTelemetryProto.OpentelemetryClients
 const Trace = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.trace.v1
 const Metrics = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.metrics.v1
 const Logs = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.logs.v1
+const CollectorTrace =
+    OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.collector.trace.v1
+const CollectorMetrics =
+    OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.collector.metrics.v1
+const CollectorLogs =
+    OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.collector.logs.v1
 const Resource = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.resource.v1
 const Common = OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.common.v1
 
@@ -56,7 +64,10 @@ function OtlpProtoGrpcTraceExporter(;
 end
 
 function SDK.export!(se::OtlpProtoGrpcTraceExporter, sp)
-    res, status = Otlp.Export(se.client, convert(Otlp.ExportTraceServiceRequest, sp))
+    res, status = CollectorTrace.Export(
+        se.client,
+        convert(CollectorTrace.ExportTraceServiceRequest, sp),
+    )
     if gRPCClient.gRPCCheck(status; throw_error = false)
         SDK.EXPORT_SUCCESS
     else
@@ -64,10 +75,16 @@ function SDK.export!(se::OtlpProtoGrpcTraceExporter, sp)
     end
 end
 
-Base.convert(t::Type{Otlp.ExportTraceServiceRequest}, s::API.AbstractSpan) = convert(t, [s])
+Base.convert(t::Type{CollectorTrace.ExportTraceServiceRequest}, s::API.AbstractSpan) =
+    convert(t, [s])
 
-function Base.convert(::Type{Otlp.ExportTraceServiceRequest}, spans)
-    r = Otlp.ExportTraceServiceRequest(; resource_spans = [])
+Base.convert(
+    ::Type{CollectorTrace.ExportTraceServiceRequest},
+    s::CollectorTrace.ExportTraceServiceRequest,
+) = s
+
+function Base.convert(::Type{CollectorTrace.ExportTraceServiceRequest}, spans)
+    r = CollectorTrace.ExportTraceServiceRequest(; resource_spans = [])
     s_res_pre = nothing
     s_ins_pre = nothing
     for s in spans
@@ -229,7 +246,10 @@ function OtlpProtoGrpcMetricsExporter(;
 end
 
 function SDK.export!(e::OtlpProtoGrpcMetricsExporter, ms)
-    res, status = Otlp.Export(e.client, convert(Otlp.ExportMetricsServiceRequest, ms))
+    res, status = CollectorMetrics.Export(
+        e.client,
+        convert(CollectorMetrics.ExportMetricsServiceRequest, ms),
+    )
     if gRPCClient.gRPCCheck(status; throw_error = false)
         SDK.EXPORT_SUCCESS
     else
@@ -237,10 +257,16 @@ function SDK.export!(e::OtlpProtoGrpcMetricsExporter, ms)
     end
 end
 
-Base.convert(t::Type{Otlp.ExportMetricsServiceRequest}, s::SDK.Metric) = convert(t, [s])
+Base.convert(t::Type{CollectorMetrics.ExportMetricsServiceRequest}, s::SDK.Metric) =
+    convert(t, [s])
 
-function Base.convert(t::Type{Otlp.ExportMetricsServiceRequest}, ms)
-    r = Otlp.ExportMetricsServiceRequest(; resource_metrics = [])
+Base.convert(
+    t::Type{CollectorMetrics.ExportMetricsServiceRequest},
+    ms::CollectorMetrics.ExportMetricsServiceRequest,
+) = ms
+
+function Base.convert(t::Type{CollectorMetrics.ExportMetricsServiceRequest}, ms)
+    r = CollectorMetrics.ExportMetricsServiceRequest(; resource_metrics = [])
     m_res_pre = nothing
     m_ins_pre = nothing
     for m in ms
@@ -304,7 +330,7 @@ function Base.convert(
                     attributes = convert(Vector{Common.KeyValue}, attr),
                     start_time_unix_nano = data_point.start_time_unix_nano,
                     time_unix_nano = data_point.time_unix_nano,
-                    as_int = convert(Int, data_point.value),
+                    as_int = data_point.value,
                     exemplars = [], # TODO
                     flags = Metrics.DataPointFlags.FLAG_NONE,
                 ),
@@ -314,9 +340,9 @@ function Base.convert(
                 data_points,
                 Metrics.NumberDataPoint(
                     attributes = convert(Vector{Common.KeyValue}, attr),
-                    start_time_unix_nano = data_point.start_time_unix_nano,
+                    # start_time_unix_nano = data_point.start_time_unix_nano,
                     time_unix_nano = data_point.time_unix_nano,
-                    as_int = convert(Float64, data_point.value),
+                    as_double = data_point.value,
                     exemplars = [], # TODO
                     flags = Metrics.DataPointFlags.FLAG_NONE,
                 ),
@@ -370,11 +396,11 @@ function Base.convert(
             time_unix_nano = data_point.time_unix_nano,
             count = sum(data_point.value.counts),
             sum = something(data_point.value.sum, 0),
-            bucket_counts = map(Float64, data_point.value.counts),
+            bucket_counts = [Float64(x) for x in data_point.value.counts],
             explicit_bounds = collect(data_point.value.boundaries),
             exemplars = [], # TODO
             flags = Metrics.DataPointFlags.FLAG_NONE,
-        ) for (attr, data_point) in agg.agg_store
+        ) for (attr, data_point) in agg_store
     ]
 end
 
@@ -422,7 +448,10 @@ function OtlpProtoGrpcLogsExporter(;
 end
 
 function SDK.export!(e::OtlpProtoGrpcLogsExporter, logs)
-    res, status = Otlp.Export(e.client, convert(Otlp.ExportLogsServiceRequest, logs))
+    res, status = CollectorLogs.Export(
+        e.client,
+        convert(CollectorLogs.ExportLogsServiceRequest, logs),
+    )
     if gRPCClient.gRPCCheck(status; throw_error = false)
         SDK.EXPORT_SUCCESS
     else
@@ -430,10 +459,16 @@ function SDK.export!(e::OtlpProtoGrpcLogsExporter, logs)
     end
 end
 
-Base.convert(t::Type{Otlp.ExportLogsServiceRequest}, s::SDK.LogRecord) = convert(t, [s])
+Base.convert(t::Type{CollectorLogs.ExportLogsServiceRequest}, s::SDK.LogRecord) =
+    convert(t, [s])
 
-function Base.convert(t::Type{Otlp.ExportLogsServiceRequest}, log_records)
-    Otlp.ExportLogsServiceRequest(
+Base.convert(
+    t::Type{CollectorLogs.ExportLogsServiceRequest},
+    r::CollectorLogs.ExportLogsServiceRequest,
+) = r
+
+function Base.convert(t::Type{CollectorLogs.ExportLogsServiceRequest}, log_records)
+    CollectorLogs.ExportLogsServiceRequest(
         resource_logs = [
             Logs.ResourceLogs(
                 resource = convert(Resource.Resource, first(log_records).resource),

@@ -64,9 +64,9 @@ end
 
 (WIP)
 
-- View Metrics in Prometheus
-- View Metrics in Prometheus with Open Telemetry Collector
-- View Logs, Traces, and Metrics Together in Grafana and Logstash
+- [View Metrics in Prometheus](https://oolong-dev.github.io/OpenTelemetry.jl/dev/tutorials/View_Metrics_in_Prometheus)
+- [View Metrics in Prometheus through Open Telemetry Collector](https://oolong-dev.github.io/OpenTelemetry.jl/dev/tutorials/View_Metrics_in_Prometheus_through_Open_Telemetry_Collector/)
+- [View Metrics/Traces/Logs in Grafana/ElasticAPM](https://oolong-dev.github.io/OpenTelemetry.jl/dev/tutorials/View_Logs_Traces,_and_Metrics_Together_in_Grafana_ElasticAPM)
 - An End-to-end Toy Example with Auto Instrumentation across Different Languages
 - Case Study 1: Empower `Dagger.jl` with `OpenTelemetry.jl`
 - Case Study 2: Empower `AlphaZero.jl` with `OpenTelemetry.jl`
