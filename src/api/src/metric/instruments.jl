@@ -123,8 +123,8 @@ end
 function (ins::ObservableCounter{T})() where T
     v = ins.callback()
     m = v isa Measurement ? v : Measurement(v)
-    if v.value >= zero(T)
-        push!(ins.meter.provider, ins => v)
+    if m.value >= zero(T)
+        push!(ins.meter.provider, ins => m)
     else
         throw(ArgumentError("amount must be non-negative, got $v"))
     end
