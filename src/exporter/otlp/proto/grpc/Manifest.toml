@@ -117,9 +117,9 @@ uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[deps.Preferences]]
 deps = ["TOML"]
-git-tree-sha1 = "2cf929d64681236a2e074ffafb8d568733d2e6af"
+git-tree-sha1 = "de893592a221142f3db370f48290e3a2ef39998f"
 uuid = "21216c6a-2e73-6563-6e65-726566657250"
-version = "1.2.3"
+version = "1.2.4"
 
 [[deps.Printf]]
 deps = ["Unicode"]
@@ -127,9 +127,9 @@ uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[deps.ProtoBuf]]
 deps = ["Logging", "protoc_jll"]
-git-tree-sha1 = "283ac3b9db33300a933a261a16f9aa036d33ac18"
+git-tree-sha1 = "5bb5eb83db702376abe5fb2ef0739b08da3ab461"
 uuid = "3349acd9-ac6a-5e09-bcdb-63829b23a429"
-version = "0.11.4"
+version = "0.11.5"
 
 [[deps.REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]

@@ -14,7 +14,8 @@ mutable struct InstrumentationLibrary <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -27,8 +28,22 @@ function meta(::Type{InstrumentationLibrary})
     ProtoBuf.metalock() do
         if !isassigned(__meta_InstrumentationLibrary)
             __meta_InstrumentationLibrary[] = target = ProtoMeta(InstrumentationLibrary)
-            allflds = Pair{Symbol,Union{Type,String}}[:name => AbstractString, :version => AbstractString]
-            meta(target, InstrumentationLibrary, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :name=>AbstractString,
+                :version=>AbstractString,
+            ]
+            meta(
+                target,
+                InstrumentationLibrary,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_InstrumentationLibrary[]
     end
@@ -55,7 +70,8 @@ mutable struct AnyValue <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -68,10 +84,29 @@ function meta(::Type{AnyValue})
     ProtoBuf.metalock() do
         if !isassigned(__meta_AnyValue)
             __meta_AnyValue[] = target = ProtoMeta(AnyValue)
-            allflds = Pair{Symbol,Union{Type,String}}[:string_value => AbstractString, :bool_value => Bool, :int_value => Int64, :double_value => Float64, :array_value => "ArrayValue", :kvlist_value => "KeyValueList", :bytes_value => Vector{UInt8}]
-            oneofs = Int[1,1,1,1,1,1,1]
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :string_value=>AbstractString,
+                :bool_value=>Bool,
+                :int_value=>Int64,
+                :double_value=>Float64,
+                :array_value=>"ArrayValue",
+                :kvlist_value=>"KeyValueList",
+                :bytes_value=>Vector{UInt8},
+            ]
+            oneofs = Int[1, 1, 1, 1, 1, 1, 1]
             oneof_names = Symbol[Symbol("value")]
-            meta(target, AnyValue, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, oneofs, oneof_names)
+            meta(
+                target,
+                AnyValue,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                oneofs,
+                oneof_names,
+            )
         end
         __meta_AnyValue[]
     end
@@ -108,7 +143,8 @@ mutable struct ArrayValue <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -121,8 +157,19 @@ function meta(::Type{ArrayValue})
     ProtoBuf.metalock() do
         if !isassigned(__meta_ArrayValue)
             __meta_ArrayValue[] = target = ProtoMeta(ArrayValue)
-            allflds = Pair{Symbol,Union{Type,String}}[:values => Base.Vector{AnyValue}]
-            meta(target, ArrayValue, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds = Pair{Symbol,Union{Type,String}}[:values=>Base.Vector{AnyValue}]
+            meta(
+                target,
+                ArrayValue,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_ArrayValue[]
     end
@@ -147,7 +194,8 @@ mutable struct KeyValueList <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -160,8 +208,19 @@ function meta(::Type{KeyValueList})
     ProtoBuf.metalock() do
         if !isassigned(__meta_KeyValueList)
             __meta_KeyValueList[] = target = ProtoMeta(KeyValueList)
-            allflds = Pair{Symbol,Union{Type,String}}[:values => "Base.Vector{KeyValue}"]
-            meta(target, KeyValueList, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds = Pair{Symbol,Union{Type,String}}[:values=>"Base.Vector{KeyValue}"]
+            meta(
+                target,
+                KeyValueList,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_KeyValueList[]
     end
@@ -186,7 +245,8 @@ mutable struct KeyValue <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -199,8 +259,20 @@ function meta(::Type{KeyValue})
     ProtoBuf.metalock() do
         if !isassigned(__meta_KeyValue)
             __meta_KeyValue[] = target = ProtoMeta(KeyValue)
-            allflds = Pair{Symbol,Union{Type,String}}[:key => AbstractString, :value => AnyValue]
-            meta(target, KeyValue, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds =
+                Pair{Symbol,Union{Type,String}}[:key=>AbstractString, :value=>AnyValue]
+            meta(
+                target,
+                KeyValue,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_KeyValue[]
     end
@@ -215,4 +287,12 @@ function Base.getproperty(obj::KeyValue, name::Symbol)
     end
 end
 
-export AnyValue, ArrayValue, KeyValueList, KeyValue, InstrumentationLibrary, AnyValue, ArrayValue, KeyValueList, KeyValue
+export AnyValue,
+    ArrayValue,
+    KeyValueList,
+    KeyValue,
+    InstrumentationLibrary,
+    AnyValue,
+    ArrayValue,
+    KeyValueList,
+    KeyValue

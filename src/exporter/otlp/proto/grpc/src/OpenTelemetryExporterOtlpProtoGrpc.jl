@@ -1,7 +1,5 @@
 module OpenTelemetryExporterOtlpProtoGrpc
 
-include("patch.jl")
-
 export OtlpProtoGrpcTraceExporter
 
 using gRPCClient
