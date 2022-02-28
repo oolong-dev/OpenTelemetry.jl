@@ -33,17 +33,3 @@ with_context(f, ctx::Context; kw...) =
 Return the `Context` associated with the caller's current execution unit.
 """
 current_context() = get(task_local_storage(), CONTEXT_KEY, Context())::Context
-
-# !!! intentional type piracy
-function Base.schedule(t::Task)
-    ctx = current_context()
-    if ctx !== Context()
-        if isnothing(t.storage)
-            t.storage = IdDict()
-        end
-        t.storage[CONTEXT_KEY] = ctx
-    end
-    Base.enq_work(t)
-end
-
-#####
