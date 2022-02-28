@@ -54,8 +54,4 @@ open(Downloads.download(download_url)) do tar_gz
 
     gRPCClient.generate(logs_proto_file; outdir = logs_dir, includes = [proto_dir])
 
-    generated_dir = joinpath(@__DIR__, "..", "src", "generated")
-    rm(generated_dir, force = true)
-    mkdir(generated_dir)
-    mv(joinpath(trace_dir, "common_pb.jl"), joinpath(generated_dir, "common_pb.jl"))
 end

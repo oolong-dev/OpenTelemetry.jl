@@ -3,11 +3,13 @@ using ProtoBuf
 import ProtoBuf.meta
 import ._ProtoBuf_Top_.opentelemetry
 
-const Status_StatusCode = (;[
-    Symbol("STATUS_CODE_UNSET") => Int32(0),
-    Symbol("STATUS_CODE_OK") => Int32(1),
-    Symbol("STATUS_CODE_ERROR") => Int32(2),
-]...)
+const Status_StatusCode = (;
+    [
+        Symbol("STATUS_CODE_UNSET") => Int32(0),
+        Symbol("STATUS_CODE_OK") => Int32(1),
+        Symbol("STATUS_CODE_ERROR") => Int32(2),
+    ]...,
+)
 
 mutable struct Status <: ProtoType
     __protobuf_jl_internal_meta::ProtoMeta
@@ -21,7 +23,8 @@ mutable struct Status <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -34,9 +37,21 @@ function meta(::Type{Status})
     ProtoBuf.metalock() do
         if !isassigned(__meta_Status)
             __meta_Status[] = target = ProtoMeta(Status)
-            fnum = Int[2,3]
-            allflds = Pair{Symbol,Union{Type,String}}[:message => AbstractString, :code => Int32]
-            meta(target, Status, allflds, ProtoBuf.DEF_REQ, fnum, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            fnum = Int[2, 3]
+            allflds =
+                Pair{Symbol,Union{Type,String}}[:message=>AbstractString, :code=>Int32]
+            meta(
+                target,
+                Status,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                fnum,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_Status[]
     end
@@ -51,14 +66,16 @@ function Base.getproperty(obj::Status, name::Symbol)
     end
 end
 
-const Span_SpanKind = (;[
-    Symbol("SPAN_KIND_UNSPECIFIED") => Int32(0),
-    Symbol("SPAN_KIND_INTERNAL") => Int32(1),
-    Symbol("SPAN_KIND_SERVER") => Int32(2),
-    Symbol("SPAN_KIND_CLIENT") => Int32(3),
-    Symbol("SPAN_KIND_PRODUCER") => Int32(4),
-    Symbol("SPAN_KIND_CONSUMER") => Int32(5),
-]...)
+const Span_SpanKind = (;
+    [
+        Symbol("SPAN_KIND_UNSPECIFIED") => Int32(0),
+        Symbol("SPAN_KIND_INTERNAL") => Int32(1),
+        Symbol("SPAN_KIND_SERVER") => Int32(2),
+        Symbol("SPAN_KIND_CLIENT") => Int32(3),
+        Symbol("SPAN_KIND_PRODUCER") => Int32(4),
+        Symbol("SPAN_KIND_CONSUMER") => Int32(5),
+    ]...,
+)
 
 mutable struct Span_Event <: ProtoType
     __protobuf_jl_internal_meta::ProtoMeta
@@ -72,7 +89,8 @@ mutable struct Span_Event <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -86,8 +104,24 @@ function meta(::Type{Span_Event})
         if !isassigned(__meta_Span_Event)
             __meta_Span_Event[] = target = ProtoMeta(Span_Event)
             wtype = Dict(:time_unix_nano => :fixed64)
-            allflds = Pair{Symbol,Union{Type,String}}[:time_unix_nano => UInt64, :name => AbstractString, :attributes => Base.Vector{opentelemetry.proto.common.v1.KeyValue}, :dropped_attributes_count => UInt32]
-            meta(target, Span_Event, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, wtype, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :time_unix_nano=>UInt64,
+                :name=>AbstractString,
+                :attributes=>Base.Vector{opentelemetry.proto.common.v1.KeyValue},
+                :dropped_attributes_count=>UInt32,
+            ]
+            meta(
+                target,
+                Span_Event,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                wtype,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_Span_Event[]
     end
@@ -98,7 +132,9 @@ function Base.getproperty(obj::Span_Event, name::Symbol)
     elseif name === :name
         return (obj.__protobuf_jl_internal_values[name])::AbstractString
     elseif name === :attributes
-        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{opentelemetry.proto.common.v1.KeyValue}
+        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{
+            opentelemetry.proto.common.v1.KeyValue,
+        }
     elseif name === :dropped_attributes_count
         return (obj.__protobuf_jl_internal_values[name])::UInt32
     else
@@ -118,7 +154,8 @@ mutable struct Span_Link <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -131,8 +168,25 @@ function meta(::Type{Span_Link})
     ProtoBuf.metalock() do
         if !isassigned(__meta_Span_Link)
             __meta_Span_Link[] = target = ProtoMeta(Span_Link)
-            allflds = Pair{Symbol,Union{Type,String}}[:trace_id => Vector{UInt8}, :span_id => Vector{UInt8}, :trace_state => AbstractString, :attributes => Base.Vector{opentelemetry.proto.common.v1.KeyValue}, :dropped_attributes_count => UInt32]
-            meta(target, Span_Link, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :trace_id=>Vector{UInt8},
+                :span_id=>Vector{UInt8},
+                :trace_state=>AbstractString,
+                :attributes=>Base.Vector{opentelemetry.proto.common.v1.KeyValue},
+                :dropped_attributes_count=>UInt32,
+            ]
+            meta(
+                target,
+                Span_Link,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_Span_Link[]
     end
@@ -145,7 +199,9 @@ function Base.getproperty(obj::Span_Link, name::Symbol)
     elseif name === :trace_state
         return (obj.__protobuf_jl_internal_values[name])::AbstractString
     elseif name === :attributes
-        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{opentelemetry.proto.common.v1.KeyValue}
+        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{
+            opentelemetry.proto.common.v1.KeyValue,
+        }
     elseif name === :dropped_attributes_count
         return (obj.__protobuf_jl_internal_values[name])::UInt32
     else
@@ -165,7 +221,8 @@ mutable struct Span <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -179,8 +236,35 @@ function meta(::Type{Span})
         if !isassigned(__meta_Span)
             __meta_Span[] = target = ProtoMeta(Span)
             wtype = Dict(:start_time_unix_nano => :fixed64, :end_time_unix_nano => :fixed64)
-            allflds = Pair{Symbol,Union{Type,String}}[:trace_id => Vector{UInt8}, :span_id => Vector{UInt8}, :trace_state => AbstractString, :parent_span_id => Vector{UInt8}, :name => AbstractString, :kind => Int32, :start_time_unix_nano => UInt64, :end_time_unix_nano => UInt64, :attributes => Base.Vector{opentelemetry.proto.common.v1.KeyValue}, :dropped_attributes_count => UInt32, :events => Base.Vector{Span_Event}, :dropped_events_count => UInt32, :links => Base.Vector{Span_Link}, :dropped_links_count => UInt32, :status => Status]
-            meta(target, Span, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, wtype, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :trace_id=>Vector{UInt8},
+                :span_id=>Vector{UInt8},
+                :trace_state=>AbstractString,
+                :parent_span_id=>Vector{UInt8},
+                :name=>AbstractString,
+                :kind=>Int32,
+                :start_time_unix_nano=>UInt64,
+                :end_time_unix_nano=>UInt64,
+                :attributes=>Base.Vector{opentelemetry.proto.common.v1.KeyValue},
+                :dropped_attributes_count=>UInt32,
+                :events=>Base.Vector{Span_Event},
+                :dropped_events_count=>UInt32,
+                :links=>Base.Vector{Span_Link},
+                :dropped_links_count=>UInt32,
+                :status=>Status,
+            ]
+            meta(
+                target,
+                Span,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                wtype,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_Span[]
     end
@@ -203,7 +287,9 @@ function Base.getproperty(obj::Span, name::Symbol)
     elseif name === :end_time_unix_nano
         return (obj.__protobuf_jl_internal_values[name])::UInt64
     elseif name === :attributes
-        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{opentelemetry.proto.common.v1.KeyValue}
+        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{
+            opentelemetry.proto.common.v1.KeyValue,
+        }
     elseif name === :dropped_attributes_count
         return (obj.__protobuf_jl_internal_values[name])::UInt32
     elseif name === :events
@@ -233,7 +319,8 @@ mutable struct InstrumentationLibrarySpans <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -245,9 +332,25 @@ const __meta_InstrumentationLibrarySpans = Ref{ProtoMeta}()
 function meta(::Type{InstrumentationLibrarySpans})
     ProtoBuf.metalock() do
         if !isassigned(__meta_InstrumentationLibrarySpans)
-            __meta_InstrumentationLibrarySpans[] = target = ProtoMeta(InstrumentationLibrarySpans)
-            allflds = Pair{Symbol,Union{Type,String}}[:instrumentation_library => opentelemetry.proto.common.v1.InstrumentationLibrary, :spans => Base.Vector{Span}, :schema_url => AbstractString]
-            meta(target, InstrumentationLibrarySpans, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            __meta_InstrumentationLibrarySpans[] =
+                target = ProtoMeta(InstrumentationLibrarySpans)
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :instrumentation_library=>opentelemetry.proto.common.v1.InstrumentationLibrary,
+                :spans=>Base.Vector{Span},
+                :schema_url=>AbstractString,
+            ]
+            meta(
+                target,
+                InstrumentationLibrarySpans,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_InstrumentationLibrarySpans[]
     end
@@ -276,7 +379,8 @@ mutable struct ResourceSpans <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -289,8 +393,23 @@ function meta(::Type{ResourceSpans})
     ProtoBuf.metalock() do
         if !isassigned(__meta_ResourceSpans)
             __meta_ResourceSpans[] = target = ProtoMeta(ResourceSpans)
-            allflds = Pair{Symbol,Union{Type,String}}[:resource => opentelemetry.proto.resource.v1.Resource, :instrumentation_library_spans => Base.Vector{InstrumentationLibrarySpans}, :schema_url => AbstractString]
-            meta(target, ResourceSpans, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds = Pair{Symbol,Union{Type,String}}[
+                :resource=>opentelemetry.proto.resource.v1.Resource,
+                :instrumentation_library_spans=>Base.Vector{InstrumentationLibrarySpans},
+                :schema_url=>AbstractString,
+            ]
+            meta(
+                target,
+                ResourceSpans,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_ResourceSpans[]
     end
@@ -299,7 +418,9 @@ function Base.getproperty(obj::ResourceSpans, name::Symbol)
     if name === :resource
         return (obj.__protobuf_jl_internal_values[name])::opentelemetry.proto.resource.v1.Resource
     elseif name === :instrumentation_library_spans
-        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{InstrumentationLibrarySpans}
+        return (obj.__protobuf_jl_internal_values[name])::Base.Vector{
+            InstrumentationLibrarySpans,
+        }
     elseif name === :schema_url
         return (obj.__protobuf_jl_internal_values[name])::AbstractString
     else
@@ -319,7 +440,8 @@ mutable struct TracesData <: ProtoType
         for nv in kwargs
             fldname, fldval = nv
             fldtype = symdict[fldname].jtyp
-            (fldname in keys(symdict)) || error(string(typeof(obj), " has no field with name ", fldname))
+            (fldname in keys(symdict)) ||
+                error(string(typeof(obj), " has no field with name ", fldname))
             if fldval !== nothing
                 values[fldname] = isa(fldval, fldtype) ? fldval : convert(fldtype, fldval)
             end
@@ -332,8 +454,20 @@ function meta(::Type{TracesData})
     ProtoBuf.metalock() do
         if !isassigned(__meta_TracesData)
             __meta_TracesData[] = target = ProtoMeta(TracesData)
-            allflds = Pair{Symbol,Union{Type,String}}[:resource_spans => Base.Vector{ResourceSpans}]
-            meta(target, TracesData, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
+            allflds =
+                Pair{Symbol,Union{Type,String}}[:resource_spans=>Base.Vector{ResourceSpans}]
+            meta(
+                target,
+                TracesData,
+                allflds,
+                ProtoBuf.DEF_REQ,
+                ProtoBuf.DEF_FNUM,
+                ProtoBuf.DEF_VAL,
+                ProtoBuf.DEF_PACK,
+                ProtoBuf.DEF_WTYPES,
+                ProtoBuf.DEF_ONEOFS,
+                ProtoBuf.DEF_ONEOF_NAMES,
+            )
         end
         __meta_TracesData[]
     end
@@ -346,4 +480,12 @@ function Base.getproperty(obj::TracesData, name::Symbol)
     end
 end
 
-export TracesData, ResourceSpans, InstrumentationLibrarySpans, Span_SpanKind, Span_Event, Span_Link, Span, Status_StatusCode, Status
+export TracesData,
+    ResourceSpans,
+    InstrumentationLibrarySpans,
+    Span_SpanKind,
+    Span_Event,
+    Span_Link,
+    Span,
+    Status_StatusCode,
+    Status
