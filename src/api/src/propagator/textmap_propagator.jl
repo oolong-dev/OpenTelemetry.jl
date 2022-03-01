@@ -17,7 +17,7 @@ function inject!(
 )
     sc = span_context(ctx)
     if !isnothing(sc)
-        s_trace_parent = "00-$(sc.trace_id)-$(sc.span_id)-$(sc.trace_flag.sampled ? "01" : "00")"
+        s_trace_parent = "00-$(string(sc.trace_id, pad=32))-$(string(sc.span_id,pad=16))-$(sc.trace_flag.sampled ? "01" : "00")"
         push!(carrier, "traceparent" => s_trace_parent)
         s_trace_state = string(sc.trace_state)
         if !isempty(s_trace_state)
@@ -68,13 +68,13 @@ function extract(
     else
         merge(
             ctx,
-            Context(
+            Context((;
                 SPAN_KEY_IN_CONTEXT => NonRecordingSpan(
                     "",
                     SpanContext(span_id, trace_id, false, trace_flag, trace_state),
                     nothing,
                 ),
-            ),
+            )),
         )
     end
 end

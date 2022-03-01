@@ -78,7 +78,7 @@ end
 """
 struct TraceState{T<:NamedTuple}
     kv::T
-    function TraceState(entries::Pair{String,String}...)
+    function TraceState(entries::Pair{<:AbstractString,<:AbstractString}...)
         if length(entries) > MAXIMUM_TRACESTATE_KEYS
             @warn "There can't be more than $MAXIMUM_TRACESTATE_KEYS key/value pairs"
         else
@@ -107,7 +107,7 @@ function Base.show(io::IO, ts::TraceState)
 end
 
 function Base.parse(::Type{TraceState}, s::AbstractString)
-    TraceState(Pair(split(kv, '=')...) for kv in split(s, ','))
+    TraceState((Pair(split(kv, '=')...) for kv in split(s, ','))...)
 end
 
 """

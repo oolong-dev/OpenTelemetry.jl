@@ -9,7 +9,9 @@ struct CompositePropagator <: AbstractPropagator
     propagators::Vector
 end
 
-const GLOBAL_PROPAGATOR = CompositePropagator([])
+CompositePropagator() = CompositePropagator(AbstractPropagator[])
+
+const GLOBAL_PROPAGATOR = CompositePropagator()
 
 Base.push!(cp::CompositePropagator, p::AbstractPropagator) = push!(cp.propagators, p)
 

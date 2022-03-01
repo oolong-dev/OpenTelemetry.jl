@@ -88,6 +88,7 @@ end
 
 function (c::Counter)(m::Measurement)
     if m.value < 0
+        # TODO: custom error
         throw(ArgumentError("amount must be non-negative, got $(m.value)"))
     end
     push!(c.meter, c => m)
@@ -120,12 +121,13 @@ struct ObservableCounter{T,F} <: AbstractAsyncInstrument{T}
     end
 end
 
-function (ins::ObservableCounter{T})() where T
+function (ins::ObservableCounter{T})() where {T}
     v = ins.callback()
     m = v isa Measurement ? v : Measurement(v)
     if m.value >= zero(T)
         push!(ins.meter.provider, ins => m)
     else
+        # TODO: custom error
         throw(ArgumentError("amount must be non-negative, got $v"))
     end
 end
