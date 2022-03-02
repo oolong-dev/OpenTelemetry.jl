@@ -44,7 +44,10 @@ jobs:
           cd benchmarks
           julia --project --color=yes -e '
             using Pkg;
-            Pkg.develop(path="..");
+            Pkg.develop(path="../src/api");
+            Pkg.develop(path="../src/sdk");
+            Pkg.develop(path="../src/proto");
+            Pkg.develop(path="../src/exporter/otlp/proto/grpc/");
             Pkg.build("OpenTelemetryProto")
             include("benchmark.jl")'
       - name: Store benchmark result
