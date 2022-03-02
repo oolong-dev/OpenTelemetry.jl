@@ -1,0 +1,164 @@
+[
+    {
+        "Julia": "1.7.1",
+        "BenchmarkTools": "1.0.0"
+    },
+    [
+        [
+            "BenchmarkGroup",
+            {
+                "data": {
+                    "Meter": [
+                        "BenchmarkGroup",
+                        {
+                            "data": {
+                                "Update Counter": [
+                                    "TrialEstimate",
+                                    {
+                                        "allocs": 11,
+                                        "time": 1313.8,
+                                        "memory": 592,
+                                        "params": [
+                                            "Parameters",
+                                            {
+                                                "gctrial": true,
+                                                "time_tolerance": 0.05,
+                                                "samples": 10000,
+                                                "evals": 10,
+                                                "gcsample": false,
+                                                "seconds": 5.0,
+                                                "overhead": 0.0,
+                                                "memory_tolerance": 0.01
+                                            }
+                                        ],
+                                        "gctime": 0.0
+                                    }
+                                ],
+                                "Convert Metrics to Grpc": [
+                                    "TrialEstimate",
+                                    {
+                                        "allocs": 362,
+                                        "time": 24556.5,
+                                        "memory": 28144,
+                                        "params": [
+                                            "Parameters",
+                                            {
+                                                "gctrial": true,
+                                                "time_tolerance": 0.05,
+                                                "samples": 10000,
+                                                "evals": 1,
+                                                "gcsample": false,
+                                                "seconds": 5.0,
+                                                "overhead": 0.0,
+                                                "memory_tolerance": 0.01
+                                            }
+                                        ],
+                                        "gctime": 0.0
+                                    }
+                                ],
+                                "Update Histogram": [
+                                    "TrialEstimate",
+                                    {
+                                        "allocs": 28,
+                                        "time": 2074.7,
+                                        "memory": 1344,
+                                        "params": [
+                                            "Parameters",
+                                            {
+                                                "gctrial": true,
+                                                "time_tolerance": 0.05,
+                                                "samples": 10000,
+                                                "evals": 10,
+                                                "gcsample": false,
+                                                "seconds": 5.0,
+                                                "overhead": 0.0,
+                                                "memory_tolerance": 0.01
+                                            }
+                                        ],
+                                        "gctime": 0.0
+                                    }
+                                ]
+                            },
+                            "tags": []
+                        }
+                    ],
+                    "Trace": [
+                        "BenchmarkGroup",
+                        {
+                            "data": {
+                                "Create Span": [
+                                    "TrialEstimate",
+                                    {
+                                        "allocs": 48,
+                                        "time": 3002.0,
+                                        "memory": 4544,
+                                        "params": [
+                                            "Parameters",
+                                            {
+                                                "gctrial": true,
+                                                "time_tolerance": 0.05,
+                                                "samples": 10000,
+                                                "evals": 9,
+                                                "gcsample": false,
+                                                "seconds": 5.0,
+                                                "overhead": 0.0,
+                                                "memory_tolerance": 0.01
+                                            }
+                                        ],
+                                        "gctime": 0.0
+                                    }
+                                ],
+                                "Create Dummy Span": [
+                                    "TrialEstimate",
+                                    {
+                                        "allocs": 17,
+                                        "time": 1062.1666666666667,
+                                        "memory": 976,
+                                        "params": [
+                                            "Parameters",
+                                            {
+                                                "gctrial": true,
+                                                "time_tolerance": 0.05,
+                                                "samples": 10000,
+                                                "evals": 12,
+                                                "gcsample": false,
+                                                "seconds": 5.0,
+                                                "overhead": 0.0,
+                                                "memory_tolerance": 0.01
+                                            }
+                                        ],
+                                        "gctime": 0.0
+                                    }
+                                ],
+                                "Convert Span to Grpc": [
+                                    "TrialEstimate",
+                                    {
+                                        "allocs": 433,
+                                        "time": 22778.0,
+                                        "memory": 38128,
+                                        "params": [
+                                            "Parameters",
+                                            {
+                                                "gctrial": true,
+                                                "time_tolerance": 0.05,
+                                                "samples": 10000,
+                                                "evals": 1,
+                                                "gcsample": false,
+                                                "seconds": 5.0,
+                                                "overhead": 0.0,
+                                                "memory_tolerance": 0.01
+                                            }
+                                        ],
+                                        "gctime": 0.0
+                                    }
+                                ]
+                            },
+                            "tags": []
+                        }
+                    ]
+                },
+                "tags": []
+            }
+        ]
+    ]
+]
