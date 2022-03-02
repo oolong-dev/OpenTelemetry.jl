@@ -28,7 +28,6 @@ docs/site/
 # Manifest.toml
 
 docs/src/index.md
-benchmarks/output.json
-benchmarks/Manifest.toml
+output.json
 
 .env

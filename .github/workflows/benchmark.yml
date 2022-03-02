@@ -41,21 +41,18 @@ jobs:
             ${{ runner.os }}-
       - name: Run benchmark
         run: |
-          cd benchmarks
+          cd docs
           julia --project --color=yes -e '
             using Pkg;
-            Pkg.develop(path="../src/api");
-            Pkg.develop(path="../src/sdk");
-            Pkg.develop(path="../src/proto");
-            Pkg.develop(path="../src/exporter/otlp/proto/grpc/");
+            Pkg.instantiate();
             Pkg.build("OpenTelemetryProto")
-            include("benchmark.jl")'
+            include("benchmarks/benchmark.jl")'
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:
           name: Benchmark Result with Julia v${{ matrix.version }}
           tool: "julia"
-          output-file-path: benchmarks/output.json
+          output-file-path: docs/benchmarks/output.json
           benchmark-data-dir-path: benchmarks/Julia-v${{ matrix.version }}
           # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t/github-action-not-triggering-gh-pages-upon-push/16096
           github-token: ${{ secrets.GITHUB_TOKEN }}
