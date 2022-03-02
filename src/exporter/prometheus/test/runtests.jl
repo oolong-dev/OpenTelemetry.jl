@@ -39,6 +39,34 @@ using HTTP
     body = split(String(resp.body), "\n"; keepempty = false)
     expected = split(
         """
+        # HELP latency 
+        # TYPE latency histogram
+        latency_bucket{code="888",le="0.0"} 0
+        latency_bucket{code="888",le="5.0"} 2
+        latency_bucket{code="888",le="10.0"} 2
+        latency_bucket{code="888",le="25.0"} 3
+        latency_bucket{code="888",le="50.0"} 3
+        latency_bucket{code="888",le="75.0"} 3
+        latency_bucket{code="888",le="100.0"} 3
+        latency_bucket{code="888",le="250.0"} 3
+        latency_bucket{code="888",le="500.0"} 4
+        latency_bucket{code="888",le="1000.0"} 4
+        latency_bucket{code="888",le="+Inf"} 5
+        latency_count{code="888"} 5
+        latency_sum{code="888"} 4664.1
+        latency_bucket{code="666",le="0.0"} 0
+        latency_bucket{code="666",le="5.0"} 2
+        latency_bucket{code="666",le="10.0"} 2
+        latency_bucket{code="666",le="25.0"} 3
+        latency_bucket{code="666",le="50.0"} 3
+        latency_bucket{code="666",le="75.0"} 3
+        latency_bucket{code="666",le="100.0"} 3
+        latency_bucket{code="666",le="250.0"} 3
+        latency_bucket{code="666",le="500.0"} 4
+        latency_bucket{code="666",le="1000.0"} 4
+        latency_bucket{code="666",le="+Inf"} 5
+        latency_count{code="666"} 5
+        latency_sum{code="666"} 4664.1
         # HELP fruit_counter 
         # TYPE fruit_counter counter
         fruit_counter{color="red",name="apple"} 6
