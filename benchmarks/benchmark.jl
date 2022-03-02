@@ -1,6 +1,10 @@
-using OpenTelemetry
+using OpenTelemetryAPI
+using OpenTelemetrySDK
+using OpenTelemetryProto
+using OpenTelemetryExporterOtlpProtoGrpc
 using BenchmarkTools
 using Logging
+using Dates
 
 Logging.disable_logging(Logging.Error)
 
@@ -26,20 +30,44 @@ const TRACER = Tracer(
 
 const DUMMY_TRACER = Tracer(provider = OpenTelemetryAPI.DUMMY_TRACER_PROVIDER)
 
-function create_span(t)
+function init_span(t)
     with_span(
         "benchmarkedSpan",
         t;
         attributes = Dict{String,TAttrVal}("long.attribute" => -10000000001000000000),
     ) do
-        push!(current_span(), OpenTelemetry.Event(name = "benchmarkEvent"))
+        push!(current_span(), OpenTelemetryAPI.Event(name = "benchmarkEvent"))
     end
 end
 
-trace_suite["Create Span"] = @benchmarkable create_span($TRACER)
+trace_suite["Create Span"] = @benchmarkable init_span($TRACER)
 
-trace_suite["Create Dummy Span"] = @benchmarkable create_span($DUMMY_TRACER)
+trace_suite["Create Dummy Span"] = @benchmarkable init_span($DUMMY_TRACER)
 
+const TYPICAL_SPAN = OpenTelemetrySDK.Span(
+    Ref{String}("TYPICAL_SPAN"),
+    TRACER,
+    INVALID_SPAN_CONTEXT,
+    nothing,
+    SPAN_KIND_INTERNAL,
+    UInt(time() * 10^9),
+    Ref{Union{Nothing,UInt}}(UInt(time() * 10^9)),
+    DynamicAttrs(
+        Dict{String,TAttrVal}(
+            "aaa" => repeat("a", 32),
+            "bbb" => repeat("b", 32),
+            "ccc" => repeat("c", 32),
+        ),
+    ),
+    Limited(Link[Link(INVALID_SPAN_CONTEXT, StaticAttrs(; a = 1, b = 2.0))]),
+    Limited(Event[Event("xyz", UInt(time() * 10^9), StaticAttrs(; m = [1], n = "2"))]),
+    Ref{SpanStatus}(SpanStatus(SPAN_STATUS_UNSET)),
+)
+
+trace_suite["Convert Span to Grpc"] = @benchmarkable convert(
+    OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest,
+    TYPICAL_SPAN,
+)
 #####
 
 meter_suite = BenchmarkGroup()
@@ -73,6 +101,12 @@ end
 meter_suite["Update Histogram"] =
     @benchmarkable update_histogram(h, n) setup = (h = $HISTOGRAM; n = rand(1:1_000))
 
+function convert_counter_to_grpc(m) end
+
+meter_suite["Convert Metrics to Grpc"] = @benchmarkable convert(
+    OpenTelemetryProto.OpentelemetryClients.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest,
+    metrics(PROVIDER),
+)
 #####
 
 tune!(suite)

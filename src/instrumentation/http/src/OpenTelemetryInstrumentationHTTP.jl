@@ -53,14 +53,7 @@ function HTTP.request(
             "net.peer.port" => parse(Int, url.port),
         ),
     ) do
-        resp = HTTP.request(
-            Next,
-            method,
-            url,
-            inject!(headers, TraceContextTextMapPropagator()),
-            body;
-            kw...,
-        )
+        resp = HTTP.request(Next, method, url, inject!(headers), body; kw...)
         s = current_span()
         s["http.status_code"] = resp.status |> Int
         s["http.flavor"] = string(resp.version)
@@ -168,7 +161,7 @@ function otel_handle(r::HTTP.Router, http::HTTP.Stream)
         "/" * join(map(type2segment, m_handler.sig.parameters[6:end]), "/")
     end
 
-    with_context(extract(req.headers, TraceContextTextMapPropagator())) do
+    with_context(extract(req.headers)) do
         with_span(
             name,
             HTTP_TRACER[];

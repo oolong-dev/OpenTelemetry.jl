@@ -11,4 +11,8 @@ include("propagator/propagator.jl")
 include("metric/metric.jl")
 include("log.jl")
 
+function __init__()
+    push!(GLOBAL_PROPAGATOR, TraceContextTextMapPropagator())
+end
+
 end # module

@@ -9,7 +9,9 @@ struct CompositePropagator <: AbstractPropagator
     propagators::Vector
 end
 
-const GLOBAL_PROPAGATOR = CompositePropagator([])
+CompositePropagator() = CompositePropagator(AbstractPropagator[])
+
+const GLOBAL_PROPAGATOR = CompositePropagator()
 
 Base.push!(cp::CompositePropagator, p::AbstractPropagator) = push!(cp.propagators, p)
 
@@ -28,6 +30,7 @@ function inject!(carrier, propagator::CompositePropagator, ctx::Context)
     for p in propagator.propagators
         inject!(carrier, p, ctx)
     end
+    carrier
 end
 
 """
@@ -37,7 +40,7 @@ Extracts the value from an incoming request. For example, from the headers of an
 """
 function extract(
     carrier,
-    propagator::AbstractPropagator = global_propagator(),
+    propagator::AbstractPropagator = GLOBAL_PROPAGATOR,
     ctx::Context = current_context(),
 ) end
 

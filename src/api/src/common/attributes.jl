@@ -107,6 +107,7 @@ const TAttrVal = Union{
     Vector{String},
     Vector{Bool},
     Vector{Int64},
+    Vector{UInt8},
     Vector{Float64},
 }
 
@@ -118,6 +119,7 @@ is_valid_attr_val(x) = false
 
 """
     StaticAttrs(attrs::NamedTuple; value_length_limit=nothing)
+    StaticAttrs(; value_length_limit=nothing, attrs...)
     StaticAttrs(attrs::Pair{String, TAttrVal}...; value_length_limit=nothing)
     StaticAttrs(attrs::Pair{Symbol, TAttrVal}...; value_length_limit=nothing)
 
@@ -148,7 +150,11 @@ function Base.show(io::IO, s::StaticAttrs)
     end
 end
 
-StaticAttrs(; kw...) = StaticAttrs(NamedTuple(); kw...)
+StaticAttrs(; value_length_limit = nothing, kw...) =
+    StaticAttrs(values(kw); value_length_limit = value_length_limit)
+StaticAttrs(attrs::Pair{String}...; kw...) =
+    StaticAttrs((Symbol(k) => v for (k, v) in attrs)...; kw...)
+StaticAttrs(attrs::Pair{Symbol}...; kw...) = StaticAttrs(NamedTuple(attrs); kw...)
 
 n_dropped(a::StaticAttrs) = 0
 

@@ -13,6 +13,14 @@
     c(5; name = "apple", color = "red")
     c(4; name = "lemon", color = "yellow")
 
+    @test length(metrics()) == 0  # the default meter provider is a dummy one
+
+    @test length(metrics(p)) == 1
+    mt = first(metrics(p))
+    @test length(collect(mt)) == 3
+
+    @test resource(mt) == resource(p)
+
     udc = UpDownCounter{Int}("stock", m)
     udc(200)
     udc(-50)
@@ -21,7 +29,7 @@
     function fake_observer(x)
         i = x
         function ()
-            res = Measurement(i * 2)
+            res = i * 2
             i += 1
             res
         end
@@ -123,8 +131,13 @@
         export_interval_seconds = 1,
     )
 
+    periodic_reader()
+
     sleep(3)
     shut_down!(periodic_reader)
+
+    global_meter_provider!(p)
+    mr = MetricReader()  # read to console by default
 end
 
 @testset "AggregationStore" begin
