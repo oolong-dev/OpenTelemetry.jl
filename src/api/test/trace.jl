@@ -25,7 +25,7 @@
         global_tracer_provider!(global_tracer_provider())  # smoke test
 
         tracer = Tracer()
-        @test_throws ErrorException with_span("test", tracer) do
+        with_span("test", tracer) do
             s = current_span()
             @test resource(s) == resource(global_tracer_provider())
             @test span_context() === INVALID_SPAN_CONTEXT
@@ -39,11 +39,9 @@
             @test length(span_links()) == 0
             @test span_status().code == SPAN_STATUS_UNSET
 
-            @test span_name!("XYZ")
+            span_name!("XYZ")
             @test span_name() == "test"
             @info "Other APIs" span_kind() parent_span_context()
-
-            throw(ErrorException("test recording error"))
         end
 
         with_span("foo", tracer) do

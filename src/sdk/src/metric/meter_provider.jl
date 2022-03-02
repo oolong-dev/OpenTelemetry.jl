@@ -12,12 +12,6 @@ Base.@kwdef mutable struct Metric{A<:AbstractAggregation}
     instrument::AbstractInstrument
 end
 
-function (metric::Metric)(ms)
-    for m in ms
-        metric(m)
-    end
-end
-
 Base.iterate(m::Metric, args...) = iterate(m.aggregation, args...)
 Base.getindex(m::Metric, k) = getindex(m.aggregation, k)
 Base.length(m::Metric) = length(m.aggregation)

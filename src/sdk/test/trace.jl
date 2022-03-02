@@ -24,8 +24,15 @@
 
         push!(p, SimpleSpanProcessor(ConsoleExporter()))
 
-        with_span("test", tracer) do
-            println("hello world!")
+        @test_throws ErrorException with_span("test", tracer) do
+            span_name!("TEST")  # one can change the name of current span
+            println("hello world from $(span_name()) [$(span_status())]!")
+            try
+                throw(ErrorException("???"))
+            catch e
+                push!(current_span(), e; is_rethrow_followed = true)
+                rethrow(e)
+            end
         end
 
         force_flush!(p)

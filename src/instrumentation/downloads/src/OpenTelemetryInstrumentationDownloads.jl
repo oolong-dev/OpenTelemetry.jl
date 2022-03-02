@@ -47,7 +47,7 @@ if VERSION <= v"1.7.2"
                     url,
                     output = output,
                     method = method,
-                    headers = inject!(headers, TraceContextTextMapPropagator()),
+                    headers = inject!(headers),
                     timeout = timeout,
                     progress = progress,
                     verbose = verbose,

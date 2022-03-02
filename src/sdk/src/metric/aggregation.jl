@@ -69,7 +69,7 @@ The `AggregationStore` holds all the aggregated datapoints in a
 """
 function AggregationStore{D}(;
     n_max_points = N_MAX_POINTS_PER_METRIC,
-    n_max_attrs = 2 * N_MAX_POINTS_PER_METRIC,
+    n_max_attrs = 2 * N_MAX_POINTS_PER_METRIC
 ) where {D<:DataPoint}
     AggregationStore{D}(
         Dict{StaticAttrs,D}(),
@@ -81,8 +81,17 @@ function AggregationStore{D}(;
 end
 
 Base.iterate(a::AggregationStore, args...) = iterate(a.unique_points, args...)
-Base.getindex(m::AggregationStore, k) = getindex(m.unique_points, k)
 Base.length(m::AggregationStore) = length(m.unique_points)
+
+function Base.getindex(m::AggregationStore, k)
+    v = get(m.points, k, nothing)
+    if isnothing(v)
+        k_sorted = sort(k)
+        get(m.points, k_sorted)
+    else
+        v
+    end
+end
 
 function Base.get!(f, agg::AggregationStore, attrs)
     point = get(agg.points, attrs, nothing)
@@ -200,7 +209,7 @@ function HistogramValue{T}(;
     boundaries = DEFAULT_HISTOGRAM_BOUNDARIES,
     is_record_sum = true,
     is_record_min = true,
-    is_record_max = true,
+    is_record_max = true
 ) where {T}
     M = length(boundaries)
     N = M + 1
@@ -260,7 +269,7 @@ end
 HistogramAgg{T}(;
     boundaries = DEFAULT_HISTOGRAM_BOUNDARIES,
     is_record_min = true,
-    is_record_max = true,
+    is_record_max = true
 ) where {T} = HistogramAgg(
     boundaries,
     is_record_min,
@@ -278,7 +287,7 @@ function (agg::HistogramAgg{T,E})(e::Exemplar{<:Measurement}) where {T,E}
             HistogramValue{T}(;
                 boundaries = agg.boundaries,
                 is_record_min = agg.is_record_min,
-                is_record_max = agg.is_record_max,
+                is_record_max = agg.is_record_max
             ),
             t,
             t,
