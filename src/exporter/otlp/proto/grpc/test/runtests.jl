@@ -18,6 +18,25 @@ using OpenTelemetryExporterOtlpProtoGrpc
 
     # Span
     with_span("foo", Tracer(provider = TracerProvider())) do
+        s = current_span()
+        s["a"] = "a"
+        s["b"] = true
+        s["c"] = 1.0
+        s["d"] = UInt8[0, 1, 2]
+        s["e"] = -1
+        push!(s, Event(; name = "example", attributes = StaticAttrs("e" => "eee")))
+        push!(
+            s,
+            Link(
+                SpanContext(;
+                    trace_id = rand(TraceIdType),
+                    span_id = rand(SpanIdType),
+                    is_remote = false,
+                ),
+                StaticAttrs("f" => "fff"),
+            ),
+        )
+
         req = convert(
             OpenTelemetryProto.OpentelemetryClients.ExportTraceServiceRequest,
             current_span(),
@@ -30,6 +49,10 @@ end
     m = Meter("abc"; provider = p)
     c = Counter{Int}("fruit_counter", m)
     c(1; name = "lemon", color = "yellow")
+
+    h = Histogram{Float64}("fake_hist", m)
+    h(1; name = "lemon", color = "yellow")
+
     convert(OpenTelemetryProto.OpentelemetryClients.ExportMetricsServiceRequest, metrics(p))
 end
 

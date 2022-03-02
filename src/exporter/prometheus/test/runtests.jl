@@ -18,6 +18,20 @@ using HTTP
     c(5; name = "apple", color = "red")
     c(4; name = "lemon", color = "yellow")
 
+    h = Histogram{Float64}("latency", m)
+
+    h(0.1; code = 666)
+    h(1; code = 666)
+    h(21; code = 666)
+    h(321; code = 666)
+    h(4321; code = 666)
+
+    h(0.1; code = 888)
+    h(1; code = 888)
+    h(21; code = 888)
+    h(321; code = 888)
+    h(4321; code = 888)
+
     e = PrometheusExporter(; host = "0.0.0.0", port = 9966)
     r = MetricReader(p, e)
 
