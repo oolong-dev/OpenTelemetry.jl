@@ -18,7 +18,8 @@
         sc = span_context(ctx)
         @test sc.trace_id == test_trace_id
         @test sc.span_id == test_span_id
-        @test string(sc.trace_state) == string(TraceState("foo" => "1", "bar" => "2", "baz" => "3"))
+        @test string(sc.trace_state) ==
+              string(TraceState("foo" => "1", "bar" => "2", "baz" => "3"))
         @test sc.trace_flag == TraceFlag(false)
     end
 
@@ -32,5 +33,4 @@
 
     inject!(nothing, p)  # Should not throw error
     extract(nothing, p)  # Should not throw error
-
 end

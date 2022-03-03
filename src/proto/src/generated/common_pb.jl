@@ -85,13 +85,13 @@ function meta(::Type{AnyValue})
         if !isassigned(__meta_AnyValue)
             __meta_AnyValue[] = target = ProtoMeta(AnyValue)
             allflds = Pair{Symbol,Union{Type,String}}[
-                :string_value=>AbstractString,
-                :bool_value=>Bool,
-                :int_value=>Int64,
-                :double_value=>Float64,
-                :array_value=>"ArrayValue",
-                :kvlist_value=>"KeyValueList",
-                :bytes_value=>Vector{UInt8},
+                :string_value => AbstractString,
+                :bool_value   => Bool,
+                :int_value    => Int64,
+                :double_value => Float64,
+                :array_value  => "ArrayValue",
+                :kvlist_value => "KeyValueList",
+                :bytes_value  => Vector{UInt8},
             ]
             oneofs = Int[1, 1, 1, 1, 1, 1, 1]
             oneof_names = Symbol[Symbol("value")]

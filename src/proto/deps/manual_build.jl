@@ -53,5 +53,4 @@ open(Downloads.download(download_url)) do tar_gz
     logs_dir = joinpath(@__DIR__, "..", "src", "logs_generated")
 
     gRPCClient.generate(logs_proto_file; outdir = logs_dir, includes = [proto_dir])
-
 end
