@@ -110,7 +110,12 @@ opentelemetry.proto.collector.metrics.v1.Export(
     client::MetricsServiceClient,
     inp::opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest,
     done::Function,
-) = opentelemetry.proto.collector.metrics.v1.Export(client.stub, client.controller, inp, done)
+) = opentelemetry.proto.collector.metrics.v1.Export(
+    client.stub,
+    client.controller,
+    inp,
+    done,
+)
 
 # end service: opentelemetry.proto.collector.metrics.v1.MetricsService
 

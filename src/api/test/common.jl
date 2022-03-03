@@ -27,7 +27,6 @@
         @test haskey(L1, "c") == false
         @test_throws KeyError L1["c"]
         @test n_dropped(L1) == 2
-
     end
 end
 

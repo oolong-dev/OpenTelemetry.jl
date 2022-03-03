@@ -68,7 +68,7 @@ struct Meter{P<:AbstractMeterProvider}
     function Meter(
         name::String;
         provider::P = global_meter_provider(),
-        instrumentation_info = InstrumentationInfo()
+        instrumentation_info = InstrumentationInfo(),
     ) where {P<:AbstractMeterProvider}
         m = new{P}(name, provider, instrumentation_info, AbstractInstrument[])
         push!(provider, m)

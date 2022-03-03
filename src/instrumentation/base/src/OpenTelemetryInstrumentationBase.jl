@@ -27,12 +27,12 @@ const INSTRUMENTATION_INFO = InstrumentationInfo(
 """
 function init(;
     meter_provider = global_meter_provider(),
-    tracer_provider = global_tracer_provider()
+    tracer_provider = global_tracer_provider(),
 )
     m_sys = Meter(
         "Base.Sys";
         provider = meter_provider,
-        instrumentation_info = INSTRUMENTATION_INFO
+        instrumentation_info = INSTRUMENTATION_INFO,
     )
 
     ObservableGauge{Float64}(
@@ -40,7 +40,7 @@ function init(;
         "uptime",
         m_sys;
         unit = "second",
-        description = "The current system uptime in seconds."
+        description = "The current system uptime in seconds.",
     )
 
     ObservableGauge{UInt64}(
@@ -48,7 +48,7 @@ function init(;
         "free_memory",
         m_sys;
         unit = "bytes",
-        description = "The total free memory in RAM in bytes."
+        description = "The total free memory in RAM in bytes.",
     )
 
     ObservableGauge{Float64}(
@@ -56,7 +56,7 @@ function init(;
         "free_memory_ratio",
         m_sys;
         unit = "%",
-        description = "The ratio of free memory in percentage."
+        description = "The ratio of free memory in percentage.",
     )
 
     ObservableGauge{UInt64}(
@@ -64,13 +64,13 @@ function init(;
         "maxrss",
         m_sys;
         unit = "bytes",
-        description = "The maximum resident set size utilized in bytes."
+        description = "The maximum resident set size utilized in bytes.",
     )
 
     m = Meter(
         "Base";
         provider = meter_provider,
-        instrumentation_info = INSTRUMENTATION_INFO
+        instrumentation_info = INSTRUMENTATION_INFO,
     )
 
     ObservableGauge{Int64}(
@@ -78,7 +78,7 @@ function init(;
         "jit_total_bytes",
         m;
         unit = "bytes",
-        description = "The total amount (in bytes) allocated by the just-in-time compiler."
+        description = "The total amount (in bytes) allocated by the just-in-time compiler.",
     )
 
     ObservableGauge{Int64}(
@@ -86,7 +86,7 @@ function init(;
         "gc_live_bytes",
         m;
         unit = "bytes",
-        description = "The total size of live objects after the last garbage collection, plus the number of bytes allocated since then"
+        description = "The total size of live objects after the last garbage collection, plus the number of bytes allocated since then",
     )
 
     ObservableGauge{UInt64}(
@@ -94,7 +94,7 @@ function init(;
         "gc_time_ns",
         m;
         unit = "nanoseconds",
-        description = "Total time spend in garbage collection, in nanoseconds"
+        description = "Total time spend in garbage collection, in nanoseconds",
     )
 end
 
