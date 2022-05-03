@@ -14,7 +14,7 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 [compat]
 GarishPrint = "0.2, 0.3, 0.4, 0.5"
 Glob = "1"
-OpenTelemetryAPI = "0.3"
+OpenTelemetryAPI = "0.3, 0.2"
 Reexport = "1"
 julia = "1"
 
