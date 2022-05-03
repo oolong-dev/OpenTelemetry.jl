@@ -73,7 +73,7 @@ function extract(
                     "",
                     SpanContext(span_id, trace_id, false, trace_flag, trace_state),
                     nothing,
-                ),
+                )
             )),
         )
     end

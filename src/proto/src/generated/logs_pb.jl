@@ -30,14 +30,14 @@ const SeverityNumber = (;
         Symbol("SEVERITY_NUMBER_FATAL2") => Int32(22),
         Symbol("SEVERITY_NUMBER_FATAL3") => Int32(23),
         Symbol("SEVERITY_NUMBER_FATAL4") => Int32(24),
-    ]...,
+    ]...
 )
 
 const LogRecordFlags = (;
     [
         Symbol("LOG_RECORD_FLAG_UNSPECIFIED") => Int32(0),
         Symbol("LOG_RECORD_FLAG_TRACE_FLAGS_MASK") => Int32(255),
-    ]...,
+    ]...
 )
 
 mutable struct LogRecord <: ProtoType
