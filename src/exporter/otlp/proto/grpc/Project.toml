@@ -12,7 +12,7 @@ URIs = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
 gRPCClient = "aaca4a50-36af-4a1d-b878-4c443f2061ad"
 
 [compat]
-OpenTelemetryAPI = "0.3"
+OpenTelemetryAPI = "0.3, 0.2"
 OpenTelemetryProto = "0.1, 0.13"
 OpenTelemetrySDK = "0.2.1"
 URIs = "1"
