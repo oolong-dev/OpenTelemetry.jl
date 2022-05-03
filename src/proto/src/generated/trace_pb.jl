@@ -8,7 +8,7 @@ const Status_StatusCode = (;
         Symbol("STATUS_CODE_UNSET") => Int32(0),
         Symbol("STATUS_CODE_OK") => Int32(1),
         Symbol("STATUS_CODE_ERROR") => Int32(2),
-    ]...,
+    ]...
 )
 
 mutable struct Status <: ProtoType
@@ -74,7 +74,7 @@ const Span_SpanKind = (;
         Symbol("SPAN_KIND_CLIENT") => Int32(3),
         Symbol("SPAN_KIND_PRODUCER") => Int32(4),
         Symbol("SPAN_KIND_CONSUMER") => Int32(5),
-    ]...,
+    ]...
 )
 
 mutable struct Span_Event <: ProtoType

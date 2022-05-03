@@ -8,7 +8,7 @@ const AggregationTemporality = (;
         Symbol("AGGREGATION_TEMPORALITY_UNSPECIFIED") => Int32(0),
         Symbol("AGGREGATION_TEMPORALITY_DELTA") => Int32(1),
         Symbol("AGGREGATION_TEMPORALITY_CUMULATIVE") => Int32(2),
-    ]...,
+    ]...
 )
 
 const DataPointFlags =
