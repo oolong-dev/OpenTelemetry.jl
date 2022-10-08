@@ -57,7 +57,7 @@ end
 end
 
 @testset "OtlpProtoGrpc Logs" begin
-    r = LogRecord(;
+    r = OpenTelemetryAPI.LogRecord(;
         timestamp = UInt(time() * 10^9),
         trace_id = INVALID_TRACE_ID,
         span_id = INVALID_SPAN_ID,
