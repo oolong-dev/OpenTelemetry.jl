@@ -13,7 +13,7 @@ function inject!(
         AbstractDict{<:AbstractString,<:AbstractString},
     },
     propagator::TraceContextTextMapPropagator,
-    ctx::Context = current_context(),
+    ctx::Context=current_context(),
 )
     sc = span_context(ctx)
     if !isnothing(sc)
@@ -31,11 +31,13 @@ end
 function inject!(
     carrier::T,
     ::TraceContextTextMapPropagator,
-    ctx::Context = current_context(),
+    ctx::Context=current_context(),
 ) where {T}
     @warn "unknown carrier type $T"
     carrier
 end
+
+#####
 
 TRACEPARENT_HEADER_FORMAT =
     r"^[ \t]*(?P<version>[0-9a-f]{2})-(?P<trace_id>[0-9a-f]{32})-(?P<span_id>[0-9a-f]{16})-(?P<trace_flag>[0-9a-f]{2})(?P<rest>-.*)?[ \t]*$"
@@ -46,7 +48,7 @@ function extract(
         AbstractDict{<:AbstractString,<:AbstractString},
     },
     propagator::TraceContextTextMapPropagator,
-    ctx::Context = current_context(),
+    ctx::Context=current_context(),
 )
     trace_id, span_id, trace_flag, trace_state = nothing, nothing, nothing, TraceState()
     for (k, v) in carrier
@@ -83,7 +85,7 @@ end
 function extract(
     carrier::T,
     ::TraceContextTextMapPropagator,
-    ctx::Context = current_context(),
+    ctx::Context=current_context(),
 ) where {T}
     @warn "unknown carrier type $T"
     ctx

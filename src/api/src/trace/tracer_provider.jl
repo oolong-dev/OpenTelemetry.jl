@@ -1,5 +1,4 @@
-export AbstractTracerProvider,
-    global_tracer_provider,
+export global_tracer_provider,
     global_tracer_provider!,
     provider,
     tracer,
@@ -118,7 +117,7 @@ is_recording(s::NonRecordingSpan) = false
 """
     attributes(s::AbstractSpan)
 
-Return either [`StaticAttrs`](@ref) or [`DynamicAttrs`](@ref) in the span `s`.
+A [`BoundedAttributes`](@ref) is expected.
 
 !!! warning
     
@@ -126,7 +125,7 @@ Return either [`StaticAttrs`](@ref) or [`DynamicAttrs`](@ref) in the span `s`.
     modify attributes through `(s::AbstractSpan)[key]=val` because it will check
     the `is_recording(s)` first.
 """
-attributes(s::NonRecordingSpan) = StaticAttrs()
+attributes(s::NonRecordingSpan) = BoundedAttributes()
 
 """
     start_time(s::AbstractSpan)
@@ -187,10 +186,10 @@ end
 """
     span_events(s::AbstractSpan)
 
-Get the recorded events in a span. A [`Limited`](@ref) is expected.
+Get the recorded events in a span.
 """
 span_events() = span_events(current_span())
-span_events(s::NonRecordingSpan) = Limited(Event[])
+span_events(s::NonRecordingSpan) = Event[]
 
 """
     Base.push!([current_span()], link::Link)
@@ -210,10 +209,10 @@ end
 """
     span_links(s::AbstractSpan)
 
-Get the recorded links in a span. A [`Limited`](@ref) is expected.
+Get the recorded links in a span.
 """
 span_links() = span_links(current_span())
-span_links(s::NonRecordingSpan) = Limited(Link[])
+span_links(s::NonRecordingSpan) = Link[]
 
 """
     span_status!([current_span()], code::SpanStatusCode, description=nothing)
@@ -223,7 +222,7 @@ Update the status of span `s` by following the original specification. `descript
 span_status!(code::SpanStatusCode, description) =
     span_status!(current_span(), code, description)
 span_status!(s::NonRecordingSpan, code::SpanStatusCode, description = nothing) =
-    @warn "the span is not recording."
+    @debug "the span is not recording."
 
 """
     span_status([current_span()])
@@ -249,7 +248,7 @@ end_span!(s::NonRecordingSpan, t) = @debug "the span is not recording."
 A specialized variant of [`Event`](@ref) to record exceptions. Usually used in a `try... catch...end` to capture the backtrace. If the `ex` is `rethrow`ed in the `catch...end`, `is_rethrow_followed` should be set to `true`.
 """
 Base.push!(s::NonRecordingSpan, ex::Exception; is_rethrow_followed = false) =
-    @warn "the span is not recording."
+    @debug "the span is not recording."
 
 """
     span_name([current_span()])

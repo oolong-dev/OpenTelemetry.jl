@@ -1,6 +1,4 @@
-export AbstractAsyncInstrument,
-    AbstractSyncInstrument,
-    Measurement,
+export Measurement,
     Counter,
     ObservableCounter,
     Histogram,
@@ -9,18 +7,18 @@ export AbstractAsyncInstrument,
     ObservableUpDownCounter
 
 """
-    Measurement(value, [attributes=StaticAttrs()])
+    Measurement(value, [attributes=BoundedAttributes()])
 
 This is to follow [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/api.md#measurement)
 
-See also [StaticAttrs](@ref)
+See also [BoundedAttributes](@ref)
 """
-struct Measurement{V,T<:StaticAttrs}
+struct Measurement{V,T<:BoundedAttributes}
     value::V
     attributes::T
 end
 
-Measurement(v) = Measurement(v, StaticAttrs())
+Measurement(v) = Measurement(v, BoundedAttributes())
 
 """
 Sync instrument usually pass its measurement immediately.
@@ -35,7 +33,7 @@ OpenTelemetry) to get its measurement.
     
     If the return of the callback function is not a [`Measurement`](@ref),
     it will be converted into a `Measurement` with an empty
-    [`StaticAttrs`](@ref) implicitly when being uploaded to the associated meter
+    [`BoundedAttributes`](@ref) implicitly when being uploaded to the associated meter
     provider.
 """
 abstract type AbstractAsyncInstrument{T} <: AbstractInstrument{T} end
@@ -57,7 +55,7 @@ function examine_instrument(
 end
 
 (ins::AbstractSyncInstrument)(amount; kw...) =
-    ins(Measurement(amount, StaticAttrs(values(kw))))
+    ins(Measurement(amount, BoundedAttributes(values(kw))))
 (ins::AbstractSyncInstrument)(m::Measurement) = push!(ins.meter.provider, ins => m)
 
 (ins::AbstractAsyncInstrument)() = push!(ins.meter.provider, ins => ins.callback())

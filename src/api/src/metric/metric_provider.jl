@@ -1,5 +1,4 @@
-export AbstractMeterProvider,
-    AbstractInstrument, global_meter_provider, global_meter_provider!, Meter
+export global_meter_provider, global_meter_provider!, Meter, provider, resource
 
 """
 A meter provider defines how to collect and update [`Measurement`](@ref)s. Each
