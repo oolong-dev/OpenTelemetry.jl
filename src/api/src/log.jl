@@ -35,18 +35,19 @@ end
 
 function (L::OtelLogTransformer)(log)
     span_ctx = span_context()
+    ts = UInt(time() * 10^9)
     merge(
         log,
         (
-            message=LogRecord(;
-                timestamp=UInt(time() * 10^9),
-                observed_timestamp=timestamp,
-                trace_id=isnothing(span_ctx) ? INVALID_TRACE_ID : span_ctx.trace_id,
-                span_id=isnothing(span_ctx) ? INVALID_SPAN_ID : span_ctx.span_id,
-                trace_flags=isnothing(span_ctx) ? TraceFlag() : span_ctx.trace_flag,
-                severity_text=uppercase(string(log.level)),
+            message = LogRecord(;
+                timestamp = ts,
+                observed_timestamp = ts,
+                trace_id = isnothing(span_ctx) ? INVALID_TRACE_ID : span_ctx.trace_id,
+                span_id = isnothing(span_ctx) ? INVALID_SPAN_ID : span_ctx.span_id,
+                trace_flags = isnothing(span_ctx) ? TraceFlag() : span_ctx.trace_flag,
+                severity_text = uppercase(string(log.level)),
                 # https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#field-severitynumber
-                severity_number=if log.level >= Logging.Error
+                severity_number = if log.level >= Logging.Error
                     17
                 elseif log.level >= Logging.Warn
                     13
@@ -57,12 +58,12 @@ function (L::OtelLogTransformer)(log)
                 else
                     1
                 end,
-                body=log.message,
-                resource=L.resource,
-                instrumentation_info=L.instrumentation_info,
-                attributes=BoundedAttributes(NamedTuple(log.kwargs))
+                body = log.message,
+                resource = L.resource,
+                instrumentation_info = L.instrumentation_info,
+                attributes = BoundedAttributes(NamedTuple(log.kwargs)),
             ),
-            kwargs=NamedTuple(),
+            kwargs = NamedTuple(),
         ),
     )
 end

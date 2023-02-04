@@ -8,9 +8,9 @@
                 attrs = Dict("a" => 1, "b" => "bbb")
                 A = BoundedAttributes(attrs)
 
-                @test n_dropped(L1) == 1
-                @test length(pairs(L1)) == 1
-                @test length(collect(L1)) == 1
+                @test n_dropped(A) == 1
+                @test length(pairs(A)) == 1
+                @test length(collect(A)) == 1
 
                 # should only work for OrderedDict
                 # @test A["b"] == "bb"
@@ -25,8 +25,8 @@
 
         @testset "NamedTuple" begin
             withenv(
-                "OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT" => "2",
-                "OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT" => "2",
+                "OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT" => "2",
+                "OTEL_ATTRIBUTE_COUNT_LIMIT" => "2",
             ) do
                 attrs = (x = 1, y = -2.0, z = "abcdefg")
                 A = BoundedAttributes(attrs)
@@ -35,8 +35,6 @@
                 @test A[:y] == -2.0
                 @test A[:z] == "ab"
                 @test repr(A) == "y=-2.0,z=ab"
-
-                @test_throws MethodError A[:x] = "x"
             end
         end
     end

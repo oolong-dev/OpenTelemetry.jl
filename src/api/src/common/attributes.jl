@@ -26,12 +26,13 @@ BoundedAttributes(; kw...) = BoundedAttributes(NamedTuple(); kw...)
 function BoundedAttributes(attrs; count_limit = nothing, value_length_limit = nothing)
     count_limit = something(count_limit, OTEL_ATTRIBUTE_COUNT_LIMIT())
     value_length_limit = something(value_length_limit, OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT())
-    attrs, n_dropped = clean_attrs(attrs, count_limit, value_length_limit)
+    attrs, n_dropped = clean_attrs!(attrs, count_limit, value_length_limit)
     BoundedAttributes(attrs, count_limit, value_length_limit, Ref(n_dropped))
 end
 
 Base.getindex(x::BoundedAttributes, args...) = getindex(x.attrs, args...)
 Base.haskey(x::BoundedAttributes, k) = haskey(x.attrs, k)
+Base.haskey(x::BoundedAttributes{<:NamedTuple}, k::String) = haskey(x.attrs, Symbol(k))
 Base.length(x::BoundedAttributes) = length(x.attrs)
 Base.iterate(x::BoundedAttributes, args...) = iterate(x.attrs, args...)
 Base.pairs(A::BoundedAttributes) = pairs(A.attrs)
@@ -61,19 +62,16 @@ is_valid_attr_val(t::Tuple{}) = true
 is_valid_attr_val(x) = false
 
 function Base.setindex!(attrs::BoundedAttributes, v::TAttrVal, k)
-    v = _truncate(v, attrs.value_length_limit)
-    d.attrs[k] = v
-    _, n_dropped = clip_attrs_by_count!(attrs.attrs, attrs.count_limit)
-    attrs.n_dropped[] += 1
-    if n_dropped > 0
-        @warn "The count of attributes exceeds the preset limit ($(attrs.count_limit)). Oldest one is dropped."
+    if !haskey(attrs, k) && length(attrs) >= attrs.count_limit
+        clip_attrs_by_count!(attrs.attrs, attrs.count_limit - 1)
+        attrs.n_dropped[] += 1
+        @warn "The count of attributes exceeds the preset limit ($(attrs.count_limit))."
     end
+    attrs.attrs[k] = _truncate(v, attrs.value_length_limit)
 end
 
-function Base.setindex!(attrs::BoundedAttributes{<:NamedTuple}, v::TAttrVal, k)
-    @warn "Updating immutable attributes. Dropped."
-    attrs.n_dropped[] += 1
-end
+Base.setindex!(attrs::BoundedAttributes{<:NamedTuple}, v::TAttrVal, k) =
+    @error "Updating immutable attributes. Dropped."
 
 """
     n_dropped(x::BoundedAttributes)
@@ -135,30 +133,8 @@ Follow the specification on [Attribute Limits](https://opentelemetry.io/docs/ref
     
     If `attrs` is mutable, it may be modified in-place.
 """
-function clean_attrs(attrs, count_limit, value_length_limit)
+function clean_attrs!(attrs, count_limit, value_length_limit)
     attrs, n_dropped = clip_attrs_by_count!(attrs, count_limit)
     attrs = clip_attrs_by_value_length!(attrs, value_length_limit)
     attrs, n_dropped
-end
-
-function Base.setindex!(x::BoundedAttributes{<:AbstractDict}, v, k)
-    if haskey(x.attrs, k)
-        setindex!(x.attrs, v, k)
-    elseif length(x.attrs) >= x.limit
-        @warn "limit [$(x.limit)] exceeded, dropped."
-        x.n_dropped[] += 1
-    else
-        setindex!(x.attrs, v, k)
-    end
-end
-
-Base.setindex!(x::BoundedAttributes{<:AbstractVector}, v, k) = setindex!(x.attrs, v, k)
-
-function Base.push!(x::BoundedAttributes{<:AbstractVector}, v)
-    if length(x.attrs) >= x.limit
-        @warn "limit [$(x.limit)] exceeded, dropped."
-        x.n_dropped[] += 1
-    else
-        push!(x.attrs, v)
-    end
 end
