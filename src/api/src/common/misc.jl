@@ -10,11 +10,26 @@ Quoted from [the specification](https://github.com/open-telemetry/opentelemetry-
 > Resource may capture an entire hierarchy of entity identification. It may describe the host in the cloud and specific container or an application running in the process.
 
 !!! note
+    
     Based on the specification on [Exempt Entities](https://opentelemetry.io/docs/reference/specification/common/#exempt-entities) of resource attributes, the type of `attributes` in `Resource` is limited to `NamedTuple` instead of [`BoundedAttributes`](@ref).
 """
 Base.@kwdef struct Resource{A<:NamedTuple}
     attributes::A = OTEL_RESOURCE_ATTRIBUTES()
     schema_url::String = ""
+end
+
+function Base.merge(r1::Resource, r2::Resource)
+    schema_url = if isempty(r1.schema_url)
+        r2.schema_url
+    elseif isempty(r2.schema_url)
+        r1.schema_url
+    else
+        if r2.schema_url != r1.schema_url
+            @warn "Conflict resource schema url: old -> $(r1.schema_url), new -> $(r2.schema_url). The later is used!"
+        end
+        r2.schema_url
+    end
+    Resource(merge(r1.attributes, r2.attributes), schema_url)
 end
 
 #####

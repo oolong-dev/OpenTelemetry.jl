@@ -23,8 +23,8 @@ Base.@kwdef struct TracerProvider{
     SP<:AbstractSpanProcessor,
     RNG,
 } <: AbstractTracerProvider
-    sampler::S = DEFAULT_ON
-    resource::R = Resource()
+    sampler = get_default_trace_sampler()
+    resource = Resource()
     span_processor::SP = CompositSpanProcessor()
     id_generator::RNG = RandomIdGenerator()
     limit_info::LimitInfo = LimitInfo()

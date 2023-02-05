@@ -1,11 +1,5 @@
-export AbstractExporter,
-    InMemoryExporter,
-    ConsoleExporter,
-    EXPORT_SUCCESS,
-    EXPORT_FAILURE,
-    export!,
-    shut_down!,
-    force_flush!
+export InMemoryExporter,
+    ConsoleExporter, EXPORT_SUCCESS, EXPORT_FAILURE, export!, shut_down!, force_flush!
 
 @enum ExportResult begin
     EXPORT_SUCCESS
@@ -56,11 +50,11 @@ function shut_down!(se::InMemoryExporter)
     true
 end
 
-function export!(e::InMemoryExporter, x)
+function export!(e::InMemoryExporter, xs)
     if e.is_shut_down[]
         EXPORT_FAILURE
     else
-        append!(e.pool, x)
+        append!(e.pool, xs)
         EXPORT_SUCCESS
     end
 end
@@ -78,10 +72,42 @@ end
 
 function export!(ce::ConsoleExporter, batch)
     for x in batch
-        pprint(ce.io, x)
-        println(ce.io)
-        print(ce.io, repeat("-", displaysize(ce.io)[2]))
-        println(ce.io)
+        print(ce.io, x)
     end
     EXPORT_SUCCESS
+end
+
+#####
+
+struct BatchContainer{T}
+    container::Vector{T}
+    start::Ref{Int}
+    count::Ref{Int}
+    batch_size::Int
+end
+
+BatchContainer(container, batch_size) =
+    BatchContainer(container, Ref(1), Ref(0), batch_size)
+
+function Base.put!(c::BatchContainer{T}, x::T) where {T}
+    if c.count[] < length(c.container)
+        c.count[] += 1
+        i = mod1(c.start[] + c.count[] - 1, length(c.container))
+        c.container[i] = x
+    else
+        # dropped
+    end
+    c.count[] >= c.batch_size
+end
+
+function Base.take!(c::BatchContainer)
+    n = min(c.batch_size, c.count[])
+    batch = similar(c.container, n)
+    for i in 1:n
+        ii = mod1(c.start[] + i - 1, length(c.container))
+        batch[i] = c.container[ii]
+    end
+    c.start[] = mod1(c.start[] + n, length(c.container))
+    c.count[] -= n
+    batch
 end

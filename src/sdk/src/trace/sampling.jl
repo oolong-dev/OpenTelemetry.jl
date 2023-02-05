@@ -80,7 +80,7 @@ end
 struct TraceIdRatioBased <: AbstractSampler
     ratio::Float64
     bound::UInt128
-    function TraceIdRatioBased(ratio)
+    function TraceIdRatioBased(ratio = 1.0)
         0 <= ratio <= 1 || throw(ArgumentError("ratio should be in range [0,1]"))
         new(ratio, round(UInt128, typemax(UInt128) * ratio))
     end
@@ -162,3 +162,24 @@ DEFAULT_OFF = ParentBasedSampler(root_sampler = ALWAYS_OFF)
 Sampler that respects its parent span's sampling decision, but otherwise always samples.
 """
 DEFAULT_ON = ParentBasedSampler(root_sampler = ALWAYS_ON)
+
+#####
+
+function get_default_trace_sampler()
+    name = uppercase(OTEL_TRACES_SAMPLER())
+    if name == "parentbased_always_on"
+        DEFAULT_ON
+    elseif name == "parentbased_always_off"
+        DEFAULT_OFF
+    elseif name == "always_on"
+        ALWAYS_ON
+    elseif name == "always_off"
+        ALWAYS_OFF
+    elseif name == "traceidratio"
+        s_args = OTEL_TRACES_SAMPLER_ARG()
+        ratio = isnothing(s_args) ? 1.0 : parse(Float64, s_args)
+        TraceIdRatioBased(ratio)
+    else
+        @error "unsupported sampler: $name"
+    end
+end
