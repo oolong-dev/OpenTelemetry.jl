@@ -1,4 +1,6 @@
-export BoundedAttributes, n_dropped
+export BoundedAttributes, StaticBoundedAttributes, n_dropped
+
+import TupleTools
 
 """
     BoundedAttributes(attrs; limit=nothing)
@@ -21,9 +23,15 @@ struct BoundedAttributes{T}
     n_dropped::Ref{Int}
 end
 
+const StaticBoundedAttributes = BoundedAttributes{<:NamedTuple}
+
 BoundedAttributes(; kw...) = BoundedAttributes(NamedTuple(); kw...)
 
+_try_reorder(x) = x
+_try_reorder(x::NamedTuple{K}) where {K} = x[TupleTools.sort(K)]
+
 function BoundedAttributes(attrs; count_limit = nothing, value_length_limit = nothing)
+    attrs = _try_reorder(attrs) # !!! the order of static attributes is important in Metrics
     count_limit = something(count_limit, OTEL_ATTRIBUTE_COUNT_LIMIT())
     value_length_limit = something(value_length_limit, OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT())
     attrs, n_dropped = clean_attrs!(attrs, count_limit, value_length_limit)
@@ -32,7 +40,7 @@ end
 
 Base.getindex(x::BoundedAttributes, args...) = getindex(x.attrs, args...)
 Base.haskey(x::BoundedAttributes, k) = haskey(x.attrs, k)
-Base.haskey(x::BoundedAttributes{<:NamedTuple}, k::String) = haskey(x.attrs, Symbol(k))
+Base.haskey(x::StaticBoundedAttributes, k::String) = haskey(x.attrs, Symbol(k))
 Base.length(x::BoundedAttributes) = length(x.attrs)
 Base.iterate(x::BoundedAttributes, args...) = iterate(x.attrs, args...)
 Base.pairs(A::BoundedAttributes) = pairs(A.attrs)
@@ -70,7 +78,7 @@ function Base.setindex!(attrs::BoundedAttributes, v::TAttrVal, k)
     attrs.attrs[k] = _truncate(v, attrs.value_length_limit)
 end
 
-Base.setindex!(attrs::BoundedAttributes{<:NamedTuple}, v::TAttrVal, k) =
+Base.setindex!(attrs::StaticBoundedAttributes, v::TAttrVal, k) =
     @error "Updating immutable attributes. Dropped."
 
 """

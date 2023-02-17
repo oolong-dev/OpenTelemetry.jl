@@ -19,7 +19,7 @@ OpenTelemetryAPI.resource(m::Metric) = resource(m.instrument)
 
 function (metric::Metric)(m::Measurement)
     if isnothing(metric.attribute_keys)
-        filtered_attributes = StaticAttrs()
+        filtered_attributes = BoundedAttributes()
     else
         interested_keys = keys(m.attributes) ∩ metric.attribute_keys
         filtered_keys = setdiff(keys(m.attributes), interested_keys)
@@ -46,6 +46,8 @@ function (metric::Metric)(m::Measurement)
     metric.aggregation(exemplar)
 end
 
+# !!! Ideally we should use `IdSet`, but nothing like this exists in `Base`, so
+# we simply use `IdDict` as a workaround
 struct MeterProvider <: AbstractMeterProvider
     resource::Resource
     meters::IdDict{Meter,Nothing}
@@ -93,6 +95,8 @@ function MeterProvider(;
     )
 end
 
+# Registration
+# Remember that this function is called on the initialization of `Meter`
 function Base.push!(p::MeterProvider, m::Meter)
     p.meters[m] = nothing
     for ins in m.instruments

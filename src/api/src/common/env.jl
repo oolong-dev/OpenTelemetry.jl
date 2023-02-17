@@ -347,6 +347,15 @@ export OTEL_METRIC_EXPORT_INTERVAL
 Maximum allowed time (in milliseconds) to export data.
 """
 @memoize OTEL_METRIC_EXPORT_TIMEOUT() =
-    parse(Int, get(ENV, "OTEL_METRIC_EXPORT_TIMEOUT"), "30000")
+    parse(Int, get(ENV, "OTEL_METRIC_EXPORT_TIMEOUT", "30000"))
 
 export OTEL_METRIC_EXPORT_TIMEOUT
+
+#####
+# Julia specific variables
+#####
+
+@memoize OTEL_JULIA_MAX_POINTS_PER_METRIC() =
+    parse(Int, get(ENV, "OTEL_JULIA_MAX_POINTS_PER_METRIC", "2000"))
+
+export OTEL_JULIA_MAX_POINTS_PER_METRIC

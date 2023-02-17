@@ -138,7 +138,6 @@ function Base.push!(s::Span, ex::Exception; is_rethrow_followed = false)
 
     attrs = StaticAttrs((;
         Symbol("exception.type") => string(typeof(ex)),
-        Symbol("exception.type") => string(typeof(ex)),
         Symbol("exception.message") => msg,
         Symbol("exception.stacktrace") => st,
         Symbol("exception.escaped") => is_rethrow_followed,

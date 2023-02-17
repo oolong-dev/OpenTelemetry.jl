@@ -1,7 +1,5 @@
 export Exemplar, SumAgg, LastValueAgg, HistogramAgg, DROP
 
-const N_MAX_POINTS_PER_METRIC = 2_000
-
 #####
 
 """
@@ -15,16 +13,14 @@ to understand its relation to trace and metric.
 
   - `value`
   - `time_unix_nano`
-  - `filtered_attributes`::[`StaticAttrs`](@ref), extra attributes of a
-    [`Measurement`](@ref) that are not included in a [`Metric`](@ref)'s
-    `:attribute_keys` field.
+  - `filtered_attributes`, extra attributes of a [`Measurement`](@ref) that are not included in a [`Metric`](@ref)'s `:attribute_keys` field.
   - `trace_id`, the `trace_id` in the span context when the measurement happens.
   - `span_id`, the `span_id` in the span context when the measurement happens.
 """
 Base.@kwdef struct Exemplar{T}
     value::T
     time_unix_nano::UInt
-    filtered_attributes::StaticAttrs
+    filtered_attributes::StaticBoundedAttributes
     trace_id::TraceIdType
     span_id::SpanIdType
 end
@@ -46,87 +42,39 @@ else
 end
 
 struct AggregationStore{D<:DataPoint}
-    points::Dict{StaticAttrs,D}
-    unique_points::Dict{StaticAttrs,D}
-    n_max_points::UInt
-    n_max_attrs::UInt
+    points::Dict{StaticBoundedAttributes,D}
+    max_points::Int
     lock::ReentrantLock
 end
 
 """
-    AggregationStore{D}(;kw...) where D<:DataPoint
+    AggregationStore{D}(max_points=nothing) where D<:DataPoint
 
 The `AggregationStore` holds all the aggregated datapoints in a
 [`Metric`](@ref).
-
-## Keyword arguments
-
-  - `n_max_points = N_MAX_POINTS_PER_METRIC`, the maximum number of data points.
-  - `n_max_attrs = 2 * N_MAX_POINTS_PER_METRIC`, the maximum number of allowed
-    attributes. Note that each datapoint may have several attributes pointing to
-    them. (Those attributes have the same key-value pair but with different
-    order)
 """
-function AggregationStore{D}(;
-    n_max_points = N_MAX_POINTS_PER_METRIC,
-    n_max_attrs = 2 * N_MAX_POINTS_PER_METRIC,
-) where {D<:DataPoint}
+function AggregationStore{D}(; max_points = nothing) where {D<:DataPoint}
     AggregationStore{D}(
-        Dict{StaticAttrs,D}(),
-        Dict{StaticAttrs,D}(),
-        UInt(n_max_points),
-        UInt(n_max_attrs),
+        Dict{StaticBoundedAttributes,D}(),
+        something(max_points, OTEL_JULIA_MAX_POINTS_PER_METRIC()),
         ReentrantLock(),
     )
 end
 
 Base.iterate(a::AggregationStore, args...) = iterate(a.unique_points, args...)
 Base.length(m::AggregationStore) = length(m.unique_points)
-
-function Base.getindex(m::AggregationStore, k)
-    v = get(m.points, k, nothing)
-    if isnothing(v)
-        k_sorted = sort(k)
-        get(m.points, k_sorted)
-    else
-        v
-    end
-end
+Base.getindex(m::AggregationStore, k) = getindex(m.points, k)
 
 function Base.get!(f, agg::AggregationStore, attrs)
-    point = get(agg.points, attrs, nothing)
-    if isnothing(point)
-        sorted_attrs = sort(attrs)
-        point = get(agg.points, sorted_attrs, nothing)
-        if isnothing(point)
-            if length(agg.unique_points) < agg.n_max_points
-                lock(agg.lock) do
-                    if haskey(agg.points, attrs)
-                        agg.points[attrs]
-                    elseif haskey(agg.points, sorted_attrs)
-                        agg.points[sorted_attrs]
-                    else
-                        p = f()
-                        agg.points[attrs] = p
-                        agg.points[sorted_attrs] = p
-                        agg.unique_points[sorted_attrs] = p
-                        p
-                    end
-                end
-            else
-                @warn "maximum number of attributes reached, dropped."
-                nothing
-            end
+    # personally I think there's no need to use lock here
+    # it doesn't seem to be a big problem to exceed the preset maximum points *slightly*
+    lock(agg.lock) do
+        if length(agg.points) < agg.max_points
+            get!(f, agg.points, attrs)
         else
-            if length(agg.points) < agg.n_max_attrs
-                agg.points[attrs] = point
-            else
-                @warn "maximum cached keys in agg store reached, please consider increase `n_max_points`"
-            end
-            point
+            @warn "maximum number of points reached, dropped."
+            nothing
         end
-    else
-        point
     end
 end
 
