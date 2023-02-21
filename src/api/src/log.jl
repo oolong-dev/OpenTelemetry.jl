@@ -61,7 +61,11 @@ function (L::OtelLogTransformer)(log)
                 body = log.message,
                 resource = L.resource,
                 instrumentation_info = L.instrumentation_info,
-                attributes = BoundedAttributes(NamedTuple(log.kwargs)),
+                attributes = BoundedAttributes(
+                    NamedTuple(log.kwargs);
+                    count_limit = OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT(),
+                    value_length_limit = OTEL_LOGRECORD_ATTRIBUTE_VALUE_LENGTH_LIMIT(),
+                ),
             ),
             kwargs = NamedTuple(),
         ),

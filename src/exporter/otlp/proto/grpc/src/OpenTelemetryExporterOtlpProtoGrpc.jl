@@ -158,7 +158,7 @@ end
 
 function Base.convert(
     ::Type{Vector{Common.KeyValue}},
-    attrs::Union{API.StaticAttrs,API.DynamicAttrs},
+    attrs::Union{API.StaticBoundedAttributes,API.DynamicAttrs},
 )
     [
         Common.KeyValue(key = string(k), value = convert(Common.AnyValue, v)) for
@@ -173,13 +173,17 @@ Base.convert(::Type{Common.AnyValue}, v::Float64) = Common.AnyValue(double_value
 Base.convert(::Type{Common.AnyValue}, v::Vector{UInt8}) = Common.AnyValue(bytes_value = v)
 Base.convert(::Type{Common.AnyValue}, v::Vector) =
     Common.AnyValue(array_value = convert(Common.ArrayValue, v))
-Base.convert(::Type{Common.AnyValue}, v::Union{API.StaticAttrs,API.DynamicAttrs}) =
-    Common.AnyValue(kvlist_value = convert(Common.KeyValueList, v))
+Base.convert(
+    ::Type{Common.AnyValue},
+    v::Union{API.StaticBoundedAttributes,API.DynamicAttrs},
+) = Common.AnyValue(kvlist_value = convert(Common.KeyValueList, v))
 
 Base.convert(::Type{Common.ArrayValue}, v::Vector) =
     Common.ArrayValue(values = [convert(Common.AnyValue, x) for x in v])
-Base.convert(::Type{Common.KeyValueList}, v::Union{API.StaticAttrs,API.DynamicAttrs}) =
-    Common.KeyValueList(values = convert(Vector{Common.KeyValue}, v))
+Base.convert(
+    ::Type{Common.KeyValueList},
+    v::Union{API.StaticBoundedAttributes,API.DynamicAttrs},
+) = Common.KeyValueList(values = convert(Vector{Common.KeyValue}, v))
 
 function Base.convert(::Type{Trace.Span_Event}, event::API.Event)
     Trace.Span_Event(

@@ -24,7 +24,10 @@ using OpenTelemetryExporterOtlpProtoGrpc
         s["c"] = 1.0
         s["d"] = UInt8[0, 1, 2]
         s["e"] = -1
-        push!(s, Event(; name = "example", attributes = StaticAttrs("e" => "eee")))
+        push!(
+            s,
+            Event(; name = "example", attributes = StaticBoundedAttributes("e" => "eee")),
+        )
         push!(
             s,
             Link(
@@ -33,7 +36,7 @@ using OpenTelemetryExporterOtlpProtoGrpc
                     span_id = rand(SpanIdType),
                     is_remote = false,
                 ),
-                StaticAttrs("f" => "fff"),
+                StaticBoundedAttributes("f" => "fff"),
             ),
         )
 
@@ -67,7 +70,7 @@ end
         name = "",
         body = "Hi",
         resource = Resource(),
-        attributes = StaticAttrs(),
+        attributes = StaticBoundedAttributes(),
         instrumentation_info = InstrumentationInfo(),
     )
     convert(OpenTelemetryProto.OpentelemetryClients.ExportLogsServiceRequest, r)

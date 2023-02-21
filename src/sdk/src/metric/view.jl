@@ -49,7 +49,7 @@ struct View{A}
     description::Union{String,Nothing}
     criteria::Criteria
     attribute_keys::Union{Tuple{Vararg{String}},Nothing}
-    extra_dimensions::StaticAttrs
+    extra_dimensions::StaticBoundedAttributes
     aggregation::A
 end
 
@@ -64,7 +64,7 @@ See more details in [the specification](https://github.com/open-telemetry/opente
 
   - `description = nothing`,
   - `attribute_keys = nothing`,
-  - `extra_dimensions = StaticAttrs()`,
+  - `extra_dimensions = StaticBoundedAttributes()`,
   - `aggregation = nothing`,
   - `instrument_name = nothing`,
   - `instrument_type = nothing`,
@@ -76,7 +76,7 @@ function View(
     name = nothing;
     description = nothing,
     attribute_keys = nothing,
-    extra_dimensions = StaticAttrs(),
+    extra_dimensions = StaticBoundedAttributes(),
     aggregation = nothing,
     # criteria
     instrument_name = nothing,

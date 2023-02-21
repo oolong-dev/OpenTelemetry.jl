@@ -53,13 +53,13 @@
 
     c_points = first(m for m in e if m.name == "fruit_counter")
     @test length(c_points) == 3
-    @test c_points[StaticAttrs((color = "red", name = "apple"))].value == 6
-    @test c_points[StaticAttrs((color = "yellow", name = "lemon"))].value == 7
-    @test c_points[StaticAttrs((color = "green", name = "apple"))].value == 2
+    @test c_points[StaticBoundedAttributes((color = "red", name = "apple"))].value == 6
+    @test c_points[StaticBoundedAttributes((color = "yellow", name = "lemon"))].value == 7
+    @test c_points[StaticBoundedAttributes((color = "green", name = "apple"))].value == 2
 
     h_points = first(m for m in e if m.name == "n_requests")
     @test length(h_points) == 1
-    hist = h_points[StaticAttrs()].value.counts
+    hist = h_points[StaticBoundedAttributes()].value.counts
     @test hist[1] == 0
     @test hist[2] == 3
     @test hist[3] == 1
@@ -68,16 +68,16 @@
     @test sum(hist) == 6
 
     udc_points = first(m for m in e if m.name == "stock")
-    @test udc_points[StaticAttrs()].value == 300
+    @test udc_points[StaticBoundedAttributes()].value == 300
 
     oc_points = first(m for m in e if m.name == "observable_counter")
-    @test oc_points[StaticAttrs()].value == 0
+    @test oc_points[StaticBoundedAttributes()].value == 0
 
     oudc_points = first(m for m in e if m.name == "observable_up_down_counter")
-    @test oudc_points[StaticAttrs()].value == -4
+    @test oudc_points[StaticBoundedAttributes()].value == -4
 
     og_points = first(m for m in e if m.name == "observable_gauge")
-    @test og_points[StaticAttrs()].value == -6
+    @test og_points[StaticBoundedAttributes()].value == -6
 
     # observe again!
     # sync instruments should have no changes
@@ -87,13 +87,13 @@
 
     c_points = first(m for m in e if m.name == "fruit_counter")
     @test length(c_points) == 3
-    @test c_points[StaticAttrs((color = "red", name = "apple"))].value == 6
-    @test c_points[StaticAttrs((color = "yellow", name = "lemon"))].value == 7
-    @test c_points[StaticAttrs((color = "green", name = "apple"))].value == 2
+    @test c_points[StaticBoundedAttributes((color = "red", name = "apple"))].value == 6
+    @test c_points[StaticBoundedAttributes((color = "yellow", name = "lemon"))].value == 7
+    @test c_points[StaticBoundedAttributes((color = "green", name = "apple"))].value == 2
 
     h_points = first(m for m in e if m.name == "n_requests")
     @test length(h_points) == 1
-    hist = h_points[StaticAttrs()].value.counts
+    hist = h_points[StaticBoundedAttributes()].value.counts
     @test hist[1] == 0
     @test hist[2] == 3
     @test hist[3] == 1
@@ -102,29 +102,29 @@
     @test sum(hist) == 6
 
     udc_points = first(m for m in e if m.name == "stock")
-    @test udc_points[StaticAttrs()].value == 300
+    @test udc_points[StaticBoundedAttributes()].value == 300
 
     oc_points = first(m for m in e if m.name == "observable_counter")
-    @test oc_points[StaticAttrs()].value == 0 + 2
+    @test oc_points[StaticBoundedAttributes()].value == 0 + 2
 
     oudc_points = first(m for m in e if m.name == "observable_up_down_counter")
-    @test oudc_points[StaticAttrs()].value == -4 + (-2)
+    @test oudc_points[StaticBoundedAttributes()].value == -4 + (-2)
 
     og_points = first(m for m in e if m.name == "observable_gauge")
-    @test og_points[StaticAttrs()].value == -4 # the last value
+    @test og_points[StaticBoundedAttributes()].value == -4 # the last value
 
     # observe again
     empty!(e)
     r()
 
     oc_points = first(m for m in e if m.name == "observable_counter")
-    @test oc_points[StaticAttrs()].value == 0 + 2 + 4
+    @test oc_points[StaticBoundedAttributes()].value == 0 + 2 + 4
 
     oudc_points = first(m for m in e if m.name == "observable_up_down_counter")
-    @test oudc_points[StaticAttrs()].value == -4 + (-2) + 0
+    @test oudc_points[StaticBoundedAttributes()].value == -4 + (-2) + 0
 
     og_points = first(m for m in e if m.name == "observable_gauge")
-    @test og_points[StaticAttrs()].value == -2 # the last value
+    @test og_points[StaticBoundedAttributes()].value == -2 # the last value
 
     periodic_reader = PeriodicMetricReader(
         CompositMetricReader(r, MetricReader(p, ConsoleExporter()));
@@ -147,21 +147,21 @@ end
     )
     init_data = () -> OpenTelemetrySDK.DataPoint{Int}()
 
-    p1 = get!(init_data, store, StaticAttrs())
-    p2 = get!(init_data, store, StaticAttrs((a = 1, b = 2, c = 3)))
-    p3 = get!(init_data, store, StaticAttrs((b = 2, a = 1, c = 3)))
+    p1 = get!(init_data, store, StaticBoundedAttributes())
+    p2 = get!(init_data, store, StaticBoundedAttributes((a = 1, b = 2, c = 3)))
+    p3 = get!(init_data, store, StaticBoundedAttributes((b = 2, a = 1, c = 3)))
     @test p2 === p3
 
-    p4 = get!(init_data, store, StaticAttrs((b = 2, c = 3, a = 1)))
+    p4 = get!(init_data, store, StaticBoundedAttributes((b = 2, c = 3, a = 1)))
     @test p2 === p4
 
     @test (@test_logs (
         :warn,
         "maximum cached keys in agg store reached, please consider increase `n_max_points`",
-    ) get!(init_data, store, StaticAttrs((c = 3, b = 2, a = 1)))) === p2
+    ) get!(init_data, store, StaticBoundedAttributes((c = 3, b = 2, a = 1)))) === p2
 
-    p5 = get!(init_data, store, StaticAttrs((; x = 123)))
-    p6 = get!(init_data, store, StaticAttrs((; y = 123)))
+    p5 = get!(init_data, store, StaticBoundedAttributes((; x = 123)))
+    p6 = get!(init_data, store, StaticBoundedAttributes((; y = 123)))
     @test isnothing(p6)
 end
 
@@ -203,9 +203,9 @@ end
 
     @test length(e.pool) == 3
 
-    @test first(m for m in e if m.name == "X")[StaticAttrs()].value == 2 + 3 + 1
+    @test first(m for m in e if m.name == "X")[StaticBoundedAttributes()].value == 2 + 3 + 1
 
-    foo = first(m for m in e if m.name == "Foo")[StaticAttrs()].value.counts
+    foo = first(m for m in e if m.name == "Foo")[StaticBoundedAttributes()].value.counts
     # DEFAULT_HISTOGRAM_BOUNDARIES = (0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0)
     @test foo[1] == 1
     @test foo[2] == 1
@@ -213,7 +213,7 @@ end
     @test foo[end] == 1
     @test sum(foo) == 4
 
-    bar = first(m for m in e if m.name == "Bar")[StaticAttrs()].value.counts
+    bar = first(m for m in e if m.name == "Bar")[StaticBoundedAttributes()].value.counts
     # b = (5.0, 10.0, 25.0, 50.0, 100.0)
     @test bar[1] == 2
     @test bar[end] == 2

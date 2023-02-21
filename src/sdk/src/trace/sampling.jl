@@ -15,7 +15,7 @@ is_sampled(d::Decision) = d === DECISION_RECORD_AND_SAMPLE
 OpenTelemetryAPI.is_recording(d::Decision) =
     d === DECISION_RECORD_ONLY || d === DECISION_RECORD_AND_SAMPLE
 
-struct SamplingResult{A<:Union{StaticAttrs,DynamicAttrs},T<:TraceState}
+struct SamplingResult{A<:Union{StaticBoundedAttributes,DynamicAttrs},T<:TraceState}
     decision::Decision
     attributes::A
     trace_state::T
@@ -55,7 +55,7 @@ end
   - `trace_id`::[`TraceIdType`](@ref),
   - `name::String`, the span name
   - `kind`::[`SpanKind`](@ref),
-  - `attributes`, [`StaticAttrs`](@ref) or [`DynamicAttrs`](@ref)
+  - `attributes`, [`StaticBoundedAttributes`](@ref) or [`DynamicAttrs`](@ref)
   - `links`, vector of [`Link`](@ref)
   - `trace_state`::[`TraceState`](@ref),
 """
@@ -67,12 +67,12 @@ function should_sample(
     trace_id,
     name,
     kind = SPAN_KIND_INTERNAL,
-    attributes = StaticAttrs(),
+    attributes = StaticBoundedAttributes(),
     links = [],
     trace_state = TraceState(),
 )
     if s.decision === DECISION_DROP
-        attributes = StaticAttrs()
+        attributes = StaticBoundedAttributes()
     end
     SamplingResult(s.decision, attributes, trace_state)
 end
@@ -92,7 +92,7 @@ function should_sample(
     trace_id,
     name,
     kind = SPAN_KIND_INTERNAL,
-    attributes = StaticAttrs(),
+    attributes = StaticBoundedAttributes(),
     links = [],
     trace_state = TraceState(),
 )
@@ -101,7 +101,7 @@ function should_sample(
         decision = DECISION_RECORD_AND_SAMPLE
     end
     if decision === DECISION_DROP
-        attributes = StaticAttrs()
+        attributes = StaticBoundedAttributes()
     end
     SamplingResult(decision, attributes, trace_state)
 end
@@ -120,7 +120,7 @@ function should_sample(
     trace_id,
     name,
     kind = SPAN_KIND_INTERNAL,
-    attributes = StaticAttrs(),
+    attributes = StaticBoundedAttributes(),
     links = [],
     trace_state = TraceState(),
 )

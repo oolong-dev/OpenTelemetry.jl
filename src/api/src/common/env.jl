@@ -188,24 +188,24 @@ export OTEL_ATTRIBUTE_COUNT_LIMIT
 """
 Maximum allowed attribute value size
 """
-@memoize OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT() = parse(
-    Int,
-    get(
-        ENV,
-        "OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT",
-        get(ENV, "OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT", "128"),
-    ),
-)
+@memoize OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT() =
+    if haskey(ENV, "OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT")
+        parse(Int, ENV["OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT"])
+    else
+        OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT()
+    end
 
 export OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT
 
 """
 Maximum allowed span attribute count
 """
-@memoize OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT() = parse(
-    Int,
-    get(ENV, "OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", get(ENV, "OTEL_ATTRIBUTE_COUNT_LIMIT")),
-)
+@memoize OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT() =
+    if haskey(ENV, "OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT")
+        parse(Int, ENV["OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT"])
+    else
+        OTEL_ATTRIBUTE_COUNT_LIMIT()
+    end
 
 export OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT
 
@@ -213,7 +213,11 @@ export OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT
 Maximum allowed span event count
 """
 @memoize OTEL_SPAN_EVENT_COUNT_LIMIT() =
-    parse(Int, get(ENV, "OTEL_SPAN_EVENT_COUNT_LIMIT", "128"))
+    if haskey(ENV, "OTEL_SPAN_EVENT_COUNT_LIMIT")
+        parse(Int, ENV["OTEL_SPAN_EVENT_COUNT_LIMIT"])
+    else
+        OTEL_ATTRIBUTE_COUNT_LIMIT()
+    end
 
 export OTEL_SPAN_EVENT_COUNT_LIMIT
 
@@ -221,7 +225,11 @@ export OTEL_SPAN_EVENT_COUNT_LIMIT
 Maximum allowed span link count
 """
 @memoize OTEL_SPAN_LINK_COUNT_LIMIT() =
-    parse(Int, get(ENV, "OTEL_SPAN_LINK_COUNT_LIMIT", "128"))
+    if haskey(ENV, "OTEL_SPAN_LINK_COUNT_LIMIT")
+        parse(Int, ENV["OTEL_SPAN_LINK_COUNT_LIMIT"])
+    else
+        OTEL_ATTRIBUTE_COUNT_LIMIT()
+    end
 
 export OTEL_SPAN_LINK_COUNT_LIMIT
 
@@ -229,7 +237,11 @@ export OTEL_SPAN_LINK_COUNT_LIMIT
 Maximum allowed attribute per span event count
 """
 @memoize OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT() =
-    parse(Int, get(ENV, "OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT", "128"))
+    if haskey(ENV, "OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT")
+        parse(Int, ENV["OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT"])
+    else
+        OTEL_ATTRIBUTE_COUNT_LIMIT()
+    end
 
 export OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT
 
@@ -237,7 +249,11 @@ export OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT
 Maximum allowed attribute per span link count
 """
 @memoize OTEL_LINK_ATTRIBUTE_COUNT_LIMIT() =
-    parse(Int, get(ENV, "OTEL_LINK_ATTRIBUTE_COUNT_LIMIT", "128"))
+    if haskey(ENV, "OTEL_LINK_ATTRIBUTE_COUNT_LIMIT")
+        parse(Int, ENV["OTEL_LINK_ATTRIBUTE_COUNT_LIMIT"])
+    else
+        OTEL_ATTRIBUTE_COUNT_LIMIT()
+    end
 
 export OTEL_LINK_ATTRIBUTE_COUNT_LIMIT
 
@@ -248,7 +264,11 @@ export OTEL_LINK_ATTRIBUTE_COUNT_LIMIT
 Maximum allowed attribute value size
 """
 @memoize OTEL_LOGRECORD_ATTRIBUTE_VALUE_LENGTH_LIMIT() =
-    parse(Int, get(ENV, "OTEL_LOGRECORD_ATTRIBUTE_VALUE_LENGTH_LIMIT", "$(typemax(Int))"))
+    if haskey(ENV, "OTEL_LOGRECORD_ATTRIBUTE_VALUE_LENGTH_LIMIT")
+        parse(Int, ENV[" OTEL_LOGRECORD_ATTRIBUTE_VALUE_LENGTH_LIMIT"])
+    else
+        OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT()
+    end
 
 export OTEL_LOGRECORD_ATTRIBUTE_VALUE_LENGTH_LIMIT
 
@@ -256,7 +276,11 @@ export OTEL_LOGRECORD_ATTRIBUTE_VALUE_LENGTH_LIMIT
 Maximum allowed log record attribute count
 """
 @memoize OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT() =
-    parse(Int, get(ENV, "OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT", "128"))
+    if haskey(ENV, "OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT")
+        parse(Int, ENV["OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT"])
+    else
+        OTEL_ATTRIBUTE_COUNT_LIMIT()
+    end
 
 export OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT
 
@@ -355,7 +379,12 @@ export OTEL_METRIC_EXPORT_TIMEOUT
 # Julia specific variables
 #####
 
-@memoize OTEL_JULIA_MAX_POINTS_PER_METRIC() =
-    parse(Int, get(ENV, "OTEL_JULIA_MAX_POINTS_PER_METRIC", "2000"))
+@memoize OTEL_JULIA_MAX_POINTS_APPROX_PER_METRIC() =
+    parse(Int, get(ENV, "OTEL_JULIA_MAX_POINTS_APPROX_PER_METRIC", "2000"))
 
-export OTEL_JULIA_MAX_POINTS_PER_METRIC
+export OTEL_JULIA_MAX_POINTS_APPROX_PER_METRIC
+
+@memoize OTEL_JULIA_MAX_METRICS_APPROX_PER_PROVIDER() =
+    parse(Int, get(ENV, "OTEL_JULIA_MAX_METRICS_APPROX_PER_PROVIDER", "2000"))
+
+export OTEL_JULIA_MAX_METRICS_APPROX_PER_PROVIDER

@@ -44,7 +44,6 @@ end
 struct AggregationStore{D<:DataPoint}
     points::Dict{StaticBoundedAttributes,D}
     max_points::Int
-    lock::ReentrantLock
 end
 
 """
@@ -56,8 +55,7 @@ The `AggregationStore` holds all the aggregated datapoints in a
 function AggregationStore{D}(; max_points = nothing) where {D<:DataPoint}
     AggregationStore{D}(
         Dict{StaticBoundedAttributes,D}(),
-        something(max_points, OTEL_JULIA_MAX_POINTS_PER_METRIC()),
-        ReentrantLock(),
+        something(max_points, OTEL_JULIA_MAX_POINTS_APPROX_PER_METRIC()),
     )
 end
 

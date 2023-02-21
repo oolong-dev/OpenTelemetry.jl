@@ -3,7 +3,7 @@ export BoundedAttributes, StaticBoundedAttributes, n_dropped
 import TupleTools
 
 """
-    BoundedAttributes(attrs; limit=nothing)
+    BoundedAttributes(attrs; count_limit=nothing, value_length_limit=nothing)
 
 This provides a wrapper around attributes (typically `AbstractDict` or `NamedTuple`) to follow the [specification of Attribute](https://opentelemetry.io/docs/reference/specification/common/#attribute).
 
@@ -25,10 +25,14 @@ end
 
 const StaticBoundedAttributes = BoundedAttributes{<:NamedTuple}
 
+StaticBoundedAttributes() = BoundedAttributes()
 BoundedAttributes(; kw...) = BoundedAttributes(NamedTuple(); kw...)
 
 _try_reorder(x) = x
+_try_reorder(x::NamedTuple{()}) = x
 _try_reorder(x::NamedTuple{K}) where {K} = x[TupleTools.sort(K)]
+
+BoundedAttributes(attrs::BoundedAttributes; kw...) = attrs
 
 function BoundedAttributes(attrs; count_limit = nothing, value_length_limit = nothing)
     attrs = _try_reorder(attrs) # !!! the order of static attributes is important in Metrics

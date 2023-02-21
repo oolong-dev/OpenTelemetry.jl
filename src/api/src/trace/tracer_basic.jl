@@ -181,15 +181,25 @@ struct Link{C<:SpanContext,A<:BoundedAttributes}
     attributes::A
 end
 
+Link(context, attributes) = Link(
+    context,
+    BoundedAttributes(attributes; count_limit = OTEL_LINK_ATTRIBUTE_COUNT_LIMIT()),
+)
+
 """
-    Event(name, timestamp=time()*10^9, attributes=BoundedAttributes())
+    Event(name, attributes; timestamp=time()*10^9)
 
 `timestamp` is the *nanoseconds*.
 """
-Base.@kwdef struct Event{A<:BoundedAttributes}
+struct Event{A<:BoundedAttributes}
     name::String
-    timestamp::UInt = UInt(time() * 10^9)
-    attributes::A = BoundedAttributes()
+    timestamp::UInt
+    attributes::A
+end
+
+function Event(name::String, attributes; timestamp::UInt = UInt(time() * 10^9))
+    attrs = BoundedAttributes(attributes; count_limit = OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT())
+    Event(name, timestamp, attrs)
 end
 
 # !!! must be of the same order as https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
