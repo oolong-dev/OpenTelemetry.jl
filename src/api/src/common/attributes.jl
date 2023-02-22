@@ -32,6 +32,10 @@ _try_reorder(x) = x
 _try_reorder(x::NamedTuple{()}) = x
 _try_reorder(x::NamedTuple{K}) where {K} = x[TupleTools.sort(K)]
 
+if VERSION < v"1.7.0"
+    @inline Base.getindex(t::NamedTuple, idxs::Tuple{Vararg{Symbol}}) = NamedTuple{idxs}(t)
+end
+
 BoundedAttributes(attrs::BoundedAttributes; kw...) = attrs
 
 function BoundedAttributes(attrs; count_limit = nothing, value_length_limit = nothing)
