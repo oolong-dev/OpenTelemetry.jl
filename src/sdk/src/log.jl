@@ -2,11 +2,9 @@ export BatchLogger
 
 using Logging
 
-"""
-    BatchLogger(logger;kw...)
-"""
-struct BatchLogger{E<:AbstractExporter} <: AbstractLogger
+struct BatchLogger{E<:AbstractExporter,T<:OtelLogTransformer} <: AbstractLogger
     exporter::E
+    transformer::T
     queue::BatchContainer{LogRecord}
     timer::Ref{Timer}
     is_shutdown::Ref{Bool}
@@ -24,12 +22,28 @@ function reset_timer!(bl::BatchLogger)
     end
 end
 
+"""
+    BatchLogger(exporter;kw...)
+
+`BatchLogger` is a `Sink` (see [LoggingExtras.jl](https://github.com/JuliaLogging/LoggingExtras.jl) to understand the concept).  Note that it will create a [`OtelLogTransformer`](@ref) on construction and apply it automatically on each log message.
+
+# Keyword arguments
+
+  - `max_queue_size=nothing`
+  - `scheduled_delay_millis = nothing`
+  - `export_timeout_millis = nothing`
+  - `max_export_batch_size = nothing`
+  - `resource = Resource()`
+  - `instrumentation_info = InstrumentationInfo()`
+"""
 function BatchLogger(
     exporter;
     max_queue_size = nothing,
     scheduled_delay_millis = nothing,
     export_timeout_millis = nothing,
     max_export_batch_size = nothing,
+    resource = Resource(),
+    instrumentation_info = InstrumentationInfo(),
 )
     max_queue_size = something(max_queue_size, OTEL_BLRP_MAX_QUEUE_SIZE())
     scheduled_delay_millis = something(scheduled_delay_millis, OTEL_BLRP_SCHEDULE_DELAY())
@@ -43,6 +57,7 @@ function BatchLogger(
     )
     bl = BatchLogger(
         exporter,
+        OtelLogTransformer(resource, instrumentation_info),
         queue,
         Ref{Timer}(),
         Ref(false),
@@ -59,7 +74,15 @@ Logging.shouldlog(l::BatchLogger, args...; kw...) = true
 Logging.min_enabled_level(l::BatchLogger, args...; kw...) = Logging.BelowMinLevel
 Logging.catch_exceptions(l::BatchLogger, args...; kw...) = true
 
-function Logging.handle_message(bl::BatchLogger, r::LogRecord)
+# [function handle_message_args(args...; kwargs...)](https://github.com/JuliaLogging/LoggingExtras.jl/blob/1bf42b8939b9d9014bb315ee9bd40786f0a39c79/src/CompositionalLoggers/activefiltered.jl#L65-L69)
+function handle_message_args(args...; kwargs...)
+    fieldnames = (:level, :message, :_module, :group, :id, :file, :line, :kwargs)
+    fieldvals = (args..., kwargs)
+    return NamedTuple{fieldnames,typeof(fieldvals)}(fieldvals)
+end
+
+function Logging.handle_message(bl::BatchLogger, args...; kw...)
+    r = bl.transformer(handle_message_args(args...; kw...))
     if !bl.is_shutdown[]
         is_full = put!(bl.container, r)
         if is_full
