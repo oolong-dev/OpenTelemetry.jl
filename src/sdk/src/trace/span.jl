@@ -19,7 +19,7 @@ struct Limited{T}
     n_dropped::Ref{Int}
 end
 
-function Limited(xs::Union{Dict,AbstractVector}; limit = 32)
+function Limited(xs::AbstractVector; limit = 32)
     n_dropped = Ref(0)
     if length(xs) > limit
         n_dropped[] = length(xs) - limit
@@ -37,11 +37,20 @@ Base.length(x::Limited) = length(x.xs)
 Base.iterate(x::Limited, args...) = iterate(x.xs, args...)
 Base.pairs(A::Limited) = pairs(A.xs)
 
+function Base.push!(l::Limited, x)
+    if length(l.xs) >= l.limit
+        popfirst!(l.xs)
+        l.n_dropped[] += 1
+        @warn "limit exceeded, the oldest one is dropped"
+    end
+    push!(l.xs, x)
+end
+
 OpenTelemetryAPI.n_dropped(l::Limited) = l.n_dropped[]
 
 #####
 
-struct Span{P<:AbstractTracerProvider} <: AbstractSpan
+struct Span{P<:OpenTelemetryAPI.AbstractTracerProvider} <: AbstractSpan
     name::Ref{String}
     tracer::Tracer{P}
     span_context::SpanContext
@@ -49,7 +58,7 @@ struct Span{P<:AbstractTracerProvider} <: AbstractSpan
     kind::SpanKind
     start_time::UInt
     end_time::Ref{Union{Nothing,UInt}}
-    attributes::DynamicAttrs
+    attributes::BoundedAttributes
     links::Limited{Vector{Link}}
     events::Limited{Vector{Event}}
     status::Ref{SpanStatus}
@@ -60,7 +69,7 @@ function OpenTelemetryAPI.create_span(
     tracer::Tracer{<:TracerProvider};
     context = current_context(),
     kind = SPAN_KIND_INTERNAL,
-    attributes = Dict{String,TAttrVal}(),
+    attributes = Dict{String,OpenTelemetryAPI.TAttrVal}(),
     links = Link[],
     events = OpenTelemetryAPI.Event[],
     start_time = UInt(time() * 10^9),
@@ -102,7 +111,7 @@ function OpenTelemetryAPI.create_span(
         trace_state = sampling_result.trace_state,
     )
 
-    is_no_op_span = provider.is_shut_down[] || !is_recording(sampling_result)
+    is_no_op_span = provider.is_closed[] || !is_recording(sampling_result)
     s = Span(
         Ref(name),
         tracer,

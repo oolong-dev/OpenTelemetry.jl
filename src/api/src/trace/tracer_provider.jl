@@ -1,5 +1,5 @@
 export global_tracer_provider,
-    global_tracer_provider!,
+    global_tracer_provider,
     provider,
     tracer,
     resource,
@@ -41,11 +41,11 @@ Get the global tracer provider.
 global_tracer_provider() = GLOBAL_TRACER_PROVIDER[]
 
 """
-    global_tracer_provider!(p)
+    global_tracer_provider(p)
 
 Set the global tracer provider to `p`.
 """
-global_tracer_provider!(p) = GLOBAL_TRACER_PROVIDER[] = p
+global_tracer_provider(p) = GLOBAL_TRACER_PROVIDER[] = p
 
 """
     Tracer(;instrumentation_info=InstrumentationInfo(), provider=global_meter_provider())

@@ -26,7 +26,7 @@ using OpenTelemetryExporterOtlpProtoGrpc
         s["e"] = -1
         push!(
             s,
-            Event(; name = "example", attributes = StaticBoundedAttributes("e" => "eee")),
+            Event(; name = "example", attributes = (;e = "eee"),
         )
         push!(
             s,
@@ -36,7 +36,7 @@ using OpenTelemetryExporterOtlpProtoGrpc
                     span_id = rand(SpanIdType),
                     is_remote = false,
                 ),
-                StaticBoundedAttributes("f" => "fff"),
+                BoundedAttributes((; f = "fff")),
             ),
         )
 
@@ -70,7 +70,7 @@ end
         name = "",
         body = "Hi",
         resource = Resource(),
-        attributes = StaticBoundedAttributes(),
+        attributes = BoundedAttributes(),
         instrumentation_info = InstrumentationInfo(),
     )
     convert(OpenTelemetryProto.OpentelemetryClients.ExportLogsServiceRequest, r)

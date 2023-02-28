@@ -10,7 +10,7 @@ struct Criteria
     meter_schema_url::Union{String,Nothing}
 end
 
-function Base.occursin(ins::AbstractInstrument, c::Criteria)
+function Base.occursin(ins::OpenTelemetryAPI.AbstractInstrument, c::Criteria)
     if !isnothing(c.instrument_type)
         if !(ins isa c.instrument_type)
             return false
@@ -64,7 +64,7 @@ See more details in [the specification](https://github.com/open-telemetry/opente
 
   - `description = nothing`,
   - `attribute_keys = nothing`,
-  - `extra_dimensions = StaticBoundedAttributes()`,
+  - `extra_dimensions = BoundedAttributes()`,
   - `aggregation = nothing`,
   - `instrument_name = nothing`,
   - `instrument_type = nothing`,
@@ -76,7 +76,7 @@ function View(
     name = nothing;
     description = nothing,
     attribute_keys = nothing,
-    extra_dimensions = StaticBoundedAttributes(),
+    extra_dimensions = BoundedAttributes(),
     aggregation = nothing,
     # criteria
     instrument_name = nothing,

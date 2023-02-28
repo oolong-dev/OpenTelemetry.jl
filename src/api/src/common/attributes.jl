@@ -25,7 +25,6 @@ end
 
 const StaticBoundedAttributes = BoundedAttributes{<:NamedTuple}
 
-StaticBoundedAttributes() = BoundedAttributes()
 BoundedAttributes(; kw...) = BoundedAttributes(NamedTuple(); kw...)
 
 _try_reorder(x) = x
@@ -52,6 +51,8 @@ Base.haskey(x::StaticBoundedAttributes, k::String) = haskey(x.attrs, Symbol(k))
 Base.length(x::BoundedAttributes) = length(x.attrs)
 Base.iterate(x::BoundedAttributes, args...) = iterate(x.attrs, args...)
 Base.pairs(A::BoundedAttributes) = pairs(A.attrs)
+Base.hash(x::BoundedAttributes, h::UInt) = hash(x.attrs, h)
+Base.isequal(x::BoundedAttributes, y::BoundedAttributes) = isequal(x.attrs, y.attrs)
 
 Base.show(io::IO, A::BoundedAttributes) = join(io, ("$k=$v" for (k, v) in pairs(A)), ",")
 

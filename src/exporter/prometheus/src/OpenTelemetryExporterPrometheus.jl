@@ -43,13 +43,13 @@ mutable struct PrometheusExporter <: AbstractExporter
             return
         end
         finalizer(exporter) do x
-            shut_down!(x)
+            close(x)
         end
         exporter
     end
 end
 
-OpenTelemetrySDK.shut_down!(r::PrometheusExporter) = close(r.server)
+Base.close(r::PrometheusExporter) = close(r.server)
 
 function (r::MetricReader{<:MeterProvider,<:PrometheusExporter})()
     if isnothing(r.exporter.provider)

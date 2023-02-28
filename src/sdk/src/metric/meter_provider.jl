@@ -8,11 +8,11 @@ Base.@kwdef mutable struct Metric{A<:AbstractAggregation}
     description::Union{String,Nothing}
     attribute_keys::Union{Tuple{Vararg{String}},Nothing}
     aggregation::A
-    instrument::AbstractInstrument
+    instrument::OpenTelemetryAPI.AbstractInstrument
 end
 
 Base.iterate(m::Metric, args...) = iterate(m.aggregation, args...)
-Base.getindex(m::Metric, k) = getindex(m.aggregation, k)
+Base.getindex(m::Metric, k...) = getindex(m.aggregation, k...)
 Base.length(m::Metric) = length(m.aggregation)
 OpenTelemetryAPI.resource(m::Metric) = resource(m.instrument)
 
@@ -45,13 +45,13 @@ function (metric::Metric)(m::Measurement)
     metric.aggregation(exemplar)
 end
 
-struct MeterProvider <: AbstractMeterProvider
+struct MeterProvider <: OpenTelemetryAPI.AbstractMeterProvider
     resource::Resource
     meters::IdSet{Meter}
-    instrument_linked_metrics::IdDict{AbstractInstrument,IdSet{Metric}}
-    async_instruments::IdSet{AbstractAsyncInstrument}
+    instrument_linked_metrics::IdDict{OpenTelemetryAPI.AbstractInstrument,IdSet{Metric}}
+    async_instruments::IdSet{OpenTelemetryAPI.AbstractAsyncInstrument}
     views::Vector{View}
-    named_view_linked_ins::IdDict{View,AbstractInstrument}
+    named_view_linked_ins::IdDict{View,OpenTelemetryAPI.AbstractInstrument}
     metrics::IdSet{Metric}
     max_metrics::Int
 end
@@ -79,10 +79,10 @@ function MeterProvider(; resource = Resource(), views = View[], max_metrics = no
     MeterProvider(
         resource,
         IdSet{Meter}(),
-        IdDict{AbstractInstrument,IdSet{Metric}}(),
-        IdSet{AbstractAsyncInstrument}(),
+        IdDict{OpenTelemetryAPI.AbstractInstrument,IdSet{Metric}}(),
+        IdSet{OpenTelemetryAPI.AbstractAsyncInstrument}(),
         views,
-        IdDict{View,AbstractInstrument}(),
+        IdDict{View,OpenTelemetryAPI.AbstractInstrument}(),
         IdSet{Metric}(),
         something(max_metrics, OTEL_JULIA_MAX_METRICS_APPROX_PER_PROVIDER()),
     )
@@ -97,7 +97,7 @@ function Base.push!(p::MeterProvider, m::Meter)
     end
 end
 
-function Base.push!(p::MeterProvider, ins::AbstractInstrument)
+function Base.push!(p::MeterProvider, ins::OpenTelemetryAPI.AbstractInstrument)
     # 1. Register the meter that the `ins` belongs to
     push!(p.meters, ins.meter)
 
@@ -157,8 +157,8 @@ function Base.push!(p::MeterProvider, ins::AbstractInstrument)
                     push!(get!(p.instrument_linked_metrics, ins, IdSet{Metric}()), metric)
                     push!(p.metrics, metric)
 
-                    if ins isa AbstractAsyncInstrument
-                        p.async_instruments[ins] = nothing
+                    if ins isa OpenTelemetryAPI.AbstractAsyncInstrument
+                        push!(p.async_instruments, ins)
                     end
                 end
             end
@@ -166,7 +166,10 @@ function Base.push!(p::MeterProvider, ins::AbstractInstrument)
     end
 end
 
-function Base.push!(p::MeterProvider, ins_m::Pair{<:AbstractInstrument,<:Measurement})
+function Base.push!(
+    p::MeterProvider,
+    ins_m::Pair{<:OpenTelemetryAPI.AbstractInstrument,<:Measurement},
+)
     instrument, measurement = ins_m
     if haskey(p.instrument_linked_metrics, instrument)
         for metric in p.instrument_linked_metrics[instrument]
@@ -177,7 +180,7 @@ function Base.push!(p::MeterProvider, ins_m::Pair{<:AbstractInstrument,<:Measure
     end
 end
 
-function Base.push!(p::MeterProvider, ins_m::Pair{<:AbstractInstrument})
+function Base.push!(p::MeterProvider, ins_m::Pair{<:OpenTelemetryAPI.AbstractInstrument})
     ins, m = ins_m
     push!(p, ins => Measurement(m))
 end

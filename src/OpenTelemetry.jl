@@ -10,7 +10,7 @@ using Reexport
 
 function __init__()
     if global_tracer_provider() isa OpenTelemetryAPI.DummyTracerProvider
-        global_tracer_provider!(
+        global_tracer_provider(
             TracerProvider(
                 span_processor = CompositSpanProcessor(
                     SimpleSpanProcessor(ConsoleExporter()),
@@ -20,7 +20,7 @@ function __init__()
     end
 
     if global_meter_provider() isa OpenTelemetryAPI.DummyMeterProvider
-        global_meter_provider!(MeterProvider())
+        global_meter_provider(MeterProvider())
     end
 end
 

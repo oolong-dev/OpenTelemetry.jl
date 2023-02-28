@@ -59,20 +59,22 @@ function AggregationStore{D}(; max_points = nothing) where {D<:DataPoint}
     )
 end
 
-Base.iterate(a::AggregationStore, args...) = iterate(a.unique_points, args...)
-Base.length(m::AggregationStore) = length(m.unique_points)
-Base.getindex(m::AggregationStore, k) = getindex(m.points, k)
+Base.iterate(a::AggregationStore, args...) = iterate(a.points, args...)
+Base.length(m::AggregationStore) = length(m.points)
 
-function Base.get!(f, agg::AggregationStore, attrs)
-    # personally I think there's no need to use lock here
-    # it doesn't seem to be a big problem to exceed the preset maximum points *slightly*
-    lock(agg.lock) do
-        if length(agg.points) < agg.max_points
-            get!(f, agg.points, attrs)
-        else
-            @warn "maximum number of points reached, dropped."
-            nothing
-        end
+Base.getindex(m::AggregationStore) = getindex(m, (;))
+Base.getindex(m::AggregationStore, k) = getindex(m, BoundedAttributes(k))
+Base.getindex(m::AggregationStore, k::BoundedAttributes) = getindex(m.points, k)
+
+Base.get!(f, agg::AggregationStore) = get!(f, agg, (;))
+Base.get!(f, agg::AggregationStore, attrs) = get!(f, agg, BoundedAttributes(attrs))
+
+function Base.get!(f, agg::AggregationStore, attrs::BoundedAttributes)
+    if length(agg.points) < agg.max_points
+        get!(f, agg.points, attrs)
+    else
+        @warn "maximum number of points reached, dropped."
+        nothing
     end
 end
 
@@ -81,7 +83,7 @@ end
 abstract type AbstractAggregation end
 
 Base.iterate(a::AbstractAggregation, args...) = iterate(a.agg_store, args...)
-Base.getindex(m::AbstractAggregation, k) = getindex(m.agg_store, k)
+Base.getindex(m::AbstractAggregation, k...) = getindex(m.agg_store, k...)
 Base.length(m::AbstractAggregation) = length(m.agg_store)
 
 """

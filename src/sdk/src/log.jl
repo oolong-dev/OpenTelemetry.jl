@@ -51,10 +51,7 @@ function BatchLogger(
     max_export_batch_size =
         something(max_export_batch_size, OTEL_BLRP_MAX_EXPORT_BATCH_SIZE())
 
-    queue = BatchContainer(
-        Array{OpenTelemetryAPI.AbstractSpan}(undef, max_queue_size),
-        max_export_batch_size,
-    )
+    queue = BatchContainer(Array{LogRecord}(undef, max_queue_size), max_export_batch_size)
     bl = BatchLogger(
         exporter,
         OtelLogTransformer(resource, instrumentation_info),
@@ -84,21 +81,21 @@ end
 function Logging.handle_message(bl::BatchLogger, args...; kw...)
     r = bl.transformer(handle_message_args(args...; kw...))
     if !bl.is_shutdown[]
-        is_full = put!(bl.container, r)
+        is_full = put!(bl.queue, r.message)
         if is_full
-            export!(bl.exporter, take!(bl.container))
+            export!(bl.exporter, take!(bl.queue))
             reset_timer!(bl)
         end
     end
 end
 
-function shut_down!(bl::BatchLogger)
-    shut_down!(bl.exporter)
+function Base.close(bl::BatchLogger)
+    close(bl.exporter)
     bl.is_shutdown[] = true
     close(bl.timer[])
 end
 
-function force_flush!(bl::BatchLogger)
-    export!(bl.exporter, take!(bl.container))
-    force_flush!(bl.exporter)
+function Base.flush(bl::BatchLogger)
+    export!(bl.exporter, take!(bl.queue))
+    flush(bl.exporter)
 end

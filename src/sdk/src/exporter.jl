@@ -1,5 +1,4 @@
-export InMemoryExporter,
-    ConsoleExporter, EXPORT_SUCCESS, EXPORT_FAILURE, export!, shut_down!, force_flush!
+export InMemoryExporter, ConsoleExporter, EXPORT_SUCCESS, EXPORT_FAILURE, export!
 
 @enum ExportResult begin
     EXPORT_SUCCESS
@@ -11,26 +10,26 @@ An `AbstractExporter` is to export a collection of [`AbstractSpan`](@ref)s and
 (or) [`Metric`](@ref)s. Each method should have the following interfaces
 implemented:
 
-  - [`force_flush!(::AbstractExporter)`](@ref)
-  - [`shut_down!(::AbstractExporter)`](@ref)
+  - [`flush(::AbstractExporter)`](@ref)
+  - [`close(::AbstractExporter)`](@ref)
   - [`export!(::AbstractExporter, collection)`](@ref)
 """
 abstract type AbstractExporter end
 
-force_flush!(::AbstractExporter) = true
+Base.flush(::AbstractExporter) = true
 
-shut_down!(e::AbstractExporter) = force_flush!(e)
+Base.close(e::AbstractExporter) = flush(e)
 
 #####
 
 """
-    InMemoryExporter(;pool=[], is_shut_down=Ref(false))
+    InMemoryExporter(;pool=[], is_closed=Ref(false))
 
 Simply store all `export!`ed elements into the `pool`.
 """
 Base.@kwdef struct InMemoryExporter <: AbstractExporter
     pool::Vector = []
-    is_shut_down::Ref{Bool} = Ref(false)
+    is_closed::Ref{Bool} = Ref(false)
 end
 
 Base.show(io::IO, e::InMemoryExporter) =
@@ -39,19 +38,14 @@ Base.empty!(se::InMemoryExporter) = empty!(se.pool)
 Base.length(se::InMemoryExporter) = length(se.pool)
 Base.iterate(e::InMemoryExporter, args...) = iterate(e.pool, args...)
 
-function force_flush!(se::InMemoryExporter)
-    empty!(se)
-    true
-end
-
-function shut_down!(se::InMemoryExporter)
-    force_flush!(se)
-    se.is_shut_down[] = true
+function Base.close(se::InMemoryExporter)
+    flush(se)
+    se.is_closed[] = true
     true
 end
 
 function export!(e::InMemoryExporter, xs)
-    if e.is_shut_down[]
+    if e.is_closed[]
         EXPORT_FAILURE
     else
         append!(e.pool, xs)

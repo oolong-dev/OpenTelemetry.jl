@@ -1,6 +1,6 @@
 @testset "trace" begin
     @testset "basic usage" begin
-        global_tracer_provider!(
+        global_tracer_provider(
             TracerProvider(
                 span_processor = CompositSpanProcessor(
                     SimpleSpanProcessor(InMemoryExporter()),
@@ -8,11 +8,11 @@
             ),
         )
 
-        tracer = Tracer()
+        t = Tracer()
 
-        with_span("test_async", tracer) do
+        with_span("test_async", t) do
             @sync for i in 1:5
-                @async with_span("asyn_span_$i", tracer) do
+                @async with_span("asyn_span_$i", t) do
                     current_span()["my_id"] = i
                 end
             end
@@ -20,26 +20,21 @@
 
         p = global_tracer_provider()
         sp = p.span_processor.span_processors[1]
-        @test length(sp.span_exporter.pool) == 6
+        @test length(sp.exporter.pool) == 6
 
         push!(p, SimpleSpanProcessor(ConsoleExporter()))
 
-        @test_throws ErrorException with_span("test", tracer) do
+        @test_throws ErrorException with_span("test", t) do
             span_name!("TEST")  # one can change the name of current span
             println("hello world from $(span_name()) [$(span_status())]!")
-            try
-                throw(ErrorException("???"))
-            catch e
-                push!(current_span(), e; is_rethrow_followed = true)
-                rethrow(e)
-            end
+            throw(ErrorException("???"))
         end
 
-        force_flush!(p)
-        shut_down!(p)
-        @test length(sp.span_exporter.pool) == 0
+        flush(p)
+        close(p)
+        @test length(sp.exporter.pool) == 7
 
-        with_span("test", tracer) do
+        with_span("test", t) do
             @test span_context() === INVALID_SPAN_CONTEXT
         end
     end

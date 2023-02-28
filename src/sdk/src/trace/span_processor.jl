@@ -5,8 +5,8 @@ Each span processor must implement the following methods:
 
   - [`on_start!(span_processor::AbstractSpanProcessor, span::AbstractSpan)`](@ref)
   - [`on_end!(span_processor::AbstractSpanProcessor, span::AbstractSpan)`](@ref)
-  - [`shut_down!(span_processor::AbstractSpanProcessor)`](@ref)
-  - [`force_flush!(span_processor::AbstractSpanProcessor)`](@ref)
+  - [`close(span_processor::AbstractSpanProcessor)`](@ref)
+  - [`flush(span_processor::AbstractSpanProcessor)`](@ref)
 """
 abstract type AbstractSpanProcessor end
 
@@ -37,9 +37,9 @@ function on_end!(ssp::SimpleSpanProcessor, span)
     end
 end
 
-shut_down!(ssp::SimpleSpanProcessor) = shut_down!(ssp.exporter)
+Base.close(ssp::SimpleSpanProcessor) = close(ssp.exporter)
 
-force_flush!(ssp::SimpleSpanProcessor) = force_flush!(ssp.exporter)
+Base.flush(ssp::SimpleSpanProcessor) = flush(ssp.exporter)
 
 #####
 
@@ -120,15 +120,15 @@ function on_end!(bsp::BatchSpanProcessor, span)
     end
 end
 
-function shut_down!(bsp::BatchSpanProcessor)
-    shut_down!(bsp.exporter)
+function Base.close(bsp::BatchSpanProcessor)
+    close(bsp.exporter)
     bsp.is_shutdown[] = true
     close(bsp.timer[])
 end
 
-function force_flush!(bsp::BatchSpanProcessor)
+function Base.flush(bsp::BatchSpanProcessor)
     export!(bsp.exporter, take!(bsp.container))
-    force_flush!(bsp.exporter)
+    flush(bsp.exporter)
 end
 
 #####
@@ -146,8 +146,17 @@ struct CompositSpanProcessor <: AbstractSpanProcessor
     end
 end
 
-for f in (:on_start!, :on_end!, :shut_down!, :force_flush!)
+for f in (:on_start!, :on_end!)
     @eval function $f(sp::CompositSpanProcessor, args...)
+        # ??? spawn
+        for p in sp.span_processors
+            $f(p, args...)
+        end
+    end
+end
+
+for f in (:close, :flush)
+    @eval function Base.$f(sp::CompositSpanProcessor, args...)
         # ??? spawn
         for p in sp.span_processors
             $f(p, args...)
@@ -157,6 +166,6 @@ end
 
 for f in (:push!, :pop!, :empty!, :getindex, :setindex!)
     @eval function Base.$f(sp::CompositSpanProcessor, args...)
-        $f(p.span_processors, args...)
+        $f(sp.span_processors, args...)
     end
 end

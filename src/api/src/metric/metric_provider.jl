@@ -1,4 +1,4 @@
-export global_meter_provider, global_meter_provider!, Meter, provider, resource
+export global_meter_provider, global_meter_provider, Meter, provider, resource
 
 """
 A meter provider defines how to collect and update [`Measurement`](@ref)s. Each
@@ -26,11 +26,11 @@ Get the global meter provider.
 global_meter_provider() = GLOBAL_METER_PROVIDER[]
 
 """
-    global_meter_provider!(p)
+    global_meter_provider(p)
 
 Set the global meter provider to `p`.
 """
-global_meter_provider!(p) = GLOBAL_METER_PROVIDER[] = p
+global_meter_provider(p) = GLOBAL_METER_PROVIDER[] = p
 
 """
 `AbstractInstrument`` is the super type of all instruments, which are used to report [`Measurement`](@ref)s.

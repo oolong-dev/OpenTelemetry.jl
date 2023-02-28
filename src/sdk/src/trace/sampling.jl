@@ -15,7 +15,7 @@ is_sampled(d::Decision) = d === DECISION_RECORD_AND_SAMPLE
 OpenTelemetryAPI.is_recording(d::Decision) =
     d === DECISION_RECORD_ONLY || d === DECISION_RECORD_AND_SAMPLE
 
-struct SamplingResult{A<:Union{StaticBoundedAttributes,DynamicAttrs},T<:TraceState}
+struct SamplingResult{A<:BoundedAttributes,T<:TraceState}
     decision::Decision
     attributes::A
     trace_state::T
@@ -67,12 +67,12 @@ function should_sample(
     trace_id,
     name,
     kind = SPAN_KIND_INTERNAL,
-    attributes = StaticBoundedAttributes(),
+    attributes = BoundedAttributes(),
     links = [],
     trace_state = TraceState(),
 )
     if s.decision === DECISION_DROP
-        attributes = StaticBoundedAttributes()
+        attributes = BoundedAttributes()
     end
     SamplingResult(s.decision, attributes, trace_state)
 end
@@ -92,7 +92,7 @@ function should_sample(
     trace_id,
     name,
     kind = SPAN_KIND_INTERNAL,
-    attributes = StaticBoundedAttributes(),
+    attributes = BoundedAttributes(),
     links = [],
     trace_state = TraceState(),
 )
@@ -101,7 +101,7 @@ function should_sample(
         decision = DECISION_RECORD_AND_SAMPLE
     end
     if decision === DECISION_DROP
-        attributes = StaticBoundedAttributes()
+        attributes = BoundedAttributes()
     end
     SamplingResult(decision, attributes, trace_state)
 end
@@ -120,7 +120,7 @@ function should_sample(
     trace_id,
     name,
     kind = SPAN_KIND_INTERNAL,
-    attributes = StaticBoundedAttributes(),
+    attributes = BoundedAttributes(),
     links = [],
     trace_state = TraceState(),
 )
@@ -167,15 +167,15 @@ DEFAULT_ON = ParentBasedSampler(root_sampler = ALWAYS_ON)
 
 function get_default_trace_sampler()
     name = uppercase(OTEL_TRACES_SAMPLER())
-    if name == "parentbased_always_on"
+    if name == "PARENTBASED_ALWAYS_ON"
         DEFAULT_ON
-    elseif name == "parentbased_always_off"
+    elseif name == "PARENTBASED_ALWAYS_OFF"
         DEFAULT_OFF
-    elseif name == "always_on"
+    elseif name == "ALWAYS_ON"
         ALWAYS_ON
-    elseif name == "always_off"
+    elseif name == "ALWAYS_OFF"
         ALWAYS_OFF
-    elseif name == "traceidratio"
+    elseif name == "TRACEIDRATIO"
         s_args = OTEL_TRACES_SAMPLER_ARG()
         ratio = isnothing(s_args) ? 1.0 : parse(Float64, s_args)
         TraceIdRatioBased(ratio)

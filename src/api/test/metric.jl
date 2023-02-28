@@ -1,6 +1,6 @@
 @testset "Metric" begin
     @testset "MeterProvider" begin
-        global_meter_provider!(global_meter_provider())  # smoke test
+        global_meter_provider(global_meter_provider())  # smoke test
 
         m = Meter("test")
         c = Counter{UInt}("cc", m)
