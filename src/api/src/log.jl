@@ -9,6 +9,7 @@ using Dates
 A Julia representation of the [Log Data Model](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#log-and-event-record-definition).
 """
 Base.@kwdef struct LogRecord{B,R<:Resource,A<:BoundedAttributes}
+    body::B
     timestamp::UInt
     observed_timestamp::UInt
     trace_id::TraceIdType
@@ -16,7 +17,6 @@ Base.@kwdef struct LogRecord{B,R<:Resource,A<:BoundedAttributes}
     trace_flags::TraceFlag
     severity_text::String
     severity_number::Int
-    body::B
     resource::R
     instrumentation_info::InstrumentationInfo
     attributes::A
