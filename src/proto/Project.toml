@@ -5,11 +5,8 @@ version = "0.13.1"
 
 [deps]
 ProtoBuf = "3349acd9-ac6a-5e09-bcdb-63829b23a429"
-gRPCClient = "aaca4a50-36af-4a1d-b878-4c443f2061ad"
 
 [compat]
-ProtoBuf = "0.11"
-gRPCClient = "0.1"
 julia = "1"
 
 [extras]
