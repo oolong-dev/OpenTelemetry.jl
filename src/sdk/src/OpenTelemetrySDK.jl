@@ -4,6 +4,7 @@ using Reexport
 
 @reexport using OpenTelemetryAPI
 
+include("struct_tree.jl")
 include("exporter.jl")
 include("log.jl")
 include("trace/trace.jl")
