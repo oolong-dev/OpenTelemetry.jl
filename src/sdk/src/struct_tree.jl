@@ -13,21 +13,13 @@ StructTree(x::X) where {X} = StructTree(Symbol(""), x)
 
 function AbstractTrees.children(s::StructTree)
     c = []
-    foreachfield(s.value) do i, name, FT, v
-        push!(c, StructTree(name, v))
-    end
-    c
-end
-
-function AbstractTrees.children(s::StructTree)
-    c = []
     if StructType(s.value) === DictType()
         for (k, v) in pairs(s.value)
             push!(c, StructTree(Symbol(k), v))
         end
     else
         foreachfield(s.value) do i, name, FT, v
-            push!(c, StructTree(name, v))
+            push!(c, StructTree(Symbol(name), v))
         end
     end
     c
@@ -66,15 +58,3 @@ function Base.convert(::Type{Tree}, s::StructTree)
 end
 
 Base.show(io::IO, s::StructTree) = print(io, convert(Tree, s))
-
-#####
-# Package specific settings
-#####
-
-AbstractTrees.children(s::StructTree{<:VersionNumber}) = ()
-
-StructTypes.excludes(::Type{<:Tracer}) = (:provider,)
-
-StructTypes.excludes(::Type{<:Meter}) = (:provider,)
-StructTypes.excludes(::Type{<:OpenTelemetryAPI.AbstractInstrument}) = (:meter,)
-StructTypes.excludes(::Type{<:DataPoint}) = (:exemplar_reservoir, :lock)

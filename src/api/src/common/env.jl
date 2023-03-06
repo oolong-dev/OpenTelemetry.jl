@@ -257,7 +257,7 @@ Maximum allowed attribute value size
 """
 OTEL_LOGRECORD_ATTRIBUTE_VALUE_LENGTH_LIMIT() =
     if haskey(ENV, "OTEL_LOGRECORD_ATTRIBUTE_VALUE_LENGTH_LIMIT")
-        parse(Int, ENV[" OTEL_LOGRECORD_ATTRIBUTE_VALUE_LENGTH_LIMIT"])
+        parse(Int, ENV["OTEL_LOGRECORD_ATTRIBUTE_VALUE_LENGTH_LIMIT"])
     else
         OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT()
     end
@@ -308,7 +308,11 @@ export OTEL_EXPORTER_PROMETHEUS_HOST
 Port used by the Prometheus exporter
 """
 OTEL_EXPORTER_PROMETHEUS_PORT() =
-    parse(Int, get(ENV, "OTEL_EXPORTER_PROMETHEUS_PORT", "9464"))
+    if haskey(ENV, "OTEL_EXPORTER_PROMETHEUS_PORT")
+        parse(Int, ENV["OTEL_EXPORTER_PROMETHEUS_PORT"])
+    else
+        9496
+    end
 
 export OTEL_EXPORTER_PROMETHEUS_PORT
 

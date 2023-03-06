@@ -19,6 +19,14 @@ end
 #####
 using Term: Tree, Panel, tprint
 using Dates: unix2datetime
+using AbstractTrees
+using StructTypes
+
+AbstractTrees.children(s::StructTree{<:VersionNumber}) = ()
+StructTypes.excludes(::Type{<:Tracer}) = (:provider,)
+StructTypes.excludes(::Type{<:Meter}) = (:provider,)
+StructTypes.excludes(::Type{<:OpenTelemetryAPI.AbstractInstrument}) = (:meter,)
+StructTypes.excludes(::Type{<:DataPoint}) = (:exemplar_reservoir, :lock)
 
 # Logging
 

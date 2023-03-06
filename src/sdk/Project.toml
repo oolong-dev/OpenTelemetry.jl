@@ -1,7 +1,7 @@
 name = "OpenTelemetrySDK"
 uuid = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
 authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
-version = "0.2.1"
+version = "0.3.0"
 
 [deps]
 AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
@@ -16,7 +16,7 @@ Term = "22787eb5-b846-44ae-b979-8e399b8463ab"
 
 [compat]
 Glob = "1"
-OpenTelemetryAPI = "0.3"
+OpenTelemetryAPI = "0.4"
 Reexport = "1"
 julia = "1"
 

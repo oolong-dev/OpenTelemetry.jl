@@ -4,7 +4,6 @@ export PrometheusExporter
 
 using OpenTelemetrySDK
 using HTTP
-using Sockets
 
 """
     PrometheusExporter(; host = "127.0.0.1", port = 9966, kw...)
@@ -18,46 +17,39 @@ Here the extra keyword arguments `kw` will be forwarded to `HTTP.listen`.
 r = MetricReader(PrometheusExporter())
 ```
 
-Note that since `PrometheusExporter` is pull based exporter, which means there's
-no need to execute `r()` to update the metrics.
+Note that `PrometheusExporter` is a pull based exporter. There's no need to execute `r()` to update the metrics.
 """
-mutable struct PrometheusExporter <: AbstractExporter
-    server::Sockets.TCPServer
-    provider::Union{MeterProvider,Nothing}
-    taskref::Ref{Task}
-    function PrometheusExporter(; host = "127.0.0.1", port = 9966, kw...)
-        server = Sockets.listen(Sockets.InetAddr(parse(IPAddr, host), port))
-        exporter = new(server, nothing, Ref{Task}())
-        exporter.taskref[] = @async HTTP.listen(host, port; server = server, kw...) do http
-            HTTP.setstatus(http, 200)
-            HTTP.setheader(http, "Content-Type" => "text/plain")
-
-            if isnothing(exporter.provider)
-                write(http, "MeterProvider is not set yet!!!")
-            else
-                for ins in keys(exporter.provider.async_instruments)
-                    ins()
-                end
-                text_based_format(http, exporter.provider)
+struct PrometheusExporter <: OpenTelemetrySDK.AbstractExporter
+    server::HTTP.Servers.Server
+    provider::Ref{MeterProvider}
+    function PrometheusExporter(; host = nothing, port = nothing, kw...)
+        host = something(host, OTEL_EXPORTER_PROMETHEUS_HOST())
+        port = something(port, OTEL_EXPORTER_PROMETHEUS_PORT())
+        provider = Ref{MeterProvider}()
+        server = HTTP.serve!(host, port; stream = true, kw...) do io
+            for ins in provider[].async_instruments
+                ins()
             end
-            return
+            text_based_format(io, provider[])
+            HTTP.setstatus(io, 200)
+            HTTP.setheader(io, "Content-Type" => "text/plain")
         end
-        finalizer(exporter) do x
-            close(x)
-        end
-        exporter
+
+        new(server, provider)
     end
 end
 
 Base.close(r::PrometheusExporter) = close(r.server)
 
 function (r::MetricReader{<:MeterProvider,<:PrometheusExporter})()
-    if isnothing(r.exporter.provider)
-        r.exporter.provider = r.provider
-    else
+    if isassigned(r.exporter.provider)
         @info "The prometheus exporter is already properly set!"
+    else
+        r.exporter.provider[] = r.provider
     end
 end
+
+attrs2str(attrs) = join(("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
 
 # TODO: support exemplars
 function text_based_format(io, provider::MeterProvider)
@@ -65,60 +57,32 @@ function text_based_format(io, provider::MeterProvider)
         write(io, "# HELP $(m.name) $(m.description)\n")
         write(io, "# TYPE $(m.name) $(prometheus_type(m.aggregation))\n")
         for (attrs, point) in m
-            if point.value isa OpenTelemetrySDK.HistogramValue
-                val = point.value
-                for (i, c) in enumerate(Iterators.accumulate(+, val.counts))
-                    if length(attrs) > 0
-                        if i == length(val.counts)
-                            write(io, "$(m.name)_bucket{")
-                            # TODO: escape
-                            join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
-                            write(io, ",le=\"+Inf\"} $c $(point.time_unix_nano ÷ 10^6) \n")
+            val = point.value
+            time = point.time_unix_nano ÷ 10^6
+            s_attrs = attrs2str(attrs)
+            wrapped_s_attrs = length(attrs) == 0 ? "" : "{$s_attrs}"
 
-                            write(io, "$(m.name)_count{")
-                            # TODO: escape
-                            join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
-                            write(io, "} $c $(point.time_unix_nano ÷ 10^6) \n")
-                        else
-                            write(io, "$(m.name)_bucket{")
-                            # TODO: escape
-                            join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
-                            write(
-                                io,
-                                ",le=\"$(val.boundaries[i])\"} $c $(point.time_unix_nano ÷ 10^6) \n",
-                            )
-                        end
+            if point.value isa OpenTelemetrySDK.HistogramValue
+                if !isempty(s_attrs)
+                    s_attrs = "$s_attrs,"
+                end
+                for (i, c) in enumerate(Iterators.accumulate(+, val.counts))
+                    if i < length(val.counts)
+                        println(
+                            io,
+                            "$(m.name)_bucket{$(s_attrs)le=\"$(val.boundaries[i])\"} $c $time",
+                        )
                     else
-                        if i == length(val.counts)
-                            write(
-                                io,
-                                "$(m.name)_bucket{le=\"+Inf\"} $c $(point.time_unix_nano ÷ 10^6) \n",
-                            )
-                            write(io, "$(m.name)_count $c\n")
-                        else
-                            write(
-                                io,
-                                "$(m.name)_bucket{le=\"$(val.boundaries[i])\"} $c $(point.time_unix_nano ÷ 10^6) \n",
-                            )
-                        end
+                        println(io, "$(m.name)_bucket{$(s_attrs)le=\"+Inf\"} $c $time")
+                        println(io, "$(m.name)_count$wrapped_s_attrs $c")
                     end
                 end
                 # ???
                 if !isnothing(val.sum)
-                    if length(attrs) > 0
-                        write(io, "$(m.name)_sum{")
-                        # TODO: escape
-                        join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
-                        write(io, "} $(val.sum) $(point.time_unix_nano ÷ 10^6) \n")
-                    else
-                        write(io, "$(m.name)_sum $(val.sum)\n")
-                    end
+                    println(io, "$(m.name)_sum$wrapped_s_attrs $(val.sum) $time")
                 end
             else
-                write(io, "$(m.name){")
-                # TODO: escape
-                join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
-                write(io, "} $(point.value) $(point.time_unix_nano ÷ 10^6) \n")
+                println(io, "$(m.name)$(wrapped_s_attrs) $val $time")
             end
         end
         write(io, "\n")

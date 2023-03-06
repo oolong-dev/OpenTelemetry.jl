@@ -32,10 +32,10 @@ using HTTP
     h(321; code = 888)
     h(4321; code = 888)
 
-    e = PrometheusExporter(; host = "0.0.0.0", port = 9966)
+    e = PrometheusExporter()
     r = MetricReader(p, e)
 
-    resp = HTTP.request("GET", "http://localhost:9966")
+    resp = HTTP.request("GET", "http://localhost:9496")
     body = split(String(resp.body), "\n"; keepempty = false)
     expected = split(
         """
