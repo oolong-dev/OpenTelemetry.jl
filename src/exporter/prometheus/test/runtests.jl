@@ -9,7 +9,7 @@ using HTTP
     p = MeterProvider()
 
     m = Meter("my_metrics"; provider = p)
-    c = Counter{Int}("fruit_counter", m)
+    c = Counter{Int}("fruit.counter", m)
 
     c(; name = "apple", color = "red")
     c(2; name = "lemon", color = "yellow")

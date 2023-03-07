@@ -49,13 +49,12 @@ function (r::MetricReader{<:MeterProvider,<:PrometheusExporter})()
     end
 end
 
-attrs2str(attrs) = join(("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
-
 # TODO: support exemplars
 function text_based_format(io, provider::MeterProvider)
     for m in metrics(provider)
-        write(io, "# HELP $(m.name) $(m.description)\n")
-        write(io, "# TYPE $(m.name) $(prometheus_type(m.aggregation))\n")
+        name = sanitize(m.name)
+        write(io, "# HELP $name $(m.description)\n")
+        write(io, "# TYPE $name $(prometheus_type(m.aggregation))\n")
         for (attrs, point) in m
             val = point.value
             time = point.time_unix_nano ÷ 10^6
@@ -70,19 +69,19 @@ function text_based_format(io, provider::MeterProvider)
                     if i < length(val.counts)
                         println(
                             io,
-                            "$(m.name)_bucket{$(s_attrs)le=\"$(val.boundaries[i])\"} $c $time",
+                            "$(name)_bucket{$(s_attrs)le=\"$(val.boundaries[i])\"} $c $time",
                         )
                     else
-                        println(io, "$(m.name)_bucket{$(s_attrs)le=\"+Inf\"} $c $time")
-                        println(io, "$(m.name)_count$wrapped_s_attrs $c")
+                        println(io, "$(name)_bucket{$(s_attrs)le=\"+Inf\"} $c $time")
+                        println(io, "$(name)_count$wrapped_s_attrs $c")
                     end
                 end
                 # ???
                 if !isnothing(val.sum)
-                    println(io, "$(m.name)_sum$wrapped_s_attrs $(val.sum) $time")
+                    println(io, "$(name)_sum$wrapped_s_attrs $(val.sum) $time")
                 end
             else
-                println(io, "$(m.name)$(wrapped_s_attrs) $val $time")
+                println(io, "$name$wrapped_s_attrs $val $time")
             end
         end
         write(io, "\n")
@@ -92,5 +91,10 @@ end
 prometheus_type(::SumAgg) = "counter"
 prometheus_type(::LastValueAgg) = "gauge"
 prometheus_type(::HistogramAgg) = "histogram"
+
+sanitize(s::Symbol) = sanitize(string(s))
+sanitize(s) = replace(s, r"[^\w]" => "_")
+
+attrs2str(attrs) = join(("$(sanitize(k))=\"$v\"" for (k, v) in pairs(attrs)), ",")
 
 end # module
