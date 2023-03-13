@@ -1,4 +1,4 @@
-export Resource, InstrumentationInfo
+export Resource, InstrumentationScope
 
 """
     Resource(;attributes=nothing, schema_url="")
@@ -35,12 +35,13 @@ end
 #####
 
 """
-    InstrumentationInfo(;name="Main", version=v"0.0.1-dev")
+    InstrumentationScope(;name="Main", version=v"0.0.1-dev")
 
 Usually used in an instrumentation package.
 """
-Base.@kwdef struct InstrumentationInfo
+Base.@kwdef struct InstrumentationScope
     name::String = "OpenTelemetryAPI"
     version::VersionNumber = PKG_VERSION
     schema_url::String = ""
+    attributes::BoundedAttributes = BoundedAttributes()
 end

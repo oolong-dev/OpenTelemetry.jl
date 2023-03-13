@@ -48,10 +48,10 @@ Set the global tracer provider to `p`.
 global_tracer_provider(p) = GLOBAL_TRACER_PROVIDER[] = p
 
 """
-    Tracer(;instrumentation_info=InstrumentationInfo(), provider=global_meter_provider())
+    Tracer(;instrumentation_scope=InstrumentationScope(), provider=global_meter_provider())
 """
 Base.@kwdef struct Tracer{P<:AbstractTracerProvider}
-    instrumentation_info::InstrumentationInfo = InstrumentationInfo()
+    instrumentation_scope::InstrumentationScope = InstrumentationScope()
     provider::P = global_tracer_provider()
 end
 

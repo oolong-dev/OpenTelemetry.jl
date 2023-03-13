@@ -1,0 +1,10 @@
+name = "OpenTelemetryExporterOtlpProtoHttp"
+uuid = "f175482f-0544-4037-b362-361efbf21c04"
+authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+OpenTelemetryAPI = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
+OpenTelemetryProto = "cc651e92-2989-4f95-bcc3-32e6fb6ac025"
+OpenTelemetrySDK = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"

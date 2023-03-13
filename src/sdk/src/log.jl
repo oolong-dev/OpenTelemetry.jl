@@ -34,7 +34,7 @@ end
   - `export_timeout_millis = nothing`
   - `max_export_batch_size = nothing`
   - `resource = Resource()`
-  - `instrumentation_info = InstrumentationInfo()`
+  - `instrumentation_scope = InstrumentationScope()`
 """
 function BatchLogger(
     exporter;
@@ -43,7 +43,7 @@ function BatchLogger(
     export_timeout_millis = nothing,
     max_export_batch_size = nothing,
     resource = Resource(),
-    instrumentation_info = InstrumentationInfo(),
+    instrumentation_scope = InstrumentationScope(),
 )
     max_queue_size = something(max_queue_size, OTEL_BLRP_MAX_QUEUE_SIZE())
     scheduled_delay_millis = something(scheduled_delay_millis, OTEL_BLRP_SCHEDULE_DELAY())
@@ -54,7 +54,7 @@ function BatchLogger(
     queue = BatchContainer(Array{LogRecord}(undef, max_queue_size), max_export_batch_size)
     bl = BatchLogger(
         exporter,
-        OtelLogTransformer(resource, instrumentation_info),
+        OtelLogTransformer(resource, instrumentation_scope),
         queue,
         Ref{Timer}(),
         Ref(false),

@@ -6,7 +6,7 @@ using Distributed
 using TOML
 const PKG_VERSION =
     VersionNumber(TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))["version"])
-const INSTRUMENTATION_INFO = InstrumentationInfo(
+const instrumentation_scope = InstrumentationScope(
     name = string(@__MODULE__),
     version = PKG_VERSION,
     schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationDistributed/",
@@ -111,13 +111,13 @@ function init(;
         Meter(
             "Distributed";
             provider = meter_provider,
-            instrumentation_info = INSTRUMENTATION_INFO,
+            instrumentation_scope = instrumentation_scope,
         );
         unit = "",
         description = "Number of remote calls executed.",
     )
     DISTRIBUTED_TRACER[] =
-        Tracer(; provider = tracer_provider, instrumentation_info = INSTRUMENTATION_INFO)
+        Tracer(; provider = tracer_provider, instrumentation_scope = instrumentation_scope)
 end
 
 function __init__()

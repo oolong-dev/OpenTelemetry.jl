@@ -18,7 +18,7 @@ Base.@kwdef struct LogRecord{B,R<:Resource,A<:BoundedAttributes}
     severity_text::String
     severity_number::Int
     resource::R
-    instrumentation_info::InstrumentationInfo
+    instrumentation_scope::InstrumentationScope
     attributes::A
 end
 
@@ -30,7 +30,7 @@ After applying this transformer, a [`LogRecord`](@ref) will be returned.
 """
 Base.@kwdef struct OtelLogTransformer{R<:Resource}
     resource::R = Resource()
-    instrumentation_info::InstrumentationInfo = InstrumentationInfo()
+    instrumentation_scope::InstrumentationScope = InstrumentationScope()
 end
 
 function (L::OtelLogTransformer)(log)
@@ -60,7 +60,7 @@ function (L::OtelLogTransformer)(log)
                 end,
                 body = log.message,
                 resource = L.resource,
-                instrumentation_info = L.instrumentation_info,
+                instrumentation_scope = L.instrumentation_scope,
                 attributes = BoundedAttributes(
                     NamedTuple(log.kwargs);
                     count_limit = OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT(),

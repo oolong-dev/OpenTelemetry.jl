@@ -10,7 +10,7 @@ using TOML
 
 const PKG_VERSION =
     VersionNumber(TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))["version"])
-const INSTRUMENTATION_INFO = InstrumentationInfo(
+const instrumentation_scope = InstrumentationScope(
     name = string(@__MODULE__),
     version = PKG_VERSION,
     schema_url = "https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryInstrumentationHTTP/",
@@ -98,13 +98,13 @@ function init(;
         Meter(
             "request";
             provider = meter_provider,
-            instrumentation_info = INSTRUMENTATION_INFO,
+            instrumentation_scope = instrumentation_scope,
         );
         unit = "",
         description = "Number of requests received.",
     )
     HTTP_TRACER[] =
-        Tracer(; provider = tracer_provider, instrumentation_info = INSTRUMENTATION_INFO)
+        Tracer(; provider = tracer_provider, instrumentation_scope = instrumentation_scope)
     top = HTTP.top_layer(stack())
     insert_default!(top, OpenTelemetryLayer)
 end

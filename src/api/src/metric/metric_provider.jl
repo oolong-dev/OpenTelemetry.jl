@@ -57,19 +57,19 @@ Meter is responsible for creating instruments.
 ## Keyword Arguments:
 
   - `provider::P = global_meter_provider()`
-  - `instrumentation_info = InstrumentationInfo()`
+  - `instrumentation_scope = InstrumentationScope()`
 """
 struct Meter{P<:AbstractMeterProvider}
     name::String
     provider::P
-    instrumentation_info::InstrumentationInfo
+    instrumentation_scope::InstrumentationScope
     instruments::Vector{AbstractInstrument}
     function Meter(
         name::String;
         provider::P = global_meter_provider(),
-        instrumentation_info = InstrumentationInfo(),
+        instrumentation_scope = InstrumentationScope(),
     ) where {P<:AbstractMeterProvider}
-        m = new{P}(name, provider, instrumentation_info, AbstractInstrument[])
+        m = new{P}(name, provider, instrumentation_scope, AbstractInstrument[])
         push!(provider, m)
         m
     end
