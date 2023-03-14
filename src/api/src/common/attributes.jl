@@ -20,7 +20,7 @@ struct BoundedAttributes{T}
     attrs::T
     count_limit::Int
     value_length_limit::Int
-    n_dropped::Ref{Int}
+    n_dropped::Ref{UInt32}
 end
 
 const StaticBoundedAttributes = BoundedAttributes{<:NamedTuple}
@@ -42,7 +42,7 @@ function BoundedAttributes(attrs; count_limit = nothing, value_length_limit = no
     count_limit = something(count_limit, OTEL_ATTRIBUTE_COUNT_LIMIT())
     value_length_limit = something(value_length_limit, OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT())
     attrs, n_dropped = clean_attrs!(attrs, count_limit, value_length_limit)
-    BoundedAttributes(attrs, count_limit, value_length_limit, Ref(n_dropped))
+    BoundedAttributes(attrs, count_limit, value_length_limit, Ref{UInt32}(n_dropped))
 end
 
 Base.getindex(x::BoundedAttributes, args...) = getindex(x.attrs, args...)

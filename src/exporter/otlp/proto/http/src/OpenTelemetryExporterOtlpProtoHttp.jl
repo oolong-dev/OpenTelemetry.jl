@@ -1,76 +1,84 @@
 module OpenTelemetryExporterOtlpProtoHttp
 
+export OtlpHttpLogsExporter, OtlpHttpTracesExporter, OtlpHttpMetricsExporter
+
 using ProtoBuf
+
+import HTTP
 
 import OpenTelemetryAPI as API
 import OpenTelemetrySDK as SDK
 
-import OpenTelemetryProto.collector.logs.v1 as COLL_LOGS
-import OpenTelemetryProto.collector.traces.v1 as COLL_TRACES
-import OpenTelemetryProto.collector.metrics.v1 as COLL_METRICS
+import OpenTelemetryProto.opentelemetry.proto.collector.logs.v1 as COLL_LOGS
+import OpenTelemetryProto.opentelemetry.proto.collector.trace.v1 as COLL_TRACES
+import OpenTelemetryProto.opentelemetry.proto.collector.metrics.v1 as COLL_METRICS
 
-import OpenTelemetryProto.logs.v1 as LOGS
-import OpenTelemetryProto.traces.v1 as TRACES
-import OpenTelemetryProto.metrics.v1 as METRICS
+import OpenTelemetryProto.opentelemetry.proto.logs.v1 as LOGS
+import OpenTelemetryProto.opentelemetry.proto.trace.v1 as TRACES
+import OpenTelemetryProto.opentelemetry.proto.metrics.v1 as METRICS
 
-import OpenTelemetryProto.common.v1 as COMMON
-import OpenTelemetryProto.resource.v1 as RESOURCE
+import OpenTelemetryProto.opentelemetry.proto.common.v1 as COMMON
+import OpenTelemetryProto.opentelemetry.proto.resource.v1 as RESOURCE
 
 struct OtlpHttpExporter{Req,Resp} <: SDK.AbstractExporter
     url::String
     headers::Vector{Pair{String,String}}
-    timeout::Float64
+    timeout::Int
+    function OtlpHttpExporter{Req,Resp}(url, headers, timeout) where {Req,Resp}
+        push!(headers, "Content-Type" => "application/x-protobuf") # TODO: detect duplicate?
+        new{Req,Resp}(url, headers, timeout)
+    end
 end
 
 OtlpHttpLogsExporter(;
-    url = OTEL_EXPORTER_OTLP_LOGS_ENDPOINT(),
-    headers = OTEL_EXPORTER_OTLP_LOGS_HEADERS(),
-    timeout = OTEL_EXPORTER_OTLP_LOGS_TIMEOUT(),
+    url = API.OTEL_EXPORTER_OTLP_LOGS_ENDPOINT(),
+    headers = API.OTEL_EXPORTER_OTLP_LOGS_HEADERS(),
+    timeout = API.OTEL_EXPORTER_OTLP_LOGS_TIMEOUT(),
 ) =
     OtlpHttpExporter{COLL_LOGS.ExportLogsServiceRequest,COLL_LOGS.ExportLogsServiceResponse}(
-        url,
+        "$url/v1/logs",
         headers,
         timeout,
     )
 
 OtlpHttpTracesExporter(;
-    url = OTEL_EXPORTER_OTLP_TRACES_ENDPOINT(),
-    headers = OTEL_EXPORTER_OTLP_TRACES_HEADERS(),
-    timeout = OTEL_EXPORTER_OTLP_TRACES_TIMEOUT(),
+    url = API.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT(),
+    headers = API.OTEL_EXPORTER_OTLP_TRACES_HEADERS(),
+    timeout = API.OTEL_EXPORTER_OTLP_TRACES_TIMEOUT(),
 ) = OtlpHttpExporter{
     COLL_TRACES.ExportTraceServiceRequest,
     COLL_TRACES.ExportTraceServiceResponse,
 }(
-    url,
+    "$url/v1/traces",
     headers,
     timeout,
 )
 
 OtlpHttpMetricsExporter(;
-    url = OTEL_EXPORTER_OTLP_METRICS_ENDPOINT(),
-    headers = OTEL_EXPORTER_OTLP_METRICS_HEADERS(),
-    timeout = OTEL_EXPORTER_OTLP_METRICS_TIMEOUT(),
+    url = API.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT(),
+    headers = API.OTEL_EXPORTER_OTLP_METRICS_HEADERS(),
+    timeout = API.OTEL_EXPORTER_OTLP_METRICS_TIMEOUT(),
 ) = OtlpHttpExporter{
     COLL_METRICS.ExportMetricsServiceRequest,
     COLL_METRICS.ExportMetricsServiceResponse,
 }(
-    url,
+    "$url/v1/metrics",
     headers,
     timeout,
 )
 
 function SDK.export!(x::OtlpHttpExporter{Req,Resp}, batch) where {Req,Resp}
-    res = SDK.EXPORT_FAILURE
-    HTTP.open("GET", x.url, x.headers; readtimeout = x.timeout) do io
-        e = ProtoEncoder(io)
-        encode(e, convert(Req, batch))
-        while !eof(io)
-            d = ProtoDecoder(io)
-            resp = decode(d, Resp)
-            res = convert(SDK.ExportResult, resp)
-        end
-    end
-    res
+    io = IOBuffer()
+    e = ProtoEncoder(io)
+    encode(e, convert(Req, batch))
+    seekstart(io)
+
+    res = HTTP.post(x.url, x.headers; body = io)
+
+    res_io = IOBuffer(res.body)
+    d = ProtoDecoder(res_io)
+    resp = decode(d, Resp)
+    convert(SDK.ExportResult, resp)
 end
 
 include("convert.jl")

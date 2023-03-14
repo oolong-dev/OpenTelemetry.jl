@@ -1,5 +1,11 @@
 export Resource, InstrumentationScope
 
+DEFAULT_RESOURCE_ATTRIBUTES = (;
+    Symbol("telemetry.sdk.language") => "julia",
+    Symbol("telemetry.sdk.name") => "opentelemetry",
+    Symbol("telemetry.sdk.version") => string(PKG_VERSION),
+)
+
 """
     Resource(;attributes=nothing, schema_url="")
 
@@ -14,7 +20,7 @@ Quoted from [the specification](https://github.com/open-telemetry/opentelemetry-
     Based on the specification on [Exempt Entities](https://opentelemetry.io/docs/reference/specification/common/#exempt-entities) of resource attributes, the type of `attributes` in `Resource` is limited to `NamedTuple` instead of [`BoundedAttributes`](@ref).
 """
 Base.@kwdef struct Resource{A<:NamedTuple}
-    attributes::A = OTEL_RESOURCE_ATTRIBUTES()
+    attributes::A = merge(DEFAULT_RESOURCE_ATTRIBUTES, OTEL_RESOURCE_ATTRIBUTES())
     schema_url::String = ""
 end
 
