@@ -5,13 +5,14 @@ Base.convert(
         COLL_TRACES.ExportTraceServiceResponse,
         COLL_METRICS.ExportMetricsServiceResponse,
     },
-) = if isnothing(resp.partial_success)
-    SDK.EXPORT_SUCCESS
-elseif resp.partial_success.rejected_log_records == 0
-    SDK.EXPORT_SUCCESS
-else
-    SDK.EXPORT_FAILURE
-end
+) =
+    if isnothing(resp.partial_success)
+        SDK.EXPORT_SUCCESS
+    elseif resp.partial_success.rejected_log_records == 0
+        SDK.EXPORT_SUCCESS
+    else
+        SDK.EXPORT_FAILURE
+    end
 
 # Resource
 
@@ -20,10 +21,8 @@ end
 Base.convert(::Type{RESOURCE.Resource}, r::API.Resource) =
     RESOURCE.Resource(convert(Vector{COMMON.KeyValue}, r.attributes), 0)
 
-Base.convert(
-    ::Type{Vector{COMMON.KeyValue}},
-    attrs::Union{NamedTuple,API.BoundedAttributes},
-) = [convert(COMMON.KeyValue, kv) for kv in pairs(attrs)]
+Base.convert(::Type{Vector{COMMON.KeyValue}}, attrs::API.BoundedAttributes) =
+    [convert(COMMON.KeyValue, kv) for kv in pairs(attrs)]
 
 Base.convert(::Type{COMMON.KeyValue}, x::Pair) =
     COMMON.KeyValue(string(first(x)), convert(COMMON.AnyValue, last(x)))
@@ -64,10 +63,11 @@ Base.convert(::Type{COLL_LOGS.ExportLogsServiceRequest}, batch::AbstractVector) 
 
 function Base.convert(::Type{LOGS.ResourceLogs}, batch::AbstractVector)
     x = first(batch)  # we can safely assume the log records are from the same provider
+    r = API.resource(x)
     LOGS.ResourceLogs(
-        convert(RESOURCE.Resource, x.resource),
+        convert(RESOURCE.Resource, r),
         LOGS.ScopeLogs[convert(LOGS.ScopeLogs, batch)],
-        x.instrumentation_scope.schema_url,
+        r.schema_url,
     )
 end
 
@@ -92,3 +92,82 @@ Base.convert(::Type{LOGS.LogRecord}, x::API.LogRecord) = LOGS.LogRecord(
     reinterpret(UInt8, [x.trace_id]),
     reinterpret(UInt8, [x.span_id]),
 )
+
+# Traces
+
+Base.convert(::Type{COLL_TRACES.ExportTraceServiceRequest}, batch::AbstractVector) =
+    COLL_TRACES.ExportTraceServiceRequest([convert(TRACES.ResourceSpans, batch)])
+
+function Base.convert(::Type{TRACES.ResourceSpans}, batch::AbstractVector)
+    x = first(batch)
+    r = API.resource(x)
+    TRACES.ResourceSpans(
+        convert(RESOURCE.Resource, r),
+        [convert(TRACES.ScopeSpans, batch)],
+        r.schema_url,
+    )
+end
+
+function Base.convert(::Type{TRACES.ScopeSpans}, batch::AbstractVector)
+    x = first(batch)
+    t = API.tracer(x)
+    TRACES.ScopeSpans(
+        convert(COMMON.InstrumentationScope, t.instrumentation_scope),
+        [convert(TRACES.Span, x) for x in batch],
+        t.instrumentation_scope.schema_url,
+    )
+end
+
+function Base.convert(::Type{TRACES.Span}, x::SDK.Span)
+    ctx = API.span_context(x)
+    parent_ctx = API.parent_span_context(x)
+    attrs = API.attributes(x)
+    evts = API.span_events(x)
+    links = API.span_links(x)
+    TRACES.Span(
+        reinterpret(UInt8, [ctx.trace_id]),
+        reinterpret(UInt8, [ctx.span_id]),
+        string(ctx.trace_state),
+        reinterpret(UInt8, [parent_ctx.span_id]),
+        API.span_name(x),
+        convert(TRACES.var"Span.SpanKind", API.span_kind(x)),
+        API.start_time(x),
+        API.end_time(x),
+        convert(Vector{COMMON.KeyValue}, attrs),
+        API.n_dropped(attrs),
+        [convert(TRACES.var"Span.Event", evt) for evt in evts],
+        API.n_dropped(evts),
+        [convert(TRACES.var"Span.Link", link) for link in links],
+        API.n_dropped(links),
+        convert(TRACES.Status, API.span_status(x)),
+    )
+end
+
+Base.convert(::Type{TRACES.var"Span.SpanKind"}, x::API.SpanKind) =
+    TRACES.var"Span.SpanKind".T(Int(x))
+
+Base.convert(::Type{TRACES.var"Span.Event"}, x::API.Event) = TRACES.var"Span.Event"(
+    x.timestamp,
+    x.name,
+    convert(Vector{COMMON.KeyValue}, x.attributes),
+    API.n_dropped(x.attributes),
+)
+
+function Base.convert(::Type{TRACES.var"Span.Link"}, x::API.Link)
+    ctx = x.context
+    TRACES.var"Span.Link"(
+        reinterpret(UInt8, [ctx.trace_id]),
+        reinterpret(UInt8, [ctx.span_id]),
+        string(ctx.trace_state),
+        convert(Vector{COMMON.KeyValue}, x.attributes),
+        API.n_dropped(x.attributes),
+    )
+end
+
+Base.convert(::Type{TRACES.Status}, x::API.SpanStatus) = TRACES.Status(
+    something(x.description, ""),
+    convert(TRACES.var"Status.StatusCode", x.code),
+)
+
+Base.convert(::Type{TRACES.var"Status.StatusCode"}, x::API.SpanStatusCode) =
+    TRACES.var"Status.StatusCode".T(Int(x))
