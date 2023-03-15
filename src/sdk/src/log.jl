@@ -38,19 +38,13 @@ end
 """
 function BatchLogger(
     exporter;
-    max_queue_size = nothing,
-    scheduled_delay_millis = nothing,
-    export_timeout_millis = nothing,
-    max_export_batch_size = nothing,
+    max_queue_size = OTEL_BLRP_MAX_QUEUE_SIZE(),
+    scheduled_delay_millis = OTEL_BLRP_SCHEDULE_DELAY(),
+    export_timeout_millis = OTEL_BLRP_EXPORT_TIMEOUT(),
+    max_export_batch_size = OTEL_BLRP_MAX_EXPORT_BATCH_SIZE(),
     resource = Resource(),
     instrumentation_scope = InstrumentationScope(),
 )
-    max_queue_size = something(max_queue_size, OTEL_BLRP_MAX_QUEUE_SIZE())
-    scheduled_delay_millis = something(scheduled_delay_millis, OTEL_BLRP_SCHEDULE_DELAY())
-    export_timeout_millis = something(export_timeout_millis, OTEL_BLRP_EXPORT_TIMEOUT())
-    max_export_batch_size =
-        something(max_export_batch_size, OTEL_BLRP_MAX_EXPORT_BATCH_SIZE())
-
     queue = BatchContainer(Array{LogRecord}(undef, max_queue_size), max_export_batch_size)
     bl = BatchLogger(
         exporter,

@@ -14,10 +14,14 @@ struct Resource
     schema_url::String
 end
 
-Resource(attrs::NamedTuple = NamedTuple(), schema_url = "") = Resource(
+Resource(
+    attrs::NamedTuple = NamedTuple();
+    schema_url = "",
+    default_attributes = OTEL_RESOURCE_ATTRIBUTES(),
+) = Resource(
     # ref: https://opentelemetry.io/docs/reference/specification/common/#exempt-entities
     BoundedAttributes(
-        merge(OTEL_RESOURCE_ATTRIBUTES(), attrs);
+        merge(default_attributes, attrs);
         count_limit = typemax(Int),
         value_length_limit = typemax(Int),
     ),

@@ -71,7 +71,11 @@ metrics(p::MeterProvider) = p.metrics
 
 If `views` is empty, a default one ([`View(;instrument_name="*")`](@ref)) will be added to enable all metrics.
 """
-function MeterProvider(; resource = Resource(), views = View[], max_metrics = nothing)
+function MeterProvider(;
+    resource = Resource(),
+    views = View[],
+    max_metrics = OTEL_JULIA_MAX_METRICS_APPROX_PER_PROVIDER(),
+)
     if isempty(views)
         push!(views, View(; instrument_name = "*"))
     end
@@ -84,7 +88,7 @@ function MeterProvider(; resource = Resource(), views = View[], max_metrics = no
         views,
         IdDict{View,OpenTelemetryAPI.AbstractInstrument}(),
         IdSet{Metric}(),
-        something(max_metrics, OTEL_JULIA_MAX_METRICS_APPROX_PER_PROVIDER()),
+        max_metrics,
     )
 end
 

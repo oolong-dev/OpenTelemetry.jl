@@ -37,10 +37,12 @@ end
 
 BoundedAttributes(attrs::BoundedAttributes; kw...) = attrs
 
-function BoundedAttributes(attrs; count_limit = nothing, value_length_limit = nothing)
+function BoundedAttributes(
+    attrs;
+    count_limit = OTEL_ATTRIBUTE_COUNT_LIMIT(),
+    value_length_limit = OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT(),
+)
     attrs = _try_reorder(attrs) # !!! the order of static attributes is important in Metrics
-    count_limit = something(count_limit, OTEL_ATTRIBUTE_COUNT_LIMIT())
-    value_length_limit = something(value_length_limit, OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT())
     attrs, n_dropped = clean_attrs!(attrs, count_limit, value_length_limit)
     BoundedAttributes(attrs, count_limit, value_length_limit, Ref{UInt32}(n_dropped))
 end

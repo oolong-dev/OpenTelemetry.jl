@@ -52,11 +52,10 @@ end
 The `AggregationStore` holds all the aggregated datapoints in a
 [`Metric`](@ref).
 """
-function AggregationStore{D}(; max_points = nothing) where {D<:DataPoint}
-    AggregationStore{D}(
-        Dict{StaticBoundedAttributes,D}(),
-        something(max_points, OTEL_JULIA_MAX_POINTS_APPROX_PER_METRIC()),
-    )
+function AggregationStore{D}(;
+    max_points = OTEL_JULIA_MAX_POINTS_APPROX_PER_METRIC(),
+) where {D<:DataPoint}
+    AggregationStore{D}(Dict{StaticBoundedAttributes,D}(), max_points)
 end
 
 Base.iterate(a::AggregationStore, args...) = iterate(a.points, args...)

@@ -38,16 +38,14 @@ struct PrometheusExporter <: OpenTelemetrySDK.AbstractExporter
     server::HTTP.Servers.Server
     provider::Ref{MeterProvider}
     function PrometheusExporter(;
-        host = nothing,
-        port = nothing,
+        host = OTEL_EXPORTER_PROMETHEUS_HOST(),
+        port = OTEL_EXPORTER_PROMETHEUS_PORT(),
         resource_to_telemetry_conversion = false,
         path = "/metrics",
         kw...,
     )
         provider_ref = Ref{MeterProvider}()
 
-        host = something(host, OTEL_EXPORTER_PROMETHEUS_HOST())
-        port = something(port, OTEL_EXPORTER_PROMETHEUS_PORT())
         router = HTTP.Router()
         HTTP.register!(
             router,
