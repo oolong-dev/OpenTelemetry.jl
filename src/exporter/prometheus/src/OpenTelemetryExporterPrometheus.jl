@@ -5,11 +5,26 @@ export PrometheusExporter
 using OpenTelemetrySDK
 using HTTP
 
-"""
-    PrometheusExporter(; host = "127.0.0.1", port = 9966, kw...)
+function handler(io, provider_ref::Ref{MeterProvider}, resource_to_telemetry_conversion)
+    for ins in provider_ref[].async_instruments
+        ins()
+    end
+    HTTP.setstatus(io, 200)
+    HTTP.setheader(io, "Content-Type" => "text/plain")
+    HTTP.startwrite(io)
+    text_based_format(io, provider_ref[], resource_to_telemetry_conversion)
+    nothing
+end
 
-It will setup a http server configured by `host` and `port` on initialization.
-Here the extra keyword arguments `kw` will be forwarded to `HTTP.listen`.
+"""
+    PrometheusExporter(; kw...)
+
+## Keyword arguments
+
+  - `host`, the default value is read from the `OTEL_EXPORTER_PROMETHEUS_HOST` environment variable.
+  - `port`, the default value is read from the `OTEL_EXPORTER_PROMETHEUS_PORT` environment variable.
+  - `resource_to_telemetry_conversion=false`, if enabled, all the resource attributes will be converted to metric labels by default.
+  - `path="/metrics"`, the default url path.
 
 ## Usage
 
@@ -22,20 +37,27 @@ Note that `PrometheusExporter` is a pull based exporter. There's no need to exec
 struct PrometheusExporter <: OpenTelemetrySDK.AbstractExporter
     server::HTTP.Servers.Server
     provider::Ref{MeterProvider}
-    function PrometheusExporter(; host = nothing, port = nothing, kw...)
+    function PrometheusExporter(;
+        host = nothing,
+        port = nothing,
+        resource_to_telemetry_conversion = false,
+        path = "/metrics",
+        kw...,
+    )
+        provider_ref = Ref{MeterProvider}()
+
         host = something(host, OTEL_EXPORTER_PROMETHEUS_HOST())
         port = something(port, OTEL_EXPORTER_PROMETHEUS_PORT())
-        provider = Ref{MeterProvider}()
-        server = HTTP.serve!(host, port; stream = true, kw...) do io
-            for ins in provider[].async_instruments
-                ins()
-            end
-            text_based_format(io, provider[])
-            HTTP.setstatus(io, 200)
-            HTTP.setheader(io, "Content-Type" => "text/plain")
-        end
+        router = HTTP.Router()
+        HTTP.register!(
+            router,
+            "GET",
+            path,
+            io -> handler(io, provider_ref, resource_to_telemetry_conversion),
+        )
+        server = HTTP.serve!(router, host, port; stream = true, kw...)
 
-        new(server, provider)
+        new(server, provider_ref)
     end
 end
 
@@ -50,12 +72,16 @@ function (r::MetricReader{<:MeterProvider,<:PrometheusExporter})()
 end
 
 # TODO: support exemplars
-function text_based_format(io, provider::MeterProvider)
+function text_based_format(io, provider::MeterProvider, resource_to_telemetry_conversion)
     for m in metrics(provider)
         name = sanitize(m.name)
         write(io, "# HELP $name $(m.description)\n")
         write(io, "# TYPE $name $(prometheus_type(m.aggregation))\n")
         for (attrs, point) in m
+            if resource_to_telemetry_conversion
+                attrs = merge(attrs, resource(provider).attributes)
+            end
+
             val = point.value
             time = point.time_unix_nano ÷ 10^6
             s_attrs = attrs2str(attrs)

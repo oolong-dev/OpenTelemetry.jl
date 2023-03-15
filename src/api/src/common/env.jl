@@ -37,12 +37,14 @@ Key-value pairs to be used as resource attributes.
 See [Resource SDK](./resource/sdk.md#specifying-resource-information-via-an-environment-variable) for more details.
 """
 function OTEL_RESOURCE_ATTRIBUTES()
-    attrs = extract_attrs(get(ENV, "OTEL_RESOURCE_ATTRIBUTES", ""))
-    if haskey(attrs, Symbol("service.name"))
-        attrs
-    else
-        merge(attrs, (; Symbol("service.name") => OTEL_SERVICE_NAME()))
-    end
+    default_attrs = (;
+        Symbol("service.name") => OTEL_SERVICE_NAME(),
+        Symbol("telemetry.sdk.language") => "julia",
+        Symbol("telemetry.sdk.name") => "opentelemetry",
+        Symbol("telemetry.sdk.version") => string(PKG_VERSION),
+    )
+    extra_attrs = extract_attrs(get(ENV, "OTEL_RESOURCE_ATTRIBUTES", ""))
+    merge(default_attrs, extra_attrs)
 end
 
 export OTEL_RESOURCE_ATTRIBUTES

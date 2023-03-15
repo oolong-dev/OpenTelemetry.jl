@@ -53,6 +53,12 @@ Base.iterate(x::BoundedAttributes, args...) = iterate(x.attrs, args...)
 Base.pairs(A::BoundedAttributes) = pairs(A.attrs)
 Base.hash(x::BoundedAttributes, h::UInt) = hash(x.attrs, h)
 Base.isequal(x::BoundedAttributes, y::BoundedAttributes) = isequal(x.attrs, y.attrs)
+Base.merge(x::BoundedAttributes, y::BoundedAttributes) = BoundedAttributes(
+    merge(x.attrs, y.attrs),
+    x.count_limit,
+    x.value_length_limit,
+    x.n_dropped,
+)
 
 Base.show(io::IO, A::BoundedAttributes) = join(io, ("$k=$v" for (k, v) in pairs(A)), ",")
 

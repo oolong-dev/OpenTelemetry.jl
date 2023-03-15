@@ -24,9 +24,9 @@ version = "0.1.7"
 
 [[deps.CodeTracking]]
 deps = ["InteractiveUtils", "UUIDs"]
-git-tree-sha1 = "4f619d394ac521dc59cb80a2cd8f78578e483a9d"
+git-tree-sha1 = "d57c99cc7e637165c81b30eb268eabe156a45c49"
 uuid = "da1fd8a2-8d9e-5ec2-8556-3022fb5608a2"
-version = "1.2.1"
+version = "1.2.2"
 
 [[deps.CodecZlib]]
 deps = ["TranscodingStreams", "Zlib_jll"]
@@ -168,13 +168,13 @@ version = "1.1.20+0"
 deps = ["Dates", "Logging", "Random", "TOML", "TupleTools", "UUIDs"]
 path = "../../api"
 uuid = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
-version = "0.3.0"
+version = "0.4.0"
 
 [[deps.OpenTelemetrySDK]]
 deps = ["AbstractTrees", "Dates", "Glob", "Logging", "OpenTelemetryAPI", "Random", "Reexport", "StructTypes", "Term"]
 path = "../../sdk"
 uuid = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
-version = "0.2.1"
+version = "0.3.0"
 
 [[deps.OrderedCollections]]
 git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
@@ -258,9 +258,9 @@ version = "1.0.1"
 
 [[deps.Tables]]
 deps = ["DataAPI", "DataValueInterfaces", "IteratorInterfaceExtensions", "LinearAlgebra", "OrderedCollections", "TableTraits", "Test"]
-git-tree-sha1 = "c79322d36826aa2f4fd8ecfa96ddb47b174ac78d"
+git-tree-sha1 = "1544b926975372da01227b382066ab70e574a3ec"
 uuid = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
-version = "1.10.0"
+version = "1.10.1"
 
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]

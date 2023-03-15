@@ -1,11 +1,5 @@
 export Resource, InstrumentationScope
 
-DEFAULT_RESOURCE_ATTRIBUTES = (;
-    Symbol("telemetry.sdk.language") => "julia",
-    Symbol("telemetry.sdk.name") => "opentelemetry",
-    Symbol("telemetry.sdk.version") => string(PKG_VERSION),
-)
-
 """
     Resource(;attributes=nothing, schema_url="")
 
@@ -14,15 +8,21 @@ Quoted from [the specification](https://github.com/open-telemetry/opentelemetry-
 > Resource captures information about the entity for which telemetry is recorded. For example, metrics exposed by a Kubernetes container can be linked to a resource that specifies the cluster, namespace, pod, and container name.
 > 
 > Resource may capture an entire hierarchy of entity identification. It may describe the host in the cloud and specific container or an application running in the process.
-
-!!! note
-    
-    Based on the specification on [Exempt Entities](https://opentelemetry.io/docs/reference/specification/common/#exempt-entities) of resource attributes, the type of `attributes` in `Resource` is limited to `NamedTuple` instead of [`BoundedAttributes`](@ref).
 """
-Base.@kwdef struct Resource{A<:NamedTuple}
-    attributes::A = merge(DEFAULT_RESOURCE_ATTRIBUTES, OTEL_RESOURCE_ATTRIBUTES())
-    schema_url::String = ""
+struct Resource
+    attributes::BoundedAttributes
+    schema_url::String
 end
+
+Resource(attrs::NamedTuple = NamedTuple(), schema_url = "") = Resource(
+    # ref: https://opentelemetry.io/docs/reference/specification/common/#exempt-entities
+    BoundedAttributes(
+        merge(OTEL_RESOURCE_ATTRIBUTES(), attrs);
+        count_limit = typemax(Int),
+        value_length_limit = typemax(Int),
+    ),
+    schema_url,
+)
 
 function Base.merge(r1::Resource, r2::Resource)
     schema_url = if isempty(r1.schema_url)
