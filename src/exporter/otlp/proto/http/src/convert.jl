@@ -120,7 +120,7 @@ end
 
 function Base.convert(::Type{TRACES.Span}, x::SDK.Span)
     ctx = API.span_context(x)
-    parent_ctx = API.parent_span_context(x)
+    parent_ctx = something(API.parent_span_context(x), API.INVALID_SPAN_CONTEXT)
     attrs = API.attributes(x)
     evts = API.span_events(x)
     links = API.span_links(x)
@@ -130,7 +130,7 @@ function Base.convert(::Type{TRACES.Span}, x::SDK.Span)
         string(ctx.trace_state),
         reinterpret(UInt8, [parent_ctx.span_id]),
         API.span_name(x),
-        convert(TRACES.var"Span.SpanKind", API.span_kind(x)),
+        convert(TRACES.var"Span.SpanKind".T, API.span_kind(x)),
         API.start_time(x),
         API.end_time(x),
         convert(Vector{COMMON.KeyValue}, attrs),
@@ -143,7 +143,7 @@ function Base.convert(::Type{TRACES.Span}, x::SDK.Span)
     )
 end
 
-Base.convert(::Type{TRACES.var"Span.SpanKind"}, x::API.SpanKind) =
+Base.convert(::Type{TRACES.var"Span.SpanKind".T}, x::API.SpanKind) =
     TRACES.var"Span.SpanKind".T(Int(x))
 
 Base.convert(::Type{TRACES.var"Span.Event"}, x::API.Event) = TRACES.var"Span.Event"(
@@ -166,8 +166,102 @@ end
 
 Base.convert(::Type{TRACES.Status}, x::API.SpanStatus) = TRACES.Status(
     something(x.description, ""),
-    convert(TRACES.var"Status.StatusCode", x.code),
+    convert(TRACES.var"Status.StatusCode".T, x.code),
 )
 
-Base.convert(::Type{TRACES.var"Status.StatusCode"}, x::API.SpanStatusCode) =
+Base.convert(::Type{TRACES.var"Status.StatusCode".T}, x::API.SpanStatusCode) =
     TRACES.var"Status.StatusCode".T(Int(x))
+
+# Metrics
+using Base: IdSet
+
+Base.convert(::Type{COLL_METRICS.ExportMetricsServiceRequest}, batch::IdSet) =
+    COLL_METRICS.ExportMetricsServiceRequest([convert(METRICS.ResourceMetrics, batch)])
+
+function Base.convert(::Type{METRICS.ResourceMetrics}, batch::IdSet)
+    x = first(batch)
+    r = API.resource(x)
+    METRICS.ResourceMetrics(
+        convert(RESOURCE.Resource, r),
+        [convert(METRICS.ScopeMetrics, batch)],
+        r.schema_url,
+    )
+end
+
+function Base.convert(::Type{METRICS.ScopeMetrics}, batch::IdSet)
+    x = first(batch)
+    ins = x.instrument.meter.instrumentation_scope
+    TRACES.ScopeSpans(
+        convert(COMMON.InstrumentationScope, ins),
+        [convert(METRICS.Metric, x) for x in batch],
+        ins.schema_url,
+    )
+end
+
+const KnownOtlpMetrics = Union{
+    METRICS.Gauge,
+    METRICS.Sum,
+    METRICS.Histogram,
+    METRICS.ExponentialHistogram,
+    METRICS.Summary,
+}
+
+Base.convert(::Type{METRICS.Metric}, x::SDK.Metric) = METRICS.Metric(
+    x.name,
+    x.description,
+    x.instrument.unit,
+    convert(OneOf{KnownOtlpMetrics}, x),
+)
+
+Base.convert(::Type{OneOf{KnownOtlpMetrics}}, x::SDK.Metric{<:SDK.SumAgg}) =
+    OneOf(:sum, convert(METRICS.Sum, x))
+
+Base.convert(::Type{METRICS.Sum}, x::SDK.Metric{<:SDK.SumAgg}) = METRICS.Sum(
+    [convert(METRICS.NumberDataPoint, p) for p in x],
+    METRICS.AggregationTemporality.AGGREGATION_TEMPORALITY_CUMULATIVE, # the only supported temporality for now
+    x.is_monotonic,
+)
+
+Base.convert(::Type{OneOf{KnownOtlpMetrics}}, x::SDK.Metric{<:SDK.LastValueAgg}) =
+    OneOf(:gauge, convert(METRICS.Gauge, x))
+
+Base.convert(::Type{METRICS.Gauge}, x::SDK.Metrics{<:SDK.LastValueAgg}) =
+    METRICS.Gauge([convert(METRICS.NumberDataPoint, p) for p in x])
+
+Base.convert(::Type{OneOf{KnownOtlpMetrics}}, x::SDK.Metric{<:SDK.HistogramAgg}) =
+    OneOf(:histogram, convert(METRICS.Histogram, x))
+
+Base.convert(::Type{METRICS.Histogram}, x::SDK.Metric{<:SDK.HistogramAgg}) =
+    METRICS.Histogram(
+        [convert(METRICS.HistogramDataPoint, p) for p in x],
+        METRICS.AggregationTemporality.AGGREGATION_TEMPORALITY_CUMULATIVE,  # the only supported temporality for now
+    )
+
+Base.convert(
+    ::Type{METRICS.NumberDataPoint},
+    (k, v)::Pair{<:API.BoundedAttributes,T},
+) where {T<:Number} = METRICS.NumberDataPoint(
+    convert(Vector{COMMON.KeyValue}, k),
+    v.start_time_unix_nano,
+    v.time_unix_nano,
+    v.value,
+    METRICS.Exemplar[], # TODO: add exemplars later
+    METRICS.DataPointFlags.FLAG_NONE, # TODO: when to set other flags???
+)
+
+Base.convert(
+    ::Type{METRICS.HistogramDataPoint},
+    (k, v)::Pair{<:API.BoundedAttributes,T},
+) where {T<:Number} = METRICS.HistogramDataPoint(
+    convert(Vector{COMMON.KeyValue}, k),
+    v.start_time_unix_nano,
+    v.time_unix_nano,
+    sum(v.counts),
+    something(v.sum, 0.0),
+    collect(v.counts),
+    collect(x.boundaries),
+    METRICS.Exemplar[], # TODO: add exemplars later
+    METRICS.DataPointFlags.FLAG_NONE, # TODO: when to set other flags???
+    something(v.min, 0),
+    something(v.max, 0),
+)

@@ -94,12 +94,14 @@ See more details in [the specification](https://github.com/open-telemetry/opente
 struct SumAgg{T,E,F} <: AbstractAggregation
     agg_store::AggregationStore{DataPoint{T,E}}
     exemplar_reservoir_factory::F
+    is_monotonic::Bool
 end
 
 """
     SumAgg{T}()
 """
-SumAgg{T}() where {T} = SumAgg(AggregationStore{DataPoint{T,Nothing}}(), () -> nothing)
+SumAgg{T}(is_monotonic) where {T} =
+    SumAgg(AggregationStore{DataPoint{T,Nothing}}(), () -> nothing, is_monotonic)
 
 function (agg::SumAgg{T,E})(e::Exemplar{<:Measurement}) where {T,E}
     point = get!(agg.agg_store, e.value.attributes) do
@@ -257,9 +259,9 @@ const DROP = Drop()
 
 #####
 
-default_aggregation(ins::Counter{T}) where {T} = SumAgg{T}()
-default_aggregation(ins::ObservableCounter{T}) where {T} = SumAgg{T}()
-default_aggregation(ins::UpDownCounter{T}) where {T} = SumAgg{T}()
-default_aggregation(ins::ObservableUpDownCounter{T}) where {T} = SumAgg{T}()
+default_aggregation(ins::Counter{T}) where {T} = SumAgg{T}(true)
+default_aggregation(ins::ObservableCounter{T}) where {T} = SumAgg{T}(true)
+default_aggregation(ins::UpDownCounter{T}) where {T} = SumAgg{T}(false)
+default_aggregation(ins::ObservableUpDownCounter{T}) where {T} = SumAgg{T}(false)
 default_aggregation(ins::ObservableGauge{T}) where {T} = LastValueAgg{T}()
 default_aggregation(ins::Histogram{T}) where {T} = HistogramAgg{T}()
