@@ -22,6 +22,8 @@ Base.@kwdef struct LogRecord{B,R<:Resource,A<:BoundedAttributes}
     attributes::A
 end
 
+resource(x::LogRecord) = x.resource
+
 """
     OtelLogTransformer(resource::Resource)
 

@@ -1,14 +1,19 @@
-Base.convert(
-    ::Type{SDK.ExportResult},
-    resp::Union{
-        COLL_LOGS.ExportLogsServiceResponse,
-        COLL_TRACES.ExportTraceServiceResponse,
-        COLL_METRICS.ExportMetricsServiceResponse,
-    },
-) =
-    if isnothing(resp.partial_success)
+Base.convert(::Type{SDK.ExportResult}, resp::COLL_LOGS.ExportLogsServiceResponse) =
+    if isnothing(resp.partial_success) || resp.partial_success.rejected_log_records == 0
         SDK.EXPORT_SUCCESS
-    elseif resp.partial_success.rejected_log_records == 0
+    else
+        SDK.EXPORT_FAILURE
+    end
+
+Base.convert(::Type{SDK.ExportResult}, resp::COLL_TRACES.ExportTraceServiceResponse) =
+    if isnothing(resp.partial_success) || resp.partial_success.rejected_spans == 0
+        SDK.EXPORT_SUCCESS
+    else
+        SDK.EXPORT_FAILURE
+    end
+
+Base.convert(::Type{SDK.ExportResult}, resp::COLL_METRICS.ExportMetricsServiceResponse) =
+    if isnothing(resp.partial_success) || resp.partial_success.rejected_data_points == 0
         SDK.EXPORT_SUCCESS
     else
         SDK.EXPORT_FAILURE
@@ -191,7 +196,7 @@ end
 function Base.convert(::Type{METRICS.ScopeMetrics}, batch::IdSet)
     x = first(batch)
     ins = x.instrument.meter.instrumentation_scope
-    TRACES.ScopeSpans(
+    METRICS.ScopeMetrics(
         convert(COMMON.InstrumentationScope, ins),
         [convert(METRICS.Metric, x) for x in batch],
         ins.schema_url,
@@ -219,13 +224,13 @@ Base.convert(::Type{OneOf{KnownOtlpMetrics}}, x::SDK.Metric{<:SDK.SumAgg}) =
 Base.convert(::Type{METRICS.Sum}, x::SDK.Metric{<:SDK.SumAgg}) = METRICS.Sum(
     [convert(METRICS.NumberDataPoint, p) for p in x],
     METRICS.AggregationTemporality.AGGREGATION_TEMPORALITY_CUMULATIVE, # the only supported temporality for now
-    x.is_monotonic,
+    x.aggregation.is_monotonic,
 )
 
 Base.convert(::Type{OneOf{KnownOtlpMetrics}}, x::SDK.Metric{<:SDK.LastValueAgg}) =
     OneOf(:gauge, convert(METRICS.Gauge, x))
 
-Base.convert(::Type{METRICS.Gauge}, x::SDK.Metrics{<:SDK.LastValueAgg}) =
+Base.convert(::Type{METRICS.Gauge}, x::SDK.Metric{<:SDK.LastValueAgg}) =
     METRICS.Gauge([convert(METRICS.NumberDataPoint, p) for p in x])
 
 Base.convert(::Type{OneOf{KnownOtlpMetrics}}, x::SDK.Metric{<:SDK.HistogramAgg}) =
@@ -239,29 +244,29 @@ Base.convert(::Type{METRICS.Histogram}, x::SDK.Metric{<:SDK.HistogramAgg}) =
 
 Base.convert(
     ::Type{METRICS.NumberDataPoint},
-    (k, v)::Pair{<:API.BoundedAttributes,T},
-) where {T<:Number} = METRICS.NumberDataPoint(
+    (k, v)::Pair{<:API.BoundedAttributes,<:SDK.DataPoint{<:Union{Int,Float64}}},
+) = METRICS.NumberDataPoint(
     convert(Vector{COMMON.KeyValue}, k),
     v.start_time_unix_nano,
     v.time_unix_nano,
-    v.value,
+    v.value isa Int ? OneOf(:as_int, v.value) : OneOf(:as_double, v.value),
     METRICS.Exemplar[], # TODO: add exemplars later
-    METRICS.DataPointFlags.FLAG_NONE, # TODO: when to set other flags???
+    UInt(METRICS.DataPointFlags.FLAG_NONE), # TODO: when to set other flags???
 )
 
 Base.convert(
     ::Type{METRICS.HistogramDataPoint},
-    (k, v)::Pair{<:API.BoundedAttributes,T},
-) where {T<:Number} = METRICS.HistogramDataPoint(
+    (k, v)::Pair{<:API.BoundedAttributes,<:SDK.DataPoint},
+) = METRICS.HistogramDataPoint(
     convert(Vector{COMMON.KeyValue}, k),
     v.start_time_unix_nano,
     v.time_unix_nano,
-    sum(v.counts),
-    something(v.sum, 0.0),
-    collect(v.counts),
-    collect(x.boundaries),
+    sum(v.value.counts),
+    something(v.value.sum, 0.0),
+    collect(v.value.counts),
+    collect(v.value.boundaries),
     METRICS.Exemplar[], # TODO: add exemplars later
-    METRICS.DataPointFlags.FLAG_NONE, # TODO: when to set other flags???
-    something(v.min, 0),
-    something(v.max, 0),
+    UInt(METRICS.DataPointFlags.FLAG_NONE), # TODO: when to set other flags???
+    something(v.value.min, 0),
+    something(v.value.max, 0),
 )
