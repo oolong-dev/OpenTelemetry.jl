@@ -10,24 +10,40 @@ An *unofficial* implementation of [OpenTelemetry](https://opentelemetry.io/) in 
 
 ## Get Started
 
-### Traces
+### Logs
 
 ```julia
 using OpenTelemetry
+using Term # optional, for better display
+using Logging
 
-with_span("Hello") do
-    with_span("World") do
-        println("Hello world from OpenTelemetry.jl!")
+global_logger(OtelSimpleLogger());
+
+@info "Hello, World!"
+@warn "from"
+@error "OpenTelemetry.jl!"
+```
+
+<img src="./docs/src/assets/log_info.png" width="200"/><img src="./docs/src/assets/log_warn.png" width="200" /><img src="./docs/src/assets/log_error.png" width="200"/>
+
+### Traces
+
+```julia
+global_tracer_provider(TracerProvider());
+
+with_span("Hello, World!") do
+    with_span("from") do
+        @info "OpenTelemetry.jl!"
     end
 end
 ```
 
-[![asciicast](https://asciinema.org/a/mbnd9T7jB6MVUhKnvFPi3M3wp.svg)](https://asciinema.org/a/mbnd9T7jB6MVUhKnvFPi3M3wp)
+<img src="./docs/src/assets/span_info.png" height="320"/><img src="./docs/src/assets/span_inner.png" height="320" /><img src="./docs/src/assets/span_outer.png" height="320"/>
 
 ### Metrics
 
 ```julia
-using OpenTelemetry
+global_meter_provider(MeterProvider());
 
 m = Meter("demo_metrics");
 c = Counter{Int}("fruit_counter", m);
@@ -41,24 +57,9 @@ c(4; name = "lemon", color = "yellow")
 
 r = MetricReader();
 r()
-
 ```
 
-[![asciicast](https://asciinema.org/a/470278.svg)](https://asciinema.org/a/470278)
-
-### Logging
-
-```julia
-using OpenTelemetry
-using Logging
-using LoggingExtras
-
-with_logger(TransformerLogger(OtelLogTransformer(), global_logger())) do
-    @info "World!"
-end
-```
-
-[![asciicast](https://asciinema.org/a/470279.svg)](https://asciinema.org/a/470279)
+<img src="./docs/src/assets/metrics.png" height="320"/>
 
 ## Tutorial
 

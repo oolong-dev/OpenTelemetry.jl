@@ -8,7 +8,7 @@ using Test
 @testset "HTTP Proto" begin
     span_exporter = InMemoryExporter()
     log_exporter = InMemoryExporter()
-    logger = BatchLogger(log_exporter)
+    logger = OtelBatchLogger(log_exporter)
 
     global_tracer_provider(
         TracerProvider(

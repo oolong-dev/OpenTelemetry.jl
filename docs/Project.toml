@@ -1,2 +1,9 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+OpenTelemetry = "c1912aec-9d41-432b-84fe-e17fd97255be"
+OpenTelemetryAPI = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
+OpenTelemetryExporterOtlpProtoHttp = "f175482f-0544-4037-b362-361efbf21c04"
+OpenTelemetryExporterPrometheus = "34e26579-e93c-4b5e-ba07-7afb633408c2"
+OpenTelemetryProto = "cc651e92-2989-4f95-bcc3-32e6fb6ac025"
+OpenTelemetrySDK = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
+Term = "22787eb5-b846-44ae-b979-8e399b8463ab"

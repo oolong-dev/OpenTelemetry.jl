@@ -1,6 +1,6 @@
 @testset "logging" begin
     exporter = InMemoryExporter()
-    logger = BatchLogger(exporter)
+    logger = OtelBatchLogger(exporter)
     with_logger(logger) do
         @info "hello"
         @info "world" foo = 1 bar = 2

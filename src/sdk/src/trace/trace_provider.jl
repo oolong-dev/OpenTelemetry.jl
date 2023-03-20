@@ -25,7 +25,7 @@ Base.@kwdef struct TracerProvider{
 } <: OpenTelemetryAPI.AbstractTracerProvider
     sampler::S = get_default_trace_sampler()
     resource::R = Resource()
-    span_processor::SP = CompositSpanProcessor()
+    span_processor::SP = SimpleSpanProcessor(ConsoleExporter())
     id_generator::RNG = RandomIdGenerator()
     limit_info::LimitInfo = LimitInfo()
     is_closed::Ref{Bool} = Ref(false)

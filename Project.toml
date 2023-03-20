@@ -4,6 +4,7 @@ authors = ["Jun Tian <tianjun.cpp@gmail.com> and contributors"]
 version = "0.3.0"
 
 [deps]
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 OpenTelemetryAPI = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
 OpenTelemetryExporterOtlpProtoHttp = "f175482f-0544-4037-b362-361efbf21c04"
 OpenTelemetryExporterPrometheus = "34e26579-e93c-4b5e-ba07-7afb633408c2"
@@ -22,7 +23,8 @@ julia = "1"
 
 [extras]
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+Term = "22787eb5-b846-44ae-b979-8e399b8463ab"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "Logging"]
+test = ["Test", "Logging", "Term"]
