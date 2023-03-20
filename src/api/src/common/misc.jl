@@ -42,6 +42,9 @@ function Base.merge(r1::Resource, r2::Resource)
     Resource(merge(r1.attributes, r2.attributes), schema_url)
 end
 
+Base.:(==)(r1::Resource, r2::Resource) =
+    r1.attributes == r2.attributes && r1.schema_url == r2.schema_url
+
 #####
 
 """

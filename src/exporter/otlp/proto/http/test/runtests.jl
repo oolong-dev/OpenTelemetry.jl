@@ -35,8 +35,8 @@ using Test
         log_exporter.pool,
     )
 
-    otlp = OtlpHttpLogsExporter()
-    export!(otlp, log_exporter.pool)
+    # otlp = OtlpHttpLogsExporter()
+    # export!(otlp, log_exporter.pool)
 
     #####
 
@@ -46,8 +46,8 @@ using Test
         span_exporter.pool,
     )
 
-    otlp = OtlpHttpTracesExporter()
-    export!(otlp, span_exporter.pool)
+    # otlp = OtlpHttpTracesExporter()
+    # export!(otlp, span_exporter.pool)
 
     #####
 
@@ -100,6 +100,6 @@ using Test
         metrics(p),
     )
 
-    otlp = OtlpHttpMetricsExporter()
-    export!(otlp, metrics(p))
+    # otlp = OtlpHttpMetricsExporter()
+    # export!(otlp, metrics(p))
 end

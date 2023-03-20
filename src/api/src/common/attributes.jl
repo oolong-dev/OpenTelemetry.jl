@@ -54,7 +54,7 @@ Base.length(x::BoundedAttributes) = length(x.attrs)
 Base.iterate(x::BoundedAttributes, args...) = iterate(x.attrs, args...)
 Base.pairs(A::BoundedAttributes) = pairs(A.attrs)
 Base.hash(x::BoundedAttributes, h::UInt) = hash(x.attrs, h)
-Base.isequal(x::BoundedAttributes, y::BoundedAttributes) = isequal(x.attrs, y.attrs)
+Base.:(==)(x::BoundedAttributes, y::BoundedAttributes) = x.attrs == y.attrs
 Base.merge(x::BoundedAttributes, y::BoundedAttributes) = BoundedAttributes(
     merge(x.attrs, y.attrs),
     x.count_limit,

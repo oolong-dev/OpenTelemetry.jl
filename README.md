@@ -83,8 +83,18 @@ r()
 
 ## FAQ
 
-Some frequently asked questions are maintained [here](https://oolong.dev/OpenTelemetry.jl/dev/FAQ/). If you can't find the answer to your question there, please [create an issue](https://github.com/oolong-dev/OpenTelemetry.jl/issues). Your feedback is **VERY IMPORTANT** to the quality of this package❤.
+Some frequently asked questions are maintained here. If you can't find the answer to your question there, please [create an issue](https://github.com/oolong-dev/OpenTelemetry.jl/issues). Your feedback is **VERY IMPORTANT** to the quality of this package❤.
 
+### Method overwritten warning
+
+When building `OpenTelemetrySDK` for the first time, you'll see the following warning message:
+
+```
+WARNING: Method definition schedule(Task) in module Base at task.jl:639 overwritten in module OpenTelemetrySDK at /home/tj/workspace/git/OpenTelemetry.jl/src/sdk/src/patch.jl:6.
+  ** incremental compilation may be fatally broken for this module **
+```
+
+Unfortunately, this is unavoidable and shouldn't be a problem in most cases (unless you also overwritten the `schedule(Task)` method...). See more discussions in [#32](https://github.com/oolong-dev/OpenTelemetry.jl/issues/32).
 
 ## Packages
 
@@ -96,7 +106,7 @@ Some frequently asked questions are maintained [here](https://oolong.dev/OpenTel
 | [`OpenTelemetryExporterOtlpProtoGrpc`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryExporterOtlpProtoGrpc/) | Provide an `AbstractExporter` in OTLP through gRPC. (WARNING!!! This package is not updated to the latest version yet since `gRPCClient.jl` doesn't support `ProtoBuf.jl@v1` yet.) | [![version](https://juliahub.com/docs/OpenTelemetryExporterOtlpProtoGrpc/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterOtlpProtoGrpc/S0kTL) |
 | [`OpenTelemetryExporterOtlpProtoHttp`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryExporterOtlpProtoHttp/) | Provide exporters in OTLP through HTTP.| ![version](https://juliahub.com/docs/OpenTelemetryExporterOtlpProtoHttp/version.svg) |
 | [`OpenTelemetryExporterPrometheus`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryExporterPrometheus/) | Provide a meter to allow pulling metrics from Prometheus |[![version](https://juliahub.com/docs/OpenTelemetryExporterPrometheus/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterPrometheus/Xma7h) |
-|`OpenTelemetry` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` and necessary plugins or instrumentations explicitly. | [![version](https://juliahub.com/docs/OpenTelemetry/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetry/L4aUb) |
+|`OpenTelemetry` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` in combination with necessary plugins or instrumentations explicitly. | [![version](https://juliahub.com/docs/OpenTelemetry/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetry/L4aUb) |
 
 ## Benchmarks
 

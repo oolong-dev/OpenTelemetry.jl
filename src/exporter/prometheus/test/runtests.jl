@@ -35,7 +35,7 @@ using HTTP
     e = PrometheusExporter()
     r = MetricReader(p, e)
 
-    resp = HTTP.request("GET", "http://localhost:9496")
+    resp = HTTP.request("GET", "http://localhost:9496/metrics")
     body = split(String(resp.body), "\n"; keepempty = false)
     expected = split(
         """
