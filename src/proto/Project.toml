@@ -1,7 +1,7 @@
 name = "OpenTelemetryProto"
 uuid = "cc651e92-2989-4f95-bcc3-32e6fb6ac025"
 authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
-version = "0.13.1"
+version = "0.19.0"
 
 [deps]
 ProtoBuf = "3349acd9-ac6a-5e09-bcdb-63829b23a429"

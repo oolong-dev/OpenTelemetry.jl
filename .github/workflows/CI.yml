@@ -45,7 +45,6 @@ jobs:
           julia --project --code-coverage=user --color=yes -e '
             using Pkg;
             Pkg.instantiate();
-            Pkg.build("OpenTelemetryProto")
             Pkg.test("OpenTelemetryAPI", coverage=true)
             Pkg.test("OpenTelemetrySDK", coverage=true)
             Pkg.test("OpenTelemetryProto", coverage=false)  # auto generated, no need to measure coverage

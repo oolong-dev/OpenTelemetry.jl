@@ -11,6 +11,9 @@ OpenTelemetrySDK = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
 ProtoBuf = "3349acd9-ac6a-5e09-bcdb-63829b23a429"
 
 [compat]
+OpenTelemetryAPI = "0.4"
+OpenTelemetrySDK = "0.3"
+OpenTelemetryProto = "0.19"
 julia = "1.6"
 
 [extras]

@@ -5,25 +5,24 @@ version = "0.3.0"
 
 [deps]
 OpenTelemetryAPI = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
-OpenTelemetryExporterOtlpProtoGrpc = "83e8ae56-efb3-499e-9158-b649d4f902fc"
+OpenTelemetryExporterOtlpProtoHttp = "f175482f-0544-4037-b362-361efbf21c04"
 OpenTelemetryExporterPrometheus = "34e26579-e93c-4b5e-ba07-7afb633408c2"
 OpenTelemetryProto = "cc651e92-2989-4f95-bcc3-32e6fb6ac025"
 OpenTelemetrySDK = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 
 [compat]
-OpenTelemetryAPI = "0.3"
-OpenTelemetryExporterOtlpProtoGrpc = "0.2"
-OpenTelemetryExporterPrometheus = "0.1"
-OpenTelemetryProto = "0.13"
-OpenTelemetrySDK = "0.2"
+OpenTelemetryAPI = "0.4"
+OpenTelemetryExporterOtlpProtoHttp = "0.1"
+OpenTelemetryExporterPrometheus = "0.2"
+OpenTelemetryProto = "0.19"
+OpenTelemetrySDK = "0.3"
 Reexport = "1"
 julia = "1"
 
 [extras]
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
-LoggingExtras = "e6f89c97-d47a-5376-807f-9c37f3926c36"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "Logging", "LoggingExtras"]
+test = ["Test", "Logging"]

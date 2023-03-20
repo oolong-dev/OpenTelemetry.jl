@@ -4,7 +4,7 @@ using Reexport
 
 @reexport using OpenTelemetryAPI
 @reexport using OpenTelemetrySDK
-@reexport using OpenTelemetryExporterOtlpProtoGrpc
+@reexport using OpenTelemetryExporterOtlpProtoHttp
 @reexport using OpenTelemetryExporterPrometheus
 @reexport using OpenTelemetryProto
 
