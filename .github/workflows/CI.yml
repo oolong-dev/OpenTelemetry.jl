@@ -6,7 +6,7 @@ on:
   push:
     branches:
       - master
-    tags: '*'
+    tags: "*"
 jobs:
   test:
     name: Julia ${{ matrix.version }} − ${{ matrix.os }} - ${{ matrix.arch }} − ${{ github.event_name }}
@@ -15,11 +15,11 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          # - '1.6'  # LTS ; commented due to manifest
-          - '1'
+          - "1.6"
+          - "1"
         os:
           - ubuntu-latest
-          # - windows-latest # https://github.com/JuliaIO/ProtoBuf.jl/issues/178
+          - windows-latest
           - macOS-latest
         arch:
           - x64
@@ -68,7 +68,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
-          version: '1'
+          version: "1"
       - name: Build docs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # For authentication with GitHub Actions token
