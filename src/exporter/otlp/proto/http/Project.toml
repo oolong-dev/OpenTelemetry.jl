@@ -1,0 +1,23 @@
+name = "OpenTelemetryExporterOtlpProtoHttp"
+uuid = "f175482f-0544-4037-b362-361efbf21c04"
+authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+OpenTelemetryAPI = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
+OpenTelemetryProto = "cc651e92-2989-4f95-bcc3-32e6fb6ac025"
+OpenTelemetrySDK = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
+ProtoBuf = "3349acd9-ac6a-5e09-bcdb-63829b23a429"
+
+[compat]
+OpenTelemetryAPI = "0.4"
+julia = "1.6"
+
+[extras]
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+LoggingExtras = "e6f89c97-d47a-5376-807f-9c37f3926c36"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test", "LoggingExtras", "Logging"]

@@ -1,7 +1,7 @@
 export AbstractMetricReader, CompositMetricReader, MetricReader, PeriodicMetricReader
 
 """
-All metric readers should implement `shut_down!(::AbstractMetricReader)` and `(r::AbstractMetricReader)()`.
+All metric readers should implement `close(::AbstractMetricReader)` and `(r::AbstractMetricReader)()`.
 
 Builtin readers:
 
@@ -24,9 +24,9 @@ function (r::CompositMetricReader)()
     end
 end
 
-function shut_down!(r::CompositMetricReader)
+function Base.close(r::CompositMetricReader)
     for x in r.readers
-        shut_down!(x)
+        close(x)
     end
 end
 
@@ -43,14 +43,14 @@ struct MetricReader{P,E} <: AbstractMetricReader
     function MetricReader(
         provider::P,
         exporter::E,
-    ) where {P<:AbstractMeterProvider,E<:AbstractExporter}
+    ) where {P<:OpenTelemetryAPI.AbstractMeterProvider,E<:AbstractExporter}
         r = new{P,E}(provider, exporter)
         r()
         r
     end
 end
 
-MetricReader(p::AbstractMeterProvider) = MetricReader(p, ConsoleExporter())
+MetricReader(p::OpenTelemetryAPI.AbstractMeterProvider) = MetricReader(p, ConsoleExporter())
 MetricReader(e::AbstractExporter) = MetricReader(global_meter_provider(), e)
 MetricReader() = MetricReader(global_meter_provider(), ConsoleExporter())
 
@@ -60,14 +60,14 @@ MetricReader() = MetricReader(global_meter_provider(), ConsoleExporter())
 For async instruments in `r`, their callbacks will be executed first before reading all the metrics.
 """
 function (r::MetricReader)()
-    for ins in keys(r.provider.async_instruments)
+    for ins in r.provider.async_instruments
         ins()
     end
     export!(r.exporter, metrics(r.provider))
 end
 
-# ??? shut_down! provider?
-shut_down!(r::MetricReader) = shut_down!(r.exporter)
+# ??? close provider?
+Base.close(r::MetricReader) = close(r.exporter)
 
 #####
 
@@ -107,7 +107,7 @@ operation will be done periodically in the background.
 """
 function (r::PeriodicMetricReader)() end
 
-function shut_down!(r::PeriodicMetricReader)
+function Base.close(r::PeriodicMetricReader)
     close(r.timer)
-    shut_down!(r.reader)
+    close(r.reader)
 end

@@ -1,5 +1,5 @@
 module OpenTelemetryProto
 
-include("generated/OpentelemetryClients.jl")
+include("opentelemetry/opentelemetry.jl")
 
 end

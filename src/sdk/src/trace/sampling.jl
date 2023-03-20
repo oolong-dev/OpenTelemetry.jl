@@ -15,7 +15,7 @@ is_sampled(d::Decision) = d === DECISION_RECORD_AND_SAMPLE
 OpenTelemetryAPI.is_recording(d::Decision) =
     d === DECISION_RECORD_ONLY || d === DECISION_RECORD_AND_SAMPLE
 
-struct SamplingResult{A<:Union{StaticAttrs,DynamicAttrs},T<:TraceState}
+struct SamplingResult{A<:BoundedAttributes,T<:TraceState}
     decision::Decision
     attributes::A
     trace_state::T
@@ -55,7 +55,7 @@ end
   - `trace_id`::[`TraceIdType`](@ref),
   - `name::String`, the span name
   - `kind`::[`SpanKind`](@ref),
-  - `attributes`, [`StaticAttrs`](@ref) or [`DynamicAttrs`](@ref)
+  - `attributes`, [`StaticBoundedAttributes`](@ref) or [`DynamicAttrs`](@ref)
   - `links`, vector of [`Link`](@ref)
   - `trace_state`::[`TraceState`](@ref),
 """
@@ -67,12 +67,12 @@ function should_sample(
     trace_id,
     name,
     kind = SPAN_KIND_INTERNAL,
-    attributes = StaticAttrs(),
+    attributes = BoundedAttributes(),
     links = [],
     trace_state = TraceState(),
 )
     if s.decision === DECISION_DROP
-        attributes = StaticAttrs()
+        attributes = BoundedAttributes()
     end
     SamplingResult(s.decision, attributes, trace_state)
 end
@@ -80,7 +80,7 @@ end
 struct TraceIdRatioBased <: AbstractSampler
     ratio::Float64
     bound::UInt128
-    function TraceIdRatioBased(ratio)
+    function TraceIdRatioBased(ratio = 1.0)
         0 <= ratio <= 1 || throw(ArgumentError("ratio should be in range [0,1]"))
         new(ratio, round(UInt128, typemax(UInt128) * ratio))
     end
@@ -92,7 +92,7 @@ function should_sample(
     trace_id,
     name,
     kind = SPAN_KIND_INTERNAL,
-    attributes = StaticAttrs(),
+    attributes = BoundedAttributes(),
     links = [],
     trace_state = TraceState(),
 )
@@ -101,7 +101,7 @@ function should_sample(
         decision = DECISION_RECORD_AND_SAMPLE
     end
     if decision === DECISION_DROP
-        attributes = StaticAttrs()
+        attributes = BoundedAttributes()
     end
     SamplingResult(decision, attributes, trace_state)
 end
@@ -120,7 +120,7 @@ function should_sample(
     trace_id,
     name,
     kind = SPAN_KIND_INTERNAL,
-    attributes = StaticAttrs(),
+    attributes = BoundedAttributes(),
     links = [],
     trace_state = TraceState(),
 )
@@ -162,3 +162,24 @@ DEFAULT_OFF = ParentBasedSampler(root_sampler = ALWAYS_OFF)
 Sampler that respects its parent span's sampling decision, but otherwise always samples.
 """
 DEFAULT_ON = ParentBasedSampler(root_sampler = ALWAYS_ON)
+
+#####
+
+function get_default_trace_sampler()
+    name = uppercase(OTEL_TRACES_SAMPLER())
+    if name == "PARENTBASED_ALWAYS_ON"
+        DEFAULT_ON
+    elseif name == "PARENTBASED_ALWAYS_OFF"
+        DEFAULT_OFF
+    elseif name == "ALWAYS_ON"
+        ALWAYS_ON
+    elseif name == "ALWAYS_OFF"
+        ALWAYS_OFF
+    elseif name == "TRACEIDRATIO"
+        s_args = OTEL_TRACES_SAMPLER_ARG()
+        ratio = isnothing(s_args) ? 1.0 : parse(Float64, s_args)
+        TraceIdRatioBased(ratio)
+    else
+        @error "unsupported sampler: $name"
+    end
+end

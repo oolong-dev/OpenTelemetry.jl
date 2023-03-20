@@ -161,19 +161,14 @@ end
     LimitInfo(;kw...)
 
 Used in [`TracerProvider`](@ref) to configure generated [`Tracer`](@ref).
-
-# Keyword arguments:
-
-  - `span_attribute_count_limit::Int` = 128
-  - `span_attribute_value_length_limit::Union{Nothing,Int}` = nothing
-  - `span_event_count_limit::Int` = 128
-  - `span_link_count_limit::Int` = 128
 """
 Base.@kwdef struct LimitInfo
-    span_attribute_count_limit::Int = 128
-    span_attribute_value_length_limit::Union{Nothing,Int} = nothing
-    span_event_count_limit::Int = 128
-    span_link_count_limit::Int = 128
+    span_attribute_count_limit::Int = OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT()
+    span_attribute_value_length_limit::Int = OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT()
+    span_event_count_limit::Int = OTEL_SPAN_EVENT_COUNT_LIMIT()
+    span_link_count_limit::Int = OTEL_SPAN_LINK_COUNT_LIMIT()
+    span_event_attribute_count_limit::Int = OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT()
+    span_link_attribute_count_limit::Int = OTEL_LINK_ATTRIBUTE_COUNT_LIMIT()
 end
 
 """
@@ -181,20 +176,30 @@ end
 
 See more details at [links between spans](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/overview.md#links-between-spans).
 """
-struct Link{C<:SpanContext,A<:StaticAttrs}
+struct Link{C<:SpanContext,A<:BoundedAttributes}
     context::C
     attributes::A
 end
 
+Link(context, attributes) = Link(
+    context,
+    BoundedAttributes(attributes; count_limit = OTEL_LINK_ATTRIBUTE_COUNT_LIMIT()),
+)
+
 """
-    Event(name, timestamp=time()*10^9, attributes=StaticAttrs())
+    Event(name, attributes; timestamp=time()*10^9)
 
 `timestamp` is the *nanoseconds*.
 """
-Base.@kwdef struct Event{A<:StaticAttrs}
+struct Event{A<:BoundedAttributes}
     name::String
-    timestamp::UInt = UInt(time() * 10^9)
-    attributes::A = StaticAttrs()
+    timestamp::UInt
+    attributes::A
+end
+
+function Event(name::String, attributes; timestamp::UInt = UInt(time() * 10^9))
+    attrs = BoundedAttributes(attributes; count_limit = OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT())
+    Event(name, timestamp, attrs)
 end
 
 # !!! must be of the same order as https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto

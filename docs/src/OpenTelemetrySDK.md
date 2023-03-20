@@ -102,7 +102,7 @@ sdk](https://github.com/open-telemetry/opentelemetry-dotnet).
 
 A [`View`](@ref) specifies which instruments are grouped together through [`Criteria`](@ref). For each view, a
 [`Metric`](@ref) is created to store the [`Measurement`](@ref)s. Each metric may have many different dimensions
-configured by [`StaticAttrs`](@ref) in a [`Measurement`](@ref). For each dimension, we may also collect those
+configured by [`BoundedAttributes`](@ref) in a [`Measurement`](@ref). For each dimension, we may also collect those
 [`Exemplar`](@ref)s in the mean while.
 
 ### Design decisions

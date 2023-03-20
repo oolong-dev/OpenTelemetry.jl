@@ -1,7 +1,7 @@
-export Resource, InstrumentationInfo
+export Resource, InstrumentationScope
 
 """
-    Resource(;attributes=StaticAttrs(), schema_url="")
+    Resource(;attributes=nothing, schema_url="")
 
 Quoted from [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/overview.md#resources):
 
@@ -9,20 +9,52 @@ Quoted from [the specification](https://github.com/open-telemetry/opentelemetry-
 > 
 > Resource may capture an entire hierarchy of entity identification. It may describe the host in the cloud and specific container or an application running in the process.
 """
-Base.@kwdef struct Resource{A<:StaticAttrs}
-    attributes::A = StaticAttrs()
-    schema_url::String = ""
+struct Resource
+    attributes::BoundedAttributes
+    schema_url::String
 end
+
+Resource(
+    attrs::NamedTuple = NamedTuple();
+    schema_url = "",
+    default_attributes = OTEL_RESOURCE_ATTRIBUTES(),
+) = Resource(
+    # ref: https://opentelemetry.io/docs/reference/specification/common/#exempt-entities
+    BoundedAttributes(
+        merge(default_attributes, attrs);
+        count_limit = typemax(Int),
+        value_length_limit = typemax(Int),
+    ),
+    schema_url,
+)
+
+function Base.merge(r1::Resource, r2::Resource)
+    schema_url = if isempty(r1.schema_url)
+        r2.schema_url
+    elseif isempty(r2.schema_url)
+        r1.schema_url
+    else
+        if r2.schema_url != r1.schema_url
+            @warn "Conflict resource schema url: old -> $(r1.schema_url), new -> $(r2.schema_url). The later is used!"
+        end
+        r2.schema_url
+    end
+    Resource(merge(r1.attributes, r2.attributes), schema_url)
+end
+
+Base.:(==)(r1::Resource, r2::Resource) =
+    r1.attributes == r2.attributes && r1.schema_url == r2.schema_url
 
 #####
 
 """
-    InstrumentationInfo(;name="Main", version=v"0.0.1-dev")
+    InstrumentationScope(;name="Main", version=v"0.0.1-dev")
 
 Usually used in an instrumentation package.
 """
-Base.@kwdef struct InstrumentationInfo
-    name::String = "Main"
-    version::VersionNumber = v"0.0.1-dev"
+Base.@kwdef struct InstrumentationScope
+    name::String = "OpenTelemetryAPI"
+    version::VersionNumber = PKG_VERSION
     schema_url::String = ""
+    attributes::BoundedAttributes = BoundedAttributes()
 end

@@ -10,7 +10,7 @@ struct Criteria
     meter_schema_url::Union{String,Nothing}
 end
 
-function Base.occursin(ins::AbstractInstrument, c::Criteria)
+function Base.occursin(ins::OpenTelemetryAPI.AbstractInstrument, c::Criteria)
     if !isnothing(c.instrument_type)
         if !(ins isa c.instrument_type)
             return false
@@ -30,13 +30,13 @@ function Base.occursin(ins::AbstractInstrument, c::Criteria)
     end
 
     if !isnothing(c.meter_version)
-        if ins.meter.instrumentation_info.version != c.meter_version
+        if ins.meter.instrumentation_scope.version != c.meter_version
             return false
         end
     end
 
     if !isnothing(c.meter_schema_url)
-        if ins.meter.instrumentation_info.schema_url != c.meter_schema_url
+        if ins.meter.instrumentation_scope.schema_url != c.meter_schema_url
             return false
         end
     end
@@ -49,7 +49,7 @@ struct View{A}
     description::Union{String,Nothing}
     criteria::Criteria
     attribute_keys::Union{Tuple{Vararg{String}},Nothing}
-    extra_dimensions::StaticAttrs
+    extra_dimensions::StaticBoundedAttributes
     aggregation::A
 end
 
@@ -64,7 +64,7 @@ See more details in [the specification](https://github.com/open-telemetry/opente
 
   - `description = nothing`,
   - `attribute_keys = nothing`,
-  - `extra_dimensions = StaticAttrs()`,
+  - `extra_dimensions = BoundedAttributes()`,
   - `aggregation = nothing`,
   - `instrument_name = nothing`,
   - `instrument_type = nothing`,
@@ -76,7 +76,7 @@ function View(
     name = nothing;
     description = nothing,
     attribute_keys = nothing,
-    extra_dimensions = StaticAttrs(),
+    extra_dimensions = BoundedAttributes(),
     aggregation = nothing,
     # criteria
     instrument_name = nothing,

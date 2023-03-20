@@ -4,13 +4,27 @@ export PrometheusExporter
 
 using OpenTelemetrySDK
 using HTTP
-using Sockets
+
+function handler(io, provider_ref::Ref{MeterProvider}, resource_to_telemetry_conversion)
+    for ins in provider_ref[].async_instruments
+        ins()
+    end
+    HTTP.setstatus(io, 200)
+    HTTP.setheader(io, "Content-Type" => "text/plain")
+    HTTP.startwrite(io)
+    text_based_format(io, provider_ref[], resource_to_telemetry_conversion)
+    nothing
+end
 
 """
-    PrometheusExporter(; host = "127.0.0.1", port = 9966, kw...)
+    PrometheusExporter(; kw...)
 
-It will setup a http server configured by `host` and `port` on initialization.
-Here the extra keyword arguments `kw` will be forwarded to `HTTP.listen`.
+## Keyword arguments
+
+  - `host`, the default value is read from the `OTEL_EXPORTER_PROMETHEUS_HOST` environment variable.
+  - `port`, the default value is read from the `OTEL_EXPORTER_PROMETHEUS_PORT` environment variable.
+  - `resource_to_telemetry_conversion=false`, if enabled, all the resource attributes will be converted to metric labels by default.
+  - `path="/metrics"`, the default url path.
 
 ## Usage
 
@@ -18,107 +32,80 @@ Here the extra keyword arguments `kw` will be forwarded to `HTTP.listen`.
 r = MetricReader(PrometheusExporter())
 ```
 
-Note that since `PrometheusExporter` is pull based exporter, which means there's
-no need to execute `r()` to update the metrics.
+Note that `PrometheusExporter` is a pull based exporter. There's no need to execute `r()` to update the metrics.
 """
-mutable struct PrometheusExporter <: AbstractExporter
-    server::Sockets.TCPServer
-    provider::Union{MeterProvider,Nothing}
-    taskref::Ref{Task}
-    function PrometheusExporter(; host = "127.0.0.1", port = 9966, kw...)
-        server = Sockets.listen(Sockets.InetAddr(parse(IPAddr, host), port))
-        exporter = new(server, nothing, Ref{Task}())
-        exporter.taskref[] = @async HTTP.listen(host, port; server = server, kw...) do http
-            HTTP.setstatus(http, 200)
-            HTTP.setheader(http, "Content-Type" => "text/plain")
+struct PrometheusExporter <: OpenTelemetrySDK.AbstractExporter
+    server::HTTP.Servers.Server
+    provider::Ref{MeterProvider}
+    function PrometheusExporter(;
+        host = OTEL_EXPORTER_PROMETHEUS_HOST(),
+        port = OTEL_EXPORTER_PROMETHEUS_PORT(),
+        resource_to_telemetry_conversion = false,
+        path = "/metrics",
+        kw...,
+    )
+        provider_ref = Ref{MeterProvider}()
 
-            if isnothing(exporter.provider)
-                write(http, "MeterProvider is not set yet!!!")
-            else
-                for ins in keys(exporter.provider.async_instruments)
-                    ins()
-                end
-                text_based_format(http, exporter.provider)
-            end
-            return
-        end
-        finalizer(exporter) do x
-            shut_down!(x)
-        end
-        exporter
+        router = HTTP.Router()
+        HTTP.register!(
+            router,
+            "GET",
+            path,
+            io -> handler(io, provider_ref, resource_to_telemetry_conversion),
+        )
+        server = HTTP.serve!(router, host, port; stream = true, kw...)
+
+        new(server, provider_ref)
     end
 end
 
-OpenTelemetrySDK.shut_down!(r::PrometheusExporter) = close(r.server)
+Base.close(r::PrometheusExporter) = close(r.server)
 
 function (r::MetricReader{<:MeterProvider,<:PrometheusExporter})()
-    if isnothing(r.exporter.provider)
-        r.exporter.provider = r.provider
-    else
+    if isassigned(r.exporter.provider)
         @info "The prometheus exporter is already properly set!"
+    else
+        r.exporter.provider[] = r.provider
     end
 end
 
 # TODO: support exemplars
-function text_based_format(io, provider::MeterProvider)
+function text_based_format(io, provider::MeterProvider, resource_to_telemetry_conversion)
     for m in metrics(provider)
-        write(io, "# HELP $(m.name) $(m.description)\n")
-        write(io, "# TYPE $(m.name) $(prometheus_type(m.aggregation))\n")
+        name = sanitize(m.name)
+        write(io, "# HELP $name $(m.description)\n")
+        write(io, "# TYPE $name $(prometheus_type(m.aggregation))\n")
         for (attrs, point) in m
-            if point.value isa OpenTelemetrySDK.HistogramValue
-                val = point.value
-                for (i, c) in enumerate(Iterators.accumulate(+, val.counts))
-                    if length(attrs) > 0
-                        if i == length(val.counts)
-                            write(io, "$(m.name)_bucket{")
-                            # TODO: escape
-                            join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
-                            write(io, ",le=\"+Inf\"} $c $(point.time_unix_nano ÷ 10^6) \n")
+            if resource_to_telemetry_conversion
+                attrs = merge(attrs, resource(provider).attributes)
+            end
 
-                            write(io, "$(m.name)_count{")
-                            # TODO: escape
-                            join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
-                            write(io, "} $c $(point.time_unix_nano ÷ 10^6) \n")
-                        else
-                            write(io, "$(m.name)_bucket{")
-                            # TODO: escape
-                            join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
-                            write(
-                                io,
-                                ",le=\"$(val.boundaries[i])\"} $c $(point.time_unix_nano ÷ 10^6) \n",
-                            )
-                        end
+            val = point.value
+            time = point.time_unix_nano ÷ 10^6
+            s_attrs = attrs2str(attrs)
+            wrapped_s_attrs = length(attrs) == 0 ? "" : "{$s_attrs}"
+
+            if point.value isa OpenTelemetrySDK.HistogramValue
+                if !isempty(s_attrs)
+                    s_attrs = "$s_attrs,"
+                end
+                for (i, c) in enumerate(Iterators.accumulate(+, val.counts))
+                    if i < length(val.counts)
+                        println(
+                            io,
+                            "$(name)_bucket{$(s_attrs)le=\"$(val.boundaries[i])\"} $c $time",
+                        )
                     else
-                        if i == length(val.counts)
-                            write(
-                                io,
-                                "$(m.name)_bucket{le=\"+Inf\"} $c $(point.time_unix_nano ÷ 10^6) \n",
-                            )
-                            write(io, "$(m.name)_count $c\n")
-                        else
-                            write(
-                                io,
-                                "$(m.name)_bucket{le=\"$(val.boundaries[i])\"} $c $(point.time_unix_nano ÷ 10^6) \n",
-                            )
-                        end
+                        println(io, "$(name)_bucket{$(s_attrs)le=\"+Inf\"} $c $time")
+                        println(io, "$(name)_count$wrapped_s_attrs $c")
                     end
                 end
                 # ???
                 if !isnothing(val.sum)
-                    if length(attrs) > 0
-                        write(io, "$(m.name)_sum{")
-                        # TODO: escape
-                        join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
-                        write(io, "} $(val.sum) $(point.time_unix_nano ÷ 10^6) \n")
-                    else
-                        write(io, "$(m.name)_sum $(val.sum)\n")
-                    end
+                    println(io, "$(name)_sum$wrapped_s_attrs $(val.sum) $time")
                 end
             else
-                write(io, "$(m.name){")
-                # TODO: escape
-                join(io, ("$k=\"$v\"" for (k, v) in pairs(attrs)), ",")
-                write(io, "} $(point.value) $(point.time_unix_nano ÷ 10^6) \n")
+                println(io, "$name$wrapped_s_attrs $val $time")
             end
         end
         write(io, "\n")
@@ -128,5 +115,10 @@ end
 prometheus_type(::SumAgg) = "counter"
 prometheus_type(::LastValueAgg) = "gauge"
 prometheus_type(::HistogramAgg) = "histogram"
+
+sanitize(s::Symbol) = sanitize(string(s))
+sanitize(s) = replace(s, r"[^\w]" => "_")
+
+attrs2str(attrs) = join(("$(sanitize(k))=\"$v\"" for (k, v) in pairs(attrs)), ",")
 
 end # module

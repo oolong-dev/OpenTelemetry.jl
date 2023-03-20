@@ -1,7 +1,4 @@
 @testset "propagators" begin
-    p = OpenTelemetryAPI.CompositePropagator()
-    push!(p, TraceContextTextMapPropagator())
-
     test_trace_id = TraceIdType(12345678901234567890123456789012)
     test_span_id = SpanIdType(1234567890123456)
     tracestate_value = "foo=1,bar=2,baz=3"
@@ -11,7 +8,7 @@
     ]
 
     with_context(; x = 123) do
-        ctx = extract(header, p)
+        ctx = extract(header)
         @test ctx[:x] == 123
         @test ctx |> current_span |> span_status == SpanStatus(SPAN_STATUS_UNSET)
 
@@ -25,12 +22,12 @@
 
     header = Dict("Content-Type" => "text/plain")
     with_span("test") do
-        inject!(header, p)
+        inject!(header)
         @test header["traceparent"] ==
               "00-00000000000000000000000000000000-0000000000000000-00"  # invalid trace parent
         @test !haskey(header, "tracestate")
     end
 
-    inject!(nothing, p)  # Should not throw error
-    extract(nothing, p)  # Should not throw error
+    inject!(nothing)  # Should not throw error
+    extract(nothing)  # Should not throw error
 end

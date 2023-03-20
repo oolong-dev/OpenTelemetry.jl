@@ -1,16 +1,14 @@
 name = "OpenTelemetryExporterPrometheus"
 uuid = "34e26579-e93c-4b5e-ba07-7afb633408c2"
 authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
-version = "0.1.4"
+version = "0.2.0"
 
 [deps]
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 OpenTelemetrySDK = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
-Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
 
 [compat]
-HTTP = "0.9,1"
-OpenTelemetrySDK = "0.2.1"
+HTTP = "1"
 julia = "1"
 
 [extras]

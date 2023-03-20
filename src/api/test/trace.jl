@@ -22,7 +22,7 @@
     end
 
     @testset "TracerProvider" begin
-        global_tracer_provider!(global_tracer_provider())  # smoke test
+        global_tracer_provider(global_tracer_provider())  # smoke test
 
         tracer = Tracer()
         with_span("test", tracer) do

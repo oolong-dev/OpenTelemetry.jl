@@ -1,7 +1,5 @@
 export Exemplar, SumAgg, LastValueAgg, HistogramAgg, DROP
 
-const N_MAX_POINTS_PER_METRIC = 2_000
-
 #####
 
 """
@@ -15,16 +13,14 @@ to understand its relation to trace and metric.
 
   - `value`
   - `time_unix_nano`
-  - `filtered_attributes`::[`StaticAttrs`](@ref), extra attributes of a
-    [`Measurement`](@ref) that are not included in a [`Metric`](@ref)'s
-    `:attribute_keys` field.
+  - `filtered_attributes`, extra attributes of a [`Measurement`](@ref) that are not included in a [`Metric`](@ref)'s `:attribute_keys` field.
   - `trace_id`, the `trace_id` in the span context when the measurement happens.
   - `span_id`, the `span_id` in the span context when the measurement happens.
 """
 Base.@kwdef struct Exemplar{T}
     value::T
     time_unix_nano::UInt
-    filtered_attributes::StaticAttrs
+    filtered_attributes::StaticBoundedAttributes
     trace_id::TraceIdType
     span_id::SpanIdType
 end
@@ -46,87 +42,38 @@ else
 end
 
 struct AggregationStore{D<:DataPoint}
-    points::Dict{StaticAttrs,D}
-    unique_points::Dict{StaticAttrs,D}
-    n_max_points::UInt
-    n_max_attrs::UInt
-    lock::ReentrantLock
+    points::Dict{StaticBoundedAttributes,D}
+    max_points::Int
 end
 
 """
-    AggregationStore{D}(;kw...) where D<:DataPoint
+    AggregationStore{D}(max_points=nothing) where D<:DataPoint
 
 The `AggregationStore` holds all the aggregated datapoints in a
 [`Metric`](@ref).
-
-## Keyword arguments
-
-  - `n_max_points = N_MAX_POINTS_PER_METRIC`, the maximum number of data points.
-  - `n_max_attrs = 2 * N_MAX_POINTS_PER_METRIC`, the maximum number of allowed
-    attributes. Note that each datapoint may have several attributes pointing to
-    them. (Those attributes have the same key-value pair but with different
-    order)
 """
 function AggregationStore{D}(;
-    n_max_points = N_MAX_POINTS_PER_METRIC,
-    n_max_attrs = 2 * N_MAX_POINTS_PER_METRIC,
+    max_points = OTEL_JULIA_MAX_POINTS_APPROX_PER_METRIC(),
 ) where {D<:DataPoint}
-    AggregationStore{D}(
-        Dict{StaticAttrs,D}(),
-        Dict{StaticAttrs,D}(),
-        UInt(n_max_points),
-        UInt(n_max_attrs),
-        ReentrantLock(),
-    )
+    AggregationStore{D}(Dict{StaticBoundedAttributes,D}(), max_points)
 end
 
-Base.iterate(a::AggregationStore, args...) = iterate(a.unique_points, args...)
-Base.length(m::AggregationStore) = length(m.unique_points)
+Base.iterate(a::AggregationStore, args...) = iterate(a.points, args...)
+Base.length(m::AggregationStore) = length(m.points)
 
-function Base.getindex(m::AggregationStore, k)
-    v = get(m.points, k, nothing)
-    if isnothing(v)
-        k_sorted = sort(k)
-        get(m.points, k_sorted)
-    else
-        v
-    end
-end
+Base.getindex(m::AggregationStore) = getindex(m, (;))
+Base.getindex(m::AggregationStore, k) = getindex(m, BoundedAttributes(k))
+Base.getindex(m::AggregationStore, k::BoundedAttributes) = getindex(m.points, k)
 
-function Base.get!(f, agg::AggregationStore, attrs)
-    point = get(agg.points, attrs, nothing)
-    if isnothing(point)
-        sorted_attrs = sort(attrs)
-        point = get(agg.points, sorted_attrs, nothing)
-        if isnothing(point)
-            if length(agg.unique_points) < agg.n_max_points
-                lock(agg.lock) do
-                    if haskey(agg.points, attrs)
-                        agg.points[attrs]
-                    elseif haskey(agg.points, sorted_attrs)
-                        agg.points[sorted_attrs]
-                    else
-                        p = f()
-                        agg.points[attrs] = p
-                        agg.points[sorted_attrs] = p
-                        agg.unique_points[sorted_attrs] = p
-                        p
-                    end
-                end
-            else
-                @warn "maximum number of attributes reached, dropped."
-                nothing
-            end
-        else
-            if length(agg.points) < agg.n_max_attrs
-                agg.points[attrs] = point
-            else
-                @warn "maximum cached keys in agg store reached, please consider increase `n_max_points`"
-            end
-            point
-        end
+Base.get!(f, agg::AggregationStore) = get!(f, agg, (;))
+Base.get!(f, agg::AggregationStore, attrs) = get!(f, agg, BoundedAttributes(attrs))
+
+function Base.get!(f, agg::AggregationStore, attrs::BoundedAttributes)
+    if length(agg.points) < agg.max_points
+        get!(f, agg.points, attrs)
     else
-        point
+        @warn "maximum number of points reached, dropped."
+        nothing
     end
 end
 
@@ -135,7 +82,7 @@ end
 abstract type AbstractAggregation end
 
 Base.iterate(a::AbstractAggregation, args...) = iterate(a.agg_store, args...)
-Base.getindex(m::AbstractAggregation, k) = getindex(m.agg_store, k)
+Base.getindex(m::AbstractAggregation, k...) = getindex(m.agg_store, k...)
 Base.length(m::AbstractAggregation) = length(m.agg_store)
 
 """
@@ -147,12 +94,14 @@ See more details in [the specification](https://github.com/open-telemetry/opente
 struct SumAgg{T,E,F} <: AbstractAggregation
     agg_store::AggregationStore{DataPoint{T,E}}
     exemplar_reservoir_factory::F
+    is_monotonic::Bool
 end
 
 """
     SumAgg{T}()
 """
-SumAgg{T}() where {T} = SumAgg(AggregationStore{DataPoint{T,Nothing}}(), () -> nothing)
+SumAgg{T}(is_monotonic) where {T} =
+    SumAgg(AggregationStore{DataPoint{T,Nothing}}(), () -> nothing, is_monotonic)
 
 function (agg::SumAgg{T,E})(e::Exemplar{<:Measurement}) where {T,E}
     point = get!(agg.agg_store, e.value.attributes) do
@@ -310,9 +259,9 @@ const DROP = Drop()
 
 #####
 
-default_aggregation(ins::Counter{T}) where {T} = SumAgg{T}()
-default_aggregation(ins::ObservableCounter{T}) where {T} = SumAgg{T}()
-default_aggregation(ins::UpDownCounter{T}) where {T} = SumAgg{T}()
-default_aggregation(ins::ObservableUpDownCounter{T}) where {T} = SumAgg{T}()
+default_aggregation(ins::Counter{T}) where {T} = SumAgg{T}(true)
+default_aggregation(ins::ObservableCounter{T}) where {T} = SumAgg{T}(true)
+default_aggregation(ins::UpDownCounter{T}) where {T} = SumAgg{T}(false)
+default_aggregation(ins::ObservableUpDownCounter{T}) where {T} = SumAgg{T}(false)
 default_aggregation(ins::ObservableGauge{T}) where {T} = LastValueAgg{T}()
 default_aggregation(ins::Histogram{T}) where {T} = HistogramAgg{T}()

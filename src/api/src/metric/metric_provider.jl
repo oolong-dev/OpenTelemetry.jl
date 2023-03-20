@@ -1,5 +1,4 @@
-export AbstractMeterProvider,
-    AbstractInstrument, global_meter_provider, global_meter_provider!, Meter
+export global_meter_provider, global_meter_provider, Meter, provider, resource
 
 """
 A meter provider defines how to collect and update [`Measurement`](@ref)s. Each
@@ -27,11 +26,11 @@ Get the global meter provider.
 global_meter_provider() = GLOBAL_METER_PROVIDER[]
 
 """
-    global_meter_provider!(p)
+    global_meter_provider(p)
 
 Set the global meter provider to `p`.
 """
-global_meter_provider!(p) = GLOBAL_METER_PROVIDER[] = p
+global_meter_provider(p) = GLOBAL_METER_PROVIDER[] = p
 
 """
 `AbstractInstrument`` is the super type of all instruments, which are used to report [`Measurement`](@ref)s.
@@ -58,19 +57,19 @@ Meter is responsible for creating instruments.
 ## Keyword Arguments:
 
   - `provider::P = global_meter_provider()`
-  - `instrumentation_info = InstrumentationInfo()`
+  - `instrumentation_scope = InstrumentationScope()`
 """
 struct Meter{P<:AbstractMeterProvider}
     name::String
     provider::P
-    instrumentation_info::InstrumentationInfo
+    instrumentation_scope::InstrumentationScope
     instruments::Vector{AbstractInstrument}
     function Meter(
         name::String;
         provider::P = global_meter_provider(),
-        instrumentation_info = InstrumentationInfo(),
+        instrumentation_scope = InstrumentationScope(),
     ) where {P<:AbstractMeterProvider}
-        m = new{P}(name, provider, instrumentation_info, AbstractInstrument[])
+        m = new{P}(name, provider, instrumentation_scope, AbstractInstrument[])
         push!(provider, m)
         m
     end

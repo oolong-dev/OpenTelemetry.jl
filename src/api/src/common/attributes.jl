@@ -1,99 +1,68 @@
-export Limited, n_dropped, TAttrVal, DynamicAttrs, StaticAttrs
+export BoundedAttributes, StaticBoundedAttributes, n_dropped
+
+import TupleTools
 
 """
-    Limited(container; limit=32)
+    BoundedAttributes(attrs; count_limit=nothing, value_length_limit=nothing)
 
-Create a container wrapper with limited elements. It supports the following common containers:
+This provides a wrapper around attributes (typically `AbstractDict` or `NamedTuple`) to follow the [specification of Attribute](https://opentelemetry.io/docs/reference/specification/common/#attribute).
 
-  - `AbstractDict`. If the length of the dict contains more elements than `limit`. Then `pop!` will be called repeatedly until the length is equal to `limit`. Further new key-value pair insertions will be ignored. If the key already exists in the dict, then the corresponding value will always be updated. `n_dropped` will return the number of dropped insertions.
-  - `AbstractVector`. Similar to `AbstractDict`.
-
-The following methods from `Base` are defined on `Limited` which are then forwarded to the inner `container`. Feel free to create a PR if you find any method you need is missing:
+The following methods from `Base` are defined on `BoundedAttributes` which are then forwarded to the inner `attrs` by default. Feel free to create a PR if you find any method you need is missing:
 
   - `Base.getindex`
   - `Base.setindex!`
   - `Base.iterate`
   - `Base.length`
   - `Base.haskey`
-  - `Base.push!`. Only defined on containers of `AbstractVector`.
+  - `Base.push!`. Obviously, an error will be thrown when calling on immutable `attrs`s like `NamedTuple`.
 """
-struct Limited{T}
-    xs::T
-    limit::Int
-    n_dropped::Ref{Int}
+struct BoundedAttributes{T}
+    attrs::T
+    count_limit::Int
+    value_length_limit::Int
+    n_dropped::Ref{UInt32}
 end
 
-function Limited(xs::Union{Dict,AbstractVector}; limit = 32)
-    n_dropped = Ref(0)
-    if length(xs) > limit
-        n_dropped[] = length(xs) - limit
-        for _ in 1:(length(xs)-limit)
-            pop!(xs)
-        end
-        @warn "limit $limit exceeded, $(n_dropped[]) elements dropped."
-    end
-    Limited(xs, limit, n_dropped)
+const StaticBoundedAttributes = BoundedAttributes{<:NamedTuple}
+
+BoundedAttributes(; kw...) = BoundedAttributes(NamedTuple(); kw...)
+
+_try_reorder(x) = x
+_try_reorder(x::NamedTuple{()}) = x
+_try_reorder(x::NamedTuple{K}) where {K} = x[TupleTools.sort(K)]
+
+if VERSION < v"1.7.0"
+    @inline Base.getindex(t::NamedTuple, idxs::Tuple{Vararg{Symbol}}) = NamedTuple{idxs}(t)
 end
 
-Base.getindex(x::Limited, args...) = getindex(x.xs, args...)
-Base.haskey(x::Limited, k) = haskey(x.xs, k)
-Base.length(x::Limited) = length(x.xs)
-Base.iterate(x::Limited, args...) = iterate(x.xs, args...)
-Base.pairs(A::Limited) = pairs(A.xs)
+BoundedAttributes(attrs::BoundedAttributes; kw...) = attrs
 
-"""
-    n_dropped(x::Limited)
-
-Return the total number of dropped elements since creation.
-"""
-n_dropped(x::Limited) = x.n_dropped[]
-
-function Base.setindex!(x::Limited{<:AbstractDict}, v, k)
-    if haskey(x.xs, k)
-        setindex!(x.xs, v, k)
-    elseif length(x.xs) >= x.limit
-        @warn "limit [$(x.limit)] exceeded, dropped."
-        x.n_dropped[] += 1
-    else
-        setindex!(x.xs, v, k)
-    end
+function BoundedAttributes(
+    attrs;
+    count_limit = OTEL_ATTRIBUTE_COUNT_LIMIT(),
+    value_length_limit = OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT(),
+)
+    attrs = _try_reorder(attrs) # !!! the order of static attributes is important in Metrics
+    attrs, n_dropped = clean_attrs!(attrs, count_limit, value_length_limit)
+    BoundedAttributes(attrs, count_limit, value_length_limit, Ref{UInt32}(n_dropped))
 end
 
-Base.setindex!(x::Limited{<:AbstractVector}, v, k) = setindex!(x.xs, v, k)
+Base.getindex(x::BoundedAttributes, args...) = getindex(x.attrs, args...)
+Base.haskey(x::BoundedAttributes, k) = haskey(x.attrs, k)
+Base.haskey(x::StaticBoundedAttributes, k::String) = haskey(x.attrs, Symbol(k))
+Base.length(x::BoundedAttributes) = length(x.attrs)
+Base.iterate(x::BoundedAttributes, args...) = iterate(x.attrs, args...)
+Base.pairs(A::BoundedAttributes) = pairs(A.attrs)
+Base.hash(x::BoundedAttributes, h::UInt) = hash(x.attrs, h)
+Base.:(==)(x::BoundedAttributes, y::BoundedAttributes) = x.attrs == y.attrs
+Base.merge(x::BoundedAttributes, y::BoundedAttributes) = BoundedAttributes(
+    merge(x.attrs, y.attrs),
+    x.count_limit,
+    x.value_length_limit,
+    x.n_dropped,
+)
 
-function Base.push!(x::Limited{<:AbstractVector}, v)
-    if length(x.xs) >= x.limit
-        @warn "limit [$(x.limit)] exceeded, dropped."
-        x.n_dropped[] += 1
-    else
-        push!(x.xs, v)
-    end
-end
-
-#####
-
-_truncate(x, limit) = x
-
-function _truncate(s::String, limit)
-    if length(s) <= limit
-        s
-    else
-        @warn "value is truncated to length $limit"
-        s[1:min(end, limit)]
-    end
-end
-
-function _truncate(xs::Vector{String}, limit)
-    is_truncated = false
-    for (i, s) in enumerate(xs)
-        if length(s) > limit
-            xs[i] = s[1:limit]
-            is_truncated = true
-        end
-    end
-    is_truncated && @warn "some elements in the value are truncated."
-    xs
-end
+Base.show(io::IO, A::BoundedAttributes) = join(io, ("$k=$v" for (k, v) in pairs(A)), ",")
 
 """
 Valid type of attribute value.
@@ -117,100 +86,80 @@ is_valid_attr_val(x::TAttrVal) = true
 is_valid_attr_val(t::Tuple{}) = true
 is_valid_attr_val(x) = false
 
-"""
-    StaticAttrs(attrs::NamedTuple; value_length_limit=nothing)
-    StaticAttrs(; value_length_limit=nothing, attrs...)
-    StaticAttrs(attrs::Pair{String, TAttrVal}...; value_length_limit=nothing)
-    StaticAttrs(attrs::Pair{Symbol, TAttrVal}...; value_length_limit=nothing)
-
-Here we use the `NamedTuple` internally to efficiently represent the immutable version of the [`Attributes`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes) in the specification. If the `value_length_limit` is set to a positive int, the value of `String` or each element in a value of `Vector{String}` will be truncated to a maximum length of it. By default we do not do the truncation.
-
-See also [`DynamicAttrs`](@ref).
-"""
-struct StaticAttrs{T<:NamedTuple}
-    attrs::T
-    function StaticAttrs(attrs::T; value_length_limit = nothing) where {T<:NamedTuple}
-        if is_valid_attr_val(attrs)
-            if !isnothing(value_length_limit)
-                attrs = map(x -> _truncate(x, value_length_limit), attrs)
-            end
-            new{T}(attrs)
-        else
-            throw(ArgumentError("Invalid value type found!"))
-        end
+function Base.setindex!(attrs::BoundedAttributes, v::TAttrVal, k)
+    if !haskey(attrs, k) && length(attrs) >= attrs.count_limit
+        clip_attrs_by_count!(attrs.attrs, attrs.count_limit - 1)
+        attrs.n_dropped[] += 1
+        @warn "The count of attributes exceeds the preset limit ($(attrs.count_limit))."
     end
+    attrs.attrs[k] = _truncate(v, attrs.value_length_limit)
 end
 
-function Base.show(io::IO, s::StaticAttrs)
-    print(io, "StaticAttrs")
-    if isempty(s.attrs)
-        print(io, "()")
+Base.setindex!(attrs::StaticBoundedAttributes, v::TAttrVal, k) =
+    @error "Updating immutable attributes. Dropped."
+
+"""
+    n_dropped(x::BoundedAttributes)
+
+Return the total number of dropped elements since creation.
+"""
+n_dropped(x::BoundedAttributes) = x.n_dropped[]
+
+function clip_attrs_by_count!(attrs, count_limit)
+    n_dropped = max(0, length(attrs) - count_limit)
+    for k in Iterators.take(keys(attrs), n_dropped)
+        delete!(attrs, k)
+    end
+    attrs, n_dropped
+end
+
+function clip_attrs_by_count!(attrs::NamedTuple, count_limit)
+    n_dropped = max(0, length(attrs) - count_limit)
+    NamedTuple(Iterators.drop(pairs(attrs), n_dropped)), n_dropped
+end
+
+_truncate(x, limit) = x
+
+function _truncate(s::String, limit)
+    if length(s) <= limit
+        s
     else
-        print(io, s.attrs)
+        @warn "value is truncated to length $limit"
+        s[1:min(end, limit)]
     end
 end
 
-StaticAttrs(; value_length_limit = nothing, kw...) =
-    StaticAttrs(values(kw); value_length_limit = value_length_limit)
-StaticAttrs(attrs::Pair{String}...; kw...) =
-    StaticAttrs((Symbol(k) => v for (k, v) in attrs)...; kw...)
-StaticAttrs(attrs::Pair{Symbol}...; kw...) = StaticAttrs(NamedTuple(attrs); kw...)
-
-n_dropped(a::StaticAttrs) = 0
-
-Base.keys(A::StaticAttrs) = keys(A.attrs)
-Base.haskey(A::StaticAttrs, k::String) = haskey(A.attrs, Symbol(k))
-Base.haskey(A::StaticAttrs, k::Symbol) = haskey(A.attrs, k)
-Base.getindex(A::StaticAttrs, k::String) = getindex(A, Symbol(k))
-Base.getindex(A::StaticAttrs, k::Symbol) = getindex(A.attrs, k)
-Base.getindex(A::StaticAttrs, k::Tuple{Vararg{Symbol}}) =
-    StaticAttrs(NamedTuple{k}(A.attrs))
-Base.length(A::StaticAttrs) = length(A.attrs)
-Base.iterate(A::StaticAttrs, args...) = iterate(A.attrs, args...)
-Base.pairs(A::StaticAttrs) = pairs(A.attrs)
-
-# ??? a more efficient approach?
-Base.sort(A::StaticAttrs) = A[keys(A)|>collect|>sort|>Tuple]
-
-"""
-    DynamicAttrs(attrs::Dict{String, TAttrVal};count_limit=128, value_length_limit=nothing)
-    DynamicAttrs(attrs::Pair{String, TAttrVal}...;count_limit=128, value_length_limit=nothing)
-
-Here we use a `Dict` internally to represent the mutable version of the [`Attributes`](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes) specification. If the `value_length_limit` is set to a positive int, the value of `String` or each element in a value of `Vector{String}` will be truncated to a maximum length of `value_length_limit`. By default we do not do the truncation. When adding new pairs into it, if the number of attributes exceeds the `count_limit`, it will be dropped. You can get the number of dropped pairs via `n_dropped`.
-
-See also [`StaticAttrs`](@ref).
-"""
-struct DynamicAttrs
-    attrs::Limited{Dict{String,TAttrVal}}
-    value_length_limit::Union{Int,Nothing}
-    function DynamicAttrs(
-        d::Dict{String,TAttrVal};
-        count_limit = 128,
-        value_length_limit = nothing,
-    )
-        if !isnothing(value_length_limit)
-            for k in keys(d)
-                d[k] = _truncate(d[k], value_length_limit)
-            end
+function _truncate(attrs::Vector{String}, limit)
+    is_truncated = false
+    for (i, s) in enumerate(attrs)
+        if length(s) > limit
+            attrs[i] = s[1:limit]
+            is_truncated = true
         end
-        new(Limited(d; limit = count_limit), value_length_limit)
     end
+    is_truncated && @warn "some elements in the value are truncated."
+    attrs
 end
 
-DynamicAttrs(attrs::Pair{String}...; kw...) =
-    DynamicAttrs(Dict{String,TAttrVal}(attrs...); kw...)
-
-Base.getindex(A::DynamicAttrs, k::String) = getindex(A.attrs, k)
-Base.haskey(A::DynamicAttrs, k::String) = haskey(A.attrs, k)
-Base.length(A::DynamicAttrs) = length(A.attrs)
-Base.iterate(A::DynamicAttrs, args...) = iterate(A.attrs, args...)
-Base.pairs(A::DynamicAttrs) = pairs(A.attrs)
-
-function Base.setindex!(d::DynamicAttrs, v::TAttrVal, k::String)
-    if !isnothing(d.value_length_limit)
-        v = _truncate(v, d.value_length_limit)
+function clip_attrs_by_value_length!(attrs, value_length_limit)
+    for k in keys(attrs)
+        attrs[k] = _truncate(attrs[k], value_length_limit)
     end
-    d.attrs[k] = v
+    attrs
 end
 
-n_dropped(a::DynamicAttrs) = n_dropped(a.attrs)
+clip_attrs_by_value_length!(attrs::NamedTuple, value_length_limit) =
+    map(x -> _truncate(x, value_length_limit), attrs)
+
+"""
+Follow the specification on [Attribute Limits](https://opentelemetry.io/docs/reference/specification/common/#attribute-limits). The cleaned attributes and the number of dropped elements is returned.
+
+!!! warn
+    
+    If `attrs` is mutable, it may be modified in-place.
+"""
+function clean_attrs!(attrs, count_limit, value_length_limit)
+    attrs, n_dropped = clip_attrs_by_count!(attrs, count_limit)
+    attrs = clip_attrs_by_value_length!(attrs, value_length_limit)
+    attrs, n_dropped
+end

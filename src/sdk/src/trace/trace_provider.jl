@@ -13,41 +13,41 @@ export TracerProvider
 
 The following extra methods are provided beyond those defined in [`AbstractTracerProvider`](@ref):
 
-  - [`force_flush!(p::TracerProvider)`](@ref)
-  - [`shut_down!(p::TracerProvider)`](@ref)
+  - [`flush(p::TracerProvider)`](@ref)
+  - [`close(p::TracerProvider)`](@ref)
   - [`Base.push!(p::TracerProvider, sp::AbstractSpanProcessor)`](@ref)
 """
 Base.@kwdef struct TracerProvider{
     S<:AbstractSampler,
     R<:Resource,
     SP<:AbstractSpanProcessor,
-    RNG,
-} <: AbstractTracerProvider
-    sampler::S = DEFAULT_ON
+    RNG<:AbstractIdGenerator,
+} <: OpenTelemetryAPI.AbstractTracerProvider
+    sampler::S = get_default_trace_sampler()
     resource::R = Resource()
-    span_processor::SP = CompositSpanProcessor()
+    span_processor::SP = SimpleSpanProcessor(ConsoleExporter())
     id_generator::RNG = RandomIdGenerator()
     limit_info::LimitInfo = LimitInfo()
-    is_shut_down::Ref{Bool} = Ref(false)
+    is_closed::Ref{Bool} = Ref(false)
 end
 
 OpenTelemetryAPI.resource(p::TracerProvider) = p.resource
 
 """
-    force_flush!(p::TracerProvider)
+    flush(p::TracerProvider)
 
 Shorthand to force flush inner span processors
 """
-force_flush!(p::TracerProvider) = force_flush!(p.span_processor)
+Base.flush(p::TracerProvider) = flush(p.span_processor)
 
 """
-    shut_down!(p::TracerProvider)
+    close(p::TracerProvider)
 
 Shut down inner span processors and then mark itself as shut down.
 """
-function shut_down!(p::TracerProvider)
-    shut_down!(p.span_processor)
-    p.is_shut_down[] = true
+function Base.close(p::TracerProvider)
+    close(p.span_processor)
+    p.is_closed[] = true
 end
 
 """
