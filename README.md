@@ -24,7 +24,7 @@ global_logger(OtelSimpleLogger());
 @error "OpenTelemetry.jl!"
 ```
 
-<img src="./docs/src/assets/log_info.png" width="200"/><img src="./docs/src/assets/log_warn.png" width="200" /><img src="./docs/src/assets/log_error.png" width="200"/>
+<img src="./docs/src/assets/log_info.png" height="480"/><img src="./docs/src/assets/log_warn.png" height="480" /><img src="./docs/src/assets/log_error.png" height="480"/>
 
 ### Traces
 
@@ -38,7 +38,7 @@ with_span("Hello, World!") do
 end
 ```
 
-<img src="./docs/src/assets/span_info.png" height="320"/><img src="./docs/src/assets/span_inner.png" height="320" /><img src="./docs/src/assets/span_outer.png" height="320"/>
+<img src="./docs/src/assets/span_info.png" height="480"/><img src="./docs/src/assets/span_inner.png" height="480" /><img src="./docs/src/assets/span_outer.png" height="480"/>
 
 ### Metrics
 
@@ -59,7 +59,7 @@ r = MetricReader();
 r()
 ```
 
-<img src="./docs/src/assets/metrics.png" height="320"/>
+<img src="./docs/src/assets/metrics.png" height="480"/>
 
 ## Tutorial
 
