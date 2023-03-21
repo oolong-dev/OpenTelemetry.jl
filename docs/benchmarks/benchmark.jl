@@ -34,9 +34,9 @@ function init_span(t)
     with_span(
         "benchmarkedSpan",
         t;
-        attributes = Dict{String,TAttrVal}("long.attribute" => -10000000001000000000),
+        attributes = Dict("long.attribute" => -10000000001000000000),
     ) do
-        push!(current_span(), OpenTelemetryAPI.Event(name = "benchmarkEvent"))
+        push!(current_span(), OpenTelemetryAPI.Event("benchmarkEvent"))
     end
 end
 

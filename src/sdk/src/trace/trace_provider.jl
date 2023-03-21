@@ -7,7 +7,7 @@ export TracerProvider
 
   - `sampler`::[`AbstractSampler`](@ref)=[`DEFAULT_ON`](@ref)
   - `resource`=[`Resource`](@ref)()
-  - `span_processor`::[`AbstractSpanProcessor`](@ref)=[`CompositSpanProcessor`](@ref)()
+  - `span_processor`::[`AbstractSpanProcessor`](@ref)=[`SimpleSpanProcessor`](@ref)([`ConsoleExporter`](@ref))
   - `id_generator`::[`AbstractIdGenerator`](@ref)=[`RandomIdGenerator`](@ref)()
   - `limit_info`=[`LimitInfo`](@ref)()
 
