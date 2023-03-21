@@ -68,17 +68,21 @@ OtlpHttpMetricsExporter(;
 )
 
 function SDK.export!(x::OtlpHttpExporter{Req,Resp}, batch) where {Req,Resp}
-    io = IOBuffer()
-    e = ProtoEncoder(io)
-    encode(e, convert(Req, batch))
-    seekstart(io)
+    if isempty(batch)
+        SDK.EXPORT_SUCCESS
+    else
+        io = IOBuffer()
+        e = ProtoEncoder(io)
+        encode(e, convert(Req, batch))
+        seekstart(io)
 
-    res = HTTP.post(x.url, x.headers; body = io)
+        res = HTTP.post(x.url, x.headers; body = io)
 
-    res_io = IOBuffer(res.body)
-    d = ProtoDecoder(res_io)
-    resp = decode(d, Resp)
-    convert(SDK.ExportResult, resp)
+        res_io = IOBuffer(res.body)
+        d = ProtoDecoder(res_io)
+        resp = decode(d, Resp)
+        convert(SDK.ExportResult, resp)
+    end
 end
 
 include("convert.jl")
