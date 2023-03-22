@@ -68,6 +68,7 @@ It's recommended to walk through these tutorials one-by-one.
 - [View Metrics in Prometheus](https://oolong-dev.github.io/OpenTelemetry.jl/dev/tutorials/View_Metrics_in_Prometheus)
 - [View Metrics in Prometheus through Open Telemetry Collector](https://oolong-dev.github.io/OpenTelemetry.jl/dev/tutorials/View_Metrics_in_Prometheus_through_Open_Telemetry_Collector/)
 - [View Traces in Jaeger](https://oolong-dev.github.io/OpenTelemetry.jl/dev/tutorials/View_Traces_in_Jaeger/)
+- [Send Logs to Loki via OpenTelemetry Collector](https://oolong-dev.github.io/OpenTelemetry.jl/dev/tutorials/Send_Logs_to_Loki_via_OpenTelemetry_Collector/)
 - An End-to-end Toy Example with Auto Instrumentation across Different Languages
 - Case Study 1: Empower `Dagger.jl` with `OpenTelemetry.jl`
 - Case Study 2: Empower `AlphaZero.jl` with `OpenTelemetry.jl`
