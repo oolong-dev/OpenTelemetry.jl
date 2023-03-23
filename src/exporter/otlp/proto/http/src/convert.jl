@@ -64,7 +64,11 @@ Base.convert(::Type{COMMON.InstrumentationScope}, ins::API.InstrumentationScope)
 # Logs
 
 Base.convert(::Type{COLL_LOGS.ExportLogsServiceRequest}, batch::AbstractVector) =
-    COLL_LOGS.ExportLogsServiceRequest(LOGS.ResourceLogs[convert(LOGS.ResourceLogs, batch)])
+    if !isempty(batch)
+        COLL_LOGS.ExportLogsServiceRequest(
+            LOGS.ResourceLogs[convert(LOGS.ResourceLogs, batch)],
+        )
+    end
 
 function Base.convert(::Type{LOGS.ResourceLogs}, batch::AbstractVector)
     x = first(batch)  # we can safely assume the log records are from the same provider
@@ -101,7 +105,9 @@ Base.convert(::Type{LOGS.LogRecord}, x::API.LogRecord) = LOGS.LogRecord(
 # Traces
 
 Base.convert(::Type{COLL_TRACES.ExportTraceServiceRequest}, batch::AbstractVector) =
-    COLL_TRACES.ExportTraceServiceRequest([convert(TRACES.ResourceSpans, batch)])
+    if !isempty(batch)
+        COLL_TRACES.ExportTraceServiceRequest([convert(TRACES.ResourceSpans, batch)])
+    end
 
 function Base.convert(::Type{TRACES.ResourceSpans}, batch::AbstractVector)
     x = first(batch)
@@ -181,7 +187,9 @@ Base.convert(::Type{TRACES.var"Status.StatusCode".T}, x::API.SpanStatusCode) =
 using Base: IdSet
 
 Base.convert(::Type{COLL_METRICS.ExportMetricsServiceRequest}, batch::IdSet) =
-    COLL_METRICS.ExportMetricsServiceRequest([convert(METRICS.ResourceMetrics, batch)])
+    if !isempty(batch)
+        COLL_METRICS.ExportMetricsServiceRequest([convert(METRICS.ResourceMetrics, batch)])
+    end
 
 function Base.convert(::Type{METRICS.ResourceMetrics}, batch::IdSet)
     x = first(batch)
@@ -244,12 +252,16 @@ Base.convert(::Type{METRICS.Histogram}, x::SDK.Metric{<:SDK.HistogramAgg}) =
 
 Base.convert(
     ::Type{METRICS.NumberDataPoint},
-    (k, v)::Pair{<:API.BoundedAttributes,<:SDK.DataPoint{<:Union{Int,Float64}}},
+    (k, v)::Pair{<:API.BoundedAttributes,<:SDK.DataPoint{<:Union{Integer,AbstractFloat}}},
 ) = METRICS.NumberDataPoint(
     convert(Vector{COMMON.KeyValue}, k),
     v.start_time_unix_nano,
     v.time_unix_nano,
-    v.value isa Int ? OneOf(:as_int, v.value) : OneOf(:as_double, v.value),
+    if v.value isa Integer
+        OneOf(:as_int, convert(Int, v.value))
+    else
+        OneOf(:as_double, convert(Float64, v.value))
+    end,
     METRICS.Exemplar[], # TODO: add exemplars later
     UInt(METRICS.DataPointFlags.FLAG_NONE), # TODO: when to set other flags???
 )

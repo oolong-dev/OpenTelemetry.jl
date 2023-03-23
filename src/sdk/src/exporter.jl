@@ -1,4 +1,5 @@
-export InMemoryExporter, ConsoleExporter, EXPORT_SUCCESS, EXPORT_FAILURE, export!
+export DummyExporter,
+    InMemoryExporter, ConsoleExporter, EXPORT_SUCCESS, EXPORT_FAILURE, export!
 
 @enum ExportResult begin
     EXPORT_SUCCESS
@@ -19,6 +20,11 @@ abstract type AbstractExporter end
 Base.flush(::AbstractExporter) = true
 
 Base.close(e::AbstractExporter) = flush(e)
+
+#####
+
+struct DummyExporter <: AbstractExporter end
+export!(e::DummyExporter, xs) = nothing
 
 #####
 

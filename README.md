@@ -63,11 +63,12 @@ r()
 
 ## Tutorial
 
-(WIP)
+It's recommended to walk through these tutorials one-by-one.
 
 - [View Metrics in Prometheus](https://oolong-dev.github.io/OpenTelemetry.jl/dev/tutorials/View_Metrics_in_Prometheus)
 - [View Metrics in Prometheus through Open Telemetry Collector](https://oolong-dev.github.io/OpenTelemetry.jl/dev/tutorials/View_Metrics_in_Prometheus_through_Open_Telemetry_Collector/)
-- [View Metrics/Traces/Logs in Grafana/ElasticAPM](https://oolong-dev.github.io/OpenTelemetry.jl/dev/tutorials/View_Logs_Traces,_and_Metrics_Together_in_Grafana_ElasticAPM)
+- [View Traces in Jaeger](https://oolong-dev.github.io/OpenTelemetry.jl/dev/tutorials/View_Traces_in_Jaeger/)
+- [Send Logs to Loki via OpenTelemetry Collector](https://oolong-dev.github.io/OpenTelemetry.jl/dev/tutorials/Send_Logs_to_Loki_via_OpenTelemetry_Collector/)
 - An End-to-end Toy Example with Auto Instrumentation across Different Languages
 - Case Study 1: Empower `Dagger.jl` with `OpenTelemetry.jl`
 - Case Study 2: Empower `AlphaZero.jl` with `OpenTelemetry.jl`
@@ -85,7 +86,7 @@ r()
 
 Some frequently asked questions are maintained here. If you can't find the answer to your question there, please [create an issue](https://github.com/oolong-dev/OpenTelemetry.jl/issues). Your feedback is **VERY IMPORTANT** to the quality of this package❤.
 
-### Method overwritten warning
+1. Method overwritten warning
 
 When building `OpenTelemetrySDK` for the first time, you'll see the following warning message:
 

@@ -197,8 +197,8 @@ struct Event{A<:BoundedAttributes}
     attributes::A
 end
 
-function Event(name::String, attributes; timestamp::UInt = UInt(time() * 10^9))
-    attrs = BoundedAttributes(attributes; count_limit = OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT())
+function Event(name::String, timestamp::UInt = UInt(time() * 10^9); kw...)
+    attrs = BoundedAttributes(values(kw); count_limit = OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT())
     Event(name, timestamp, attrs)
 end
 

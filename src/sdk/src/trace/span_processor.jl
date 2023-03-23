@@ -106,9 +106,9 @@ on_start!(bsp::BatchSpanProcessor, span) = nothing
 
 function on_end!(bsp::BatchSpanProcessor, span)
     if !bsp.is_shutdown[]
-        is_full = put!(bsp.container, span)
+        is_full = put!(bsp.queue, span)
         if is_full
-            export!(bsp.exporter, take!(bsp.container))
+            export!(bsp.exporter, take!(bsp.queue))
             reset_timer!(bsp)
         end
     end
@@ -121,7 +121,7 @@ function Base.close(bsp::BatchSpanProcessor)
 end
 
 function Base.flush(bsp::BatchSpanProcessor)
-    export!(bsp.exporter, take!(bsp.container))
+    export!(bsp.exporter, take!(bsp.queue))
     flush(bsp.exporter)
 end
 

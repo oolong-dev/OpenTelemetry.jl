@@ -325,7 +325,7 @@ Call function `f` with the current span set a newly created one of `name` with `
   - The rest keyword arguments are forwarded to [`create_span`](@ref).
 """
 function with_span(
-    f,
+    f::Function,
     name::String,
     tracer::Tracer = Tracer();
     end_on_exit = true,

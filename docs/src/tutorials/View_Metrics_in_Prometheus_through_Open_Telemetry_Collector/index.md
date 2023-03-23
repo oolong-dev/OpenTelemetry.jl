@@ -8,17 +8,13 @@ It provides us a nice way to utilize many different APMs. And we'll see many exa
 
 ## The Relationship between `OpenTelemetry.jl`, OpenTelemetry Collector and Prometheus
 
-Let's take a look at two figures from the official opentelemetry website first.
+Let's take a look at a figure from the official OpenTelemetry website first.
 
-![](https://raw.github.com/open-telemetry/opentelemetry.io/main/iconography/Reference_Architecture.svg)
+![](https://opentelemetry.io/img/otel_diagram.png)
 
-In this figure, `OpenTelemetry.jl` lies in the top left corner or the top right corer given that it's just a OpenTelemetry library in Julia. In `OpenTelemetry.jl`, we push observed signals to the OpenTelemetry collector on the same host (named **Agent** above) first. Then different **Agent**s can either push data to a centeralized OpenTelemetry collector (named **Service** above) or send data directly to desired backends (like Prometheus).
+What `OpenTelemetry.jl` provides is a collection of `OTel API`, `OTel SDK`, and `OTel Instruments` in Julia, which lies in the top left corner in the above figure. Observed signals are first sent to `OTel Collector`, then they are forwarded to many different kinds of receivers. In this tutorial, we are most interested in viewing metrics in Prometheus.
 
-![](https://raw.github.com/open-telemetry/opentelemetry.io/main/iconography/Otel_Collector.svg)
-
-Inside of each OpenTelemetry Collector, there are three important parts. The **receivers** receive data from other OpenTelemetry collectors (for example the **Agent**s in the first figure) or OpenTelemetry Library (`OpenTelemetry.jl` here) through the OpenTelemetry Protocol (OTLP). The **processors** can process the collected data further for downstream backends. And the **exporters** will handle the communication between different backends.
-
-What we want to do in this tutorial is described as follows:
+So in short, we want to send metrics in the OTLP format to a OTel Collector, and then view them in Prometheus.
 
 ```
 ┌──────────────────┐  OTLP  ┌────────────────┐   ┌────────────┐
@@ -30,23 +26,25 @@ This time we setup the Prometheus and OTel Collector first.
 
 ```bash
 cd docs/src/tutorials/View_Metrics_in_Prometheus_through_Open_Telemetry_Collector
-docker-compose up -d
+docker compose up
 ```
-
-The docker compose file and related configurations are listed below:
-
-(TODO: insert)
 
 Then open the Julia REPL as usual and add some metrics like what we did in the previous tutorial.
 
 ```julia
 using OpenTelemetry
 
+global_meter_provider(MeterProvider());
+
 m = Meter("demo_metrics");
 c = Counter{UInt}("fruit_counter", m)
 c(2; name = "apple", color = "green")
+```
 
-r = MetricReader(OtlpProtoGrpcMetricsExporter())
+Instead of using the default `ConsoleExporter`, this time we'll use the [`OtlpHttpMetricsExporter`](@ref).
+
+```julia
+r = MetricReader(OtlpHttpMetricsExporter())
 ```
 
 Then head to the Prometheus portal at [http://localhost:9090](http://localhost:9090) and select the `fruit_counter` metric to view the number of fruits. Try adding more different fruits to see how they are displayed on the portal.
@@ -78,4 +76,4 @@ for _ in 1:10
 end
 ```
 
-You're encouraged to try some other instruments listed under [Instruments](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryAPI/#Instruments).
+You're encouraged to try some other instruments listed under [Instruments](@ref).
