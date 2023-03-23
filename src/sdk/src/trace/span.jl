@@ -188,12 +188,14 @@ function Base.push!(s::Span, ex::Exception; is_rethrow_followed = false)
     showerror(st_io, CapturedException(ex, catch_backtrace()))
     st = String(take!(st_io))
 
-    attrs = (;
-        Symbol("exception.type") => string(typeof(ex)),
-        Symbol("exception.message") => msg,
-        Symbol("exception.stacktrace") => st,
-        Symbol("exception.escaped") => is_rethrow_followed,
+    push!(
+        s,
+        Event(
+            "exception";
+            Symbol("exception.type") => string(typeof(ex)),
+            Symbol("exception.message") => msg,
+            Symbol("exception.stacktrace") => st,
+            Symbol("exception.escaped") => is_rethrow_followed,
+        ),
     )
-
-    push!(s, Event("exception", attrs))
 end
