@@ -29,3 +29,4 @@ const GLOBAL_PROPAGATOR =
 global_propagator() = GLOBAL_PROPAGATOR
 
 Base.push!(cp::CompositePropagator, p::AbstractPropagator) = push!(cp.propagators, p)
+Base.push!(p::AbstractPropagator) = push!(global_propagator(), p)

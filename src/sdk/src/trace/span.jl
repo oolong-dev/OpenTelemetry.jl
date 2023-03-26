@@ -145,7 +145,9 @@ OpenTelemetryAPI.end_time(s::Span) = s.end_time[]
 function OpenTelemetryAPI.end_span!(s::Span{<:TracerProvider}, t = UInt(time() * 10^9))
     if is_recording(s)
         s.end_time[] = t
-        on_end!(s.tracer.provider.span_processor, s)
+        with_context(; OpenTelemetryAPI.SUPPRESS_INSTRUMENTATION_KEY => true) do
+            on_end!(s.tracer.provider.span_processor, s)
+        end
     else
         @warn "the span is not recording."
     end

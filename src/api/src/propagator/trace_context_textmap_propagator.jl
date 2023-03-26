@@ -13,7 +13,7 @@ function inject!(
         AbstractDict{<:AbstractString,<:AbstractString},
     },
     propagator::TraceContextTextMapPropagator,
-    ctx::Context=current_context(),
+    ctx::Context = current_context(),
 )
     sc = span_context(ctx)
     if !isnothing(sc)
@@ -31,7 +31,7 @@ end
 function inject!(
     carrier::T,
     ::TraceContextTextMapPropagator,
-    ctx::Context=current_context(),
+    ctx::Context = current_context(),
 ) where {T}
     @warn "unknown carrier type $T"
     carrier
@@ -48,7 +48,7 @@ function extract(
         AbstractDict{<:AbstractString,<:AbstractString},
     },
     propagator::TraceContextTextMapPropagator,
-    ctx::Context=current_context(),
+    ctx::Context = current_context(),
 )
     trace_id, span_id, trace_flag, trace_state = nothing, nothing, nothing, TraceState()
     for (k, v) in carrier
@@ -85,7 +85,7 @@ end
 function extract(
     carrier::T,
     ::TraceContextTextMapPropagator,
-    ctx::Context=current_context(),
+    ctx::Context = current_context(),
 ) where {T}
     @warn "unknown carrier type $T"
     ctx

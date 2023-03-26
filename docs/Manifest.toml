@@ -228,7 +228,7 @@ uuid = "cc651e92-2989-4f95-bcc3-32e6fb6ac025"
 version = "0.19.0"
 
 [[OpenTelemetrySDK]]
-deps = ["AbstractTrees", "Dates", "Glob", "Logging", "OpenTelemetryAPI", "Random", "Reexport", "Requires", "StructTypes"]
+deps = ["AbstractTrees", "Dates", "Glob", "Logging", "OpenTelemetryAPI", "Pkg", "Random", "Reexport", "Requires", "StructTypes"]
 path = "../src/sdk"
 uuid = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
 version = "0.3.0"

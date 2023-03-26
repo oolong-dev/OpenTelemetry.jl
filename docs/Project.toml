@@ -1,5 +1,7 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 OpenTelemetry = "c1912aec-9d41-432b-84fe-e17fd97255be"
 OpenTelemetryAPI = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
 OpenTelemetryExporterOtlpProtoHttp = "f175482f-0544-4037-b362-361efbf21c04"

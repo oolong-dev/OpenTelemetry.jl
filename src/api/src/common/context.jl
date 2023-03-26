@@ -1,4 +1,4 @@
-export current_context, with_context
+export current_context, with_context, is_suppress_instrument
 
 using UUIDs: uuid4
 
@@ -35,3 +35,10 @@ with_context(f, ctx::Context; kw...) =
 Return the `Context` associated with the caller's current execution unit.
 """
 current_context() = get(task_local_storage(), CONTEXT_KEY, Context())::Context
+
+#####
+
+SUPPRESS_INSTRUMENTATION_KEY = create_key("suppress_instrumentation")
+
+is_suppress_instrument(ctx = current_context()) =
+    get(ctx, SUPPRESS_INSTRUMENTATION_KEY, false)
