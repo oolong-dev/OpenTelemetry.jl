@@ -3,7 +3,7 @@
     test_span_id = SpanIdType(1234567890123456)
     tracestate_value = "foo=1,bar=2,baz=3"
     header = [
-        "traceparent" => "00-$test_trace_id-$test_span_id-00",
+        "traceparent" => "00-$(string(test_trace_id, base=16, pad=32))-$(string(test_span_id,base=16,pad=16))-00",
         "tracestate" => tracestate_value,
     ]
 
