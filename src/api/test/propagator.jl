@@ -8,7 +8,7 @@
     ]
 
     with_context(; x = 123) do
-        ctx = extract(header)
+        ctx = extract_context(header)
         @test ctx[:x] == 123
         @test ctx |> current_span |> span_status == SpanStatus(SPAN_STATUS_UNSET)
 
@@ -22,12 +22,12 @@
 
     header = Dict("Content-Type" => "text/plain")
     with_span("test") do
-        inject!(header)
+        inject_context!(header)
         @test header["traceparent"] ==
               "00-00000000000000000000000000000000-0000000000000000-00"  # invalid trace parent
         @test !haskey(header, "tracestate")
     end
 
-    inject!(nothing)  # Should not throw error
-    extract(nothing)  # Should not throw error
+    inject_context!(nothing)  # Should not throw error
+    extract_context(nothing)  # Should not throw error
 end

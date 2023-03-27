@@ -32,10 +32,16 @@ Base.convert(::Type{Vector{COMMON.KeyValue}}, attrs::API.BoundedAttributes) =
 Base.convert(::Type{COMMON.KeyValue}, x::Pair) =
     COMMON.KeyValue(string(first(x)), convert(COMMON.AnyValue, last(x)))
 
+Base.convert(::Type{COMMON.AnyValue}, x::SubString) =
+    COMMON.AnyValue(OneOf(:string_value, string(x)))
 Base.convert(::Type{COMMON.AnyValue}, x::String) = COMMON.AnyValue(OneOf(:string_value, x))
 Base.convert(::Type{COMMON.AnyValue}, x::Bool) = COMMON.AnyValue(OneOf(:bool_value, x))
 Base.convert(::Type{COMMON.AnyValue}, x::Int) = COMMON.AnyValue(OneOf(:int_value, x))
+Base.convert(::Type{COMMON.AnyValue}, x::Integer) =
+    COMMON.AnyValue(OneOf(:int_value, convert(Int, x)))
 Base.convert(::Type{COMMON.AnyValue}, x::Float64) = COMMON.AnyValue(OneOf(:double_value, x))
+Base.convert(::Type{COMMON.AnyValue}, x::AbstractFloat) =
+    COMMON.AnyValue(OneOf(:double_value, convert(Float64, x)))
 Base.convert(::Type{COMMON.AnyValue}, x::Vector{UInt8}) =
     COMMON.AnyValue(OneOf(:bytes_value, x))
 

@@ -7,7 +7,7 @@ This propagator follows the [W3C format](https://www.w3.org/TR/trace-context/#tr
 """
 struct TraceContextTextMapPropagator <: AbstractPropagator end
 
-function inject!(
+function inject_context!(
     carrier::Union{
         AbstractVector{<:Pair{<:AbstractString,<:AbstractString}},
         AbstractDict{<:AbstractString,<:AbstractString},
@@ -17,7 +17,7 @@ function inject!(
 )
     sc = span_context(ctx)
     if !isnothing(sc)
-        s_trace_parent = "00-$(string(sc.trace_id, pad=32))-$(string(sc.span_id,pad=16))-$(sc.trace_flag.sampled ? "01" : "00")"
+        s_trace_parent = "00-$(string(sc.trace_id, base=16, pad=32))-$(string(sc.span_id, base=16,pad=16))-$(sc.trace_flag.sampled ? "01" : "00")"
         push!(carrier, "traceparent" => s_trace_parent)
         s_trace_state = string(sc.trace_state)
         if !isempty(s_trace_state)
@@ -28,7 +28,7 @@ function inject!(
 end
 
 # fallback
-function inject!(
+function inject_context!(
     carrier::T,
     ::TraceContextTextMapPropagator,
     ctx::Context = current_context(),
@@ -42,7 +42,7 @@ end
 TRACEPARENT_HEADER_FORMAT =
     r"^[ \t]*(?P<version>[0-9a-f]{2})-(?P<trace_id>[0-9a-f]{32})-(?P<span_id>[0-9a-f]{16})-(?P<trace_flag>[0-9a-f]{2})(?P<rest>-.*)?[ \t]*$"
 
-function extract(
+function extract_context(
     carrier::Union{
         AbstractVector{<:Pair{<:AbstractString,<:AbstractString}},
         AbstractDict{<:AbstractString,<:AbstractString},
@@ -56,8 +56,8 @@ function extract(
             m = match(TRACEPARENT_HEADER_FORMAT, v)
             if !isnothing(m)
                 if m["version"] == "00" && isnothing(m["rest"])
-                    trace_id = parse(TraceIdType, m["trace_id"])
-                    span_id = parse(SpanIdType, m["span_id"])
+                    trace_id = parse(TraceIdType, m["trace_id"], base = 16)
+                    span_id = parse(SpanIdType, m["span_id"], base = 16)
                     trace_flag = parse(TraceFlag, m["trace_flag"])
                 end
             end
@@ -82,7 +82,7 @@ function extract(
 end
 
 # fallback
-function extract(
+function extract_context(
     carrier::T,
     ::TraceContextTextMapPropagator,
     ctx::Context = current_context(),

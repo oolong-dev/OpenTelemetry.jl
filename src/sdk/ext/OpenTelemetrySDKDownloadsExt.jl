@@ -21,7 +21,7 @@ end
 
 function (h::OtelEasyHook)(easy, info)
     n = length(info.headers)
-    inject!(info.headers)
+    inject_context!(info.headers)
     N = length(info.headers)
     Downloads.add_headers(easy, @view info.headers[n+1:N]) # !!! old info.headers are already added
     h.old_hook !== nothing && h.old_hook(easy, info)

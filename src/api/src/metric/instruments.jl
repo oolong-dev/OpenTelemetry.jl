@@ -54,8 +54,10 @@ function examine_instrument(
     )
 end
 
-(ins::AbstractSyncInstrument)(amount; kw...) =
-    ins(Measurement(amount, BoundedAttributes(values(kw))))
+(ins::AbstractSyncInstrument)(amount; kw...) = ins(amount, values(kw))
+(ins::AbstractSyncInstrument)(amount, attrs) = ins(amount, BoundedAttributes(attrs))
+(ins::AbstractSyncInstrument)(amount, attrs::BoundedAttributes) =
+    ins(Measurement(amount, attrs))
 (ins::AbstractSyncInstrument)(m::Measurement) = push!(ins.meter.provider, ins => m)
 
 (ins::AbstractAsyncInstrument)() = push!(ins.meter.provider, ins => ins.callback())

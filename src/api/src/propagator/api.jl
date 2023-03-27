@@ -1,4 +1,4 @@
-export inject!, extract
+export inject_context!, extract_context
 
 abstract type AbstractPropagator end
 
@@ -7,11 +7,11 @@ abstract type AbstractPropagator end
 
 Injects the value into a carrier. For example, into the headers of an HTTP request.
 """
-inject!(carrier) = inject!(carrier, global_propagator(), current_context())
+inject_context!(carrier) = inject_context!(carrier, global_propagator(), current_context())
 
 """
-    extract(carrier, [global_propagator], [current_context])
+    extract_context(carrier, [global_propagator], [current_context])
 
 Extracts the value from an incoming request. For example, from the headers of an HTTP request.
 """
-extract(carrier) = extract(carrier, global_propagator(), current_context())
+extract_context(carrier) = extract_context(carrier, global_propagator(), current_context())

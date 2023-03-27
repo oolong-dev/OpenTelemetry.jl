@@ -89,7 +89,7 @@ HTTP_INSTRUMENT = Ref{HttpInstrument}()
 #####
 
 extract_client_metric_attrs(req::HTTP.Request) = (;
-    Symbol("http.flavor") => req.version,
+    Symbol("http.flavor") => "$(req.version.major).$(req.version.minor)",
     Symbol("http.method") => req.method,
     Symbol("net.peer.name") => req.url.host,
     Symbol("net.peer.port") => req.url.port,
@@ -98,7 +98,7 @@ extract_client_metric_attrs(req::HTTP.Request) = (;
 extract_server_metric_attrs(req::HTTP.Request) = (;
     Symbol("http.scheme") => req.url.scheme,
     Symbol("http.route") => HTTP.getroute(req),
-    Symbol("http.flavor") => req.version,
+    Symbol("http.flavor") => "$(req.version.major).$(req.version.minor)",
     Symbol("http.method") => req.method,
     Symbol("net.host.name") => req.url.host,
     Symbol("net.host.port") => req.url.port,
@@ -107,7 +107,7 @@ extract_server_metric_attrs(req::HTTP.Request) = (;
 extract_metric_attrs(resp::HTTP.Response) = (; Symbol("http.status_code") => resp.status)
 
 extract_span_attrs_common(req::HTTP.Request) = (;
-    Symbol("http.flavor") => req.version,
+    Symbol("http.flavor") => "$(req.version.major).$(req.version.minor)",
     Symbol("http.method") => req.method,
     Symbol("user_agent.original") => HTTP.header(req.headers, "User-Agent", ""),
     Symbol("http.request_content_length") =>
@@ -126,7 +126,6 @@ function otel_http_layer(h)
             h(req)
         else
             ins = HTTP_INSTRUMENT[]
-            inject!(req.headers)
             ins.http_client_request_size(
                 parse(Float64, HTTP.header(req.headers, "Content-Length", "0"));
                 extract_client_metric_attrs(req)...,
@@ -138,23 +137,22 @@ function otel_http_layer(h)
                 s["net.peer.port"] = req.url.port
                 # TODO: http.resend_count
                 for (k, v) in pairs(extract_span_attrs_common(req))
-                    s[k] = v
+                    s[string(k)] = v
                 end
+                inject_context!(req.headers)
                 resp = h(req; kw...)
                 for (k, v) in pairs(extract_span_attrs_common(resp))
-                    s[k] = v
+                    s[string(k)] = v
                 end
                 resp
             end
             ins.http_client_duration(
-                duration;
-                extract_client_metric_attrs(req)...,
-                extract_metric_attrs(resp)...,
+                duration,
+                merge(extract_client_metric_attrs(req), extract_metric_attrs(resp)),
             )
             ins.http_client_response_size(
-                parse(Float64, HTTP.header(resp.headers, "Content-Length", "0"));
-                extract_client_metric_attrs(req)...,
-                extract_metric_attrs(resp)...,
+                parse(Float64, HTTP.header(resp.headers, "Content-Length", "0")),
+                merge(extract_client_metric_attrs(req), extract_metric_attrs(resp)),
             )
             resp
         end
@@ -163,11 +161,11 @@ end
 
 function otel_http_middleware(h)
     function handler(req::HTTP.Request; kw...)
-        with_context(extract(req.headers)) do
+        with_context(extract_context(req.headers)) do
             ins = HTTP_INSTRUMENT[]
             ins.http_server_request_size(
-                parse(Float64, HTTP.header(req.headers, "Content-Length", "0"));
-                extract_server_metric_attrs(req)...,
+                parse(Float64, HTTP.header(req.headers, "Content-Length", "0")),
+                extract_server_metric_attrs(req),
             )
 
             duration = @elapsed resp = with_span(req.method; kind = SPAN_KIND_SERVER) do
@@ -179,24 +177,22 @@ function otel_http_middleware(h)
                 s["net.host.port"] = req.url.port # ???
                 # ??? s["http.client_ip"]
                 for (k, v) in pairs(extract_span_attrs_common(req))
-                    s[k] = v
+                    s[string(k)] = v
                 end
                 resp = h(req; kw...)
                 for (k, v) in pairs(extract_span_attrs_common(resp))
-                    s[k] = v
+                    s[string(k)] = v
                 end
                 resp
             end
 
             ins.http_server_duration(
-                duration;
-                extract_server_metric_attrs(req)...,
-                extract_metric_attrs(resp)...,
+                duration,
+                merge(extract_server_metric_attrs(req), extract_metric_attrs(resp)),
             )
             ins.http_server_response_size(
-                parse(Float64, HTTP.header(resp.headers, "Content-Length", "0"));
-                extract_server_metric_attrs(req)...,
-                extract_metric_attrs(resp)...,
+                parse(Float64, HTTP.header(resp.headers, "Content-Length", "0")),
+                merge(extract_server_metric_attrs(req), extract_metric_attrs(resp)),
             )
             resp
         end

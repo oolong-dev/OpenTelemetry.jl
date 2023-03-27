@@ -7,16 +7,16 @@ struct CompositePropagator <: AbstractPropagator
     propagators::Vector{AbstractPropagator}
 end
 
-function inject!(carrier, propagator::CompositePropagator, ctx::Context)
+function inject_context!(carrier, propagator::CompositePropagator, ctx::Context)
     for p in propagator.propagators
-        inject!(carrier, p, ctx)
+        inject_context!(carrier, p, ctx)
     end
     carrier
 end
 
-function extract(carrier, propagator::CompositePropagator, ctx::Context)
+function extract_context(carrier, propagator::CompositePropagator, ctx::Context)
     for p in propagator.propagators
-        ctx = extract(carrier, p, ctx)
+        ctx = extract_context(carrier, p, ctx)
     end
     ctx
 end
