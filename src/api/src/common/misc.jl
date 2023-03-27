@@ -48,7 +48,7 @@ Base.:(==)(r1::Resource, r2::Resource) =
 #####
 
 """
-    InstrumentationScope(;name="Main", version=v"0.0.1-dev")
+    InstrumentationScope(;name="OpenTelemetryAPI", version=<default>, schema_url="", attributes=BoundedAttributes())
 
 Usually used in an instrumentation package.
 """

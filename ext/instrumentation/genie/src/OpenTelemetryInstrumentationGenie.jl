@@ -23,7 +23,9 @@ function instrument(req, resp, params)
         r = params[Genie.PARAMS_ROUTE_KEY]
         a = r.action
         r.action =
-            () -> with_context(extract(req.headers, TraceContextTextMapPropagator())) do
+            () -> with_context(
+                extract_context(req.headers, TraceContextTextMapPropagator()),
+            ) do
                 with_span(
                     "Genie $(r.path)",
                     GENIE_TRACER[];

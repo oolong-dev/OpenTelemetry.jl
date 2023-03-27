@@ -86,6 +86,13 @@ is_valid_attr_val(x::TAttrVal) = true
 is_valid_attr_val(t::Tuple{}) = true
 is_valid_attr_val(x) = false
 
+Base.setindex!(attrs::BoundedAttributes, v::AbstractString, k) =
+    setindex!(attrs, string(v), k)
+Base.setindex!(attrs::BoundedAttributes, v::Integer, k) =
+    setindex!(attrs, convert(Int, v), k)
+Base.setindex!(attrs::BoundedAttributes, v::AbstractFloat, k) =
+    setindex!(attrs, convert(Float64, v), k)
+
 function Base.setindex!(attrs::BoundedAttributes, v::TAttrVal, k)
     if !haskey(attrs, k) && length(attrs) >= attrs.count_limit
         clip_attrs_by_count!(attrs.attrs, attrs.count_limit - 1)

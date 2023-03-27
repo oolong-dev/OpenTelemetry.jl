@@ -31,7 +31,7 @@ Private = false
 
 ## Propagators
 
-[`inject!`](@ref) and [`extract`](@ref) are provided based on the original [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/context/api-propagators.md).
+[`inject_context!`](@ref) and [`extract_context`](@ref) are provided based on the original [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/context/api-propagators.md).
 
 The `GLOBAL_PROPAGATOR` is set to a `CompositePropagator`, with multiple dispatch, each inner propagator can be
 customized to handle different contexts and carriers. Since it's mainly used internally for now, it's not exposed yet.
