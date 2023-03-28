@@ -52,7 +52,7 @@ export OTEL_RESOURCE_ATTRIBUTES
 """
 Log level used by the SDK logger.
 """
-OTEL_LOG_LEVEL() = str2logleve(get(ENV, "OTEL_LOG_LEVEL", "info"))
+OTEL_LOG_LEVEL() = str2loglevel(get(ENV, "OTEL_LOG_LEVEL", "info"))
 
 export OTEL_LOG_LEVEL
 

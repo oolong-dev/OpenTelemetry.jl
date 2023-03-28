@@ -97,7 +97,7 @@ extract_client_metric_attrs(req::HTTP.Request) = (;
 
 extract_server_metric_attrs(req::HTTP.Request) = (;
     Symbol("http.scheme") => req.url.scheme,
-    Symbol("http.route") => HTTP.getroute(req),
+    Symbol("http.route") => something(HTTP.getroute(req), ""),
     Symbol("http.flavor") => "$(req.version.major).$(req.version.minor)",
     Symbol("http.method") => req.method,
     Symbol("net.host.name") => req.url.host,
@@ -123,7 +123,7 @@ extract_span_attrs_common(resp::HTTP.Response) = (;
 function otel_http_layer(h)
     function handler(req::HTTP.Request; kw...)
         if is_suppress_instrument()
-            h(req)
+            h(req; kw...)
         else
             ins = HTTP_INSTRUMENT[]
             ins.http_client_request_size(
@@ -147,7 +147,7 @@ function otel_http_layer(h)
                 resp
             end
             ins.http_client_duration(
-                duration,
+                duration * 1000,  # the unit is ms
                 merge(extract_client_metric_attrs(req), extract_metric_attrs(resp)),
             )
             ins.http_client_response_size(
@@ -170,7 +170,7 @@ function otel_http_middleware(h)
 
             duration = @elapsed resp = with_span(req.method; kind = SPAN_KIND_SERVER) do
                 s = current_span()
-                s["http.route"] = HTTP.getroute(req)
+                s["http.route"] = something(HTTP.getroute(req), "")
                 s["http.target"] = req.url.path
                 s["http.scheme"] = req.url.scheme
                 s["net.host.name"] = req.url.host # ??? https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/span-general/#nethostname
@@ -187,7 +187,7 @@ function otel_http_middleware(h)
             end
 
             ins.http_server_duration(
-                duration,
+                duration * 1000, # the unit is ms
                 merge(extract_server_metric_attrs(req), extract_metric_attrs(resp)),
             )
             ins.http_server_response_size(
