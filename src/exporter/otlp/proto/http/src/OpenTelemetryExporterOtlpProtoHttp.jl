@@ -76,7 +76,9 @@ function SDK.export!(x::OtlpHttpExporter{Req,Resp}, batch) where {Req,Resp}
         encode(e, convert(Req, batch))
         seekstart(io)
 
-        res = HTTP.post(x.url, x.headers; body = io)
+        res = API.with_context(; API.SUPPRESS_INSTRUMENTATION_KEY => true) do
+            HTTP.post(x.url, x.headers; body = io)
+        end
 
         res_io = IOBuffer(res.body)
         d = ProtoDecoder(res_io)

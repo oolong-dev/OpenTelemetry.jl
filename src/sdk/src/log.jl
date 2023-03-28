@@ -14,8 +14,10 @@ using Logging
 Base.@kwdef struct OtelSimpleLogger{E,T} <: AbstractLogger
     exporter::E = ConsoleExporter()
     transformer::T = OtelLogTransformer()
-    log_level::LogLevel = Logging.Info
+    log_level::LogLevel = OTEL_LOG_LEVEL()
 end
+
+OtelSimpleLogger(exporter; kw...) = OtelSimpleLogger(; exporter = exporter, kw...)
 
 function Logging.handle_message(sl::OtelSimpleLogger, args...; kw...)
     r = sl.transformer(handle_message_args(args...; kw...))
@@ -40,6 +42,7 @@ struct OtelBatchLogger{E<:AbstractExporter,T<:OtelLogTransformer} <: AbstractLog
     scheduled_delay_millis::Int
     export_timeout_millis::Int
     max_export_batch_size::Int
+    log_level::LogLevel
 end
 
 function reset_timer!(bl::OtelBatchLogger)
@@ -72,6 +75,7 @@ function OtelBatchLogger(
     max_export_batch_size = OTEL_BLRP_MAX_EXPORT_BATCH_SIZE(),
     resource = Resource(),
     instrumentation_scope = InstrumentationScope(),
+    log_level = OTEL_LOG_LEVEL(),
 )
     queue = BatchContainer(Array{LogRecord}(undef, max_queue_size), max_export_batch_size)
     bl = OtelBatchLogger(
@@ -84,13 +88,14 @@ function OtelBatchLogger(
         scheduled_delay_millis,
         export_timeout_millis,
         max_export_batch_size,
+        log_level,
     )
     reset_timer!(bl)
     bl
 end
 
 Logging.shouldlog(l::OtelBatchLogger, args...; kw...) = true
-Logging.min_enabled_level(l::OtelBatchLogger, args...; kw...) = Logging.BelowMinLevel
+Logging.min_enabled_level(l::OtelBatchLogger, args...; kw...) = l.log_level
 Logging.catch_exceptions(l::OtelBatchLogger, args...; kw...) = true
 
 function Logging.handle_message(bl::OtelBatchLogger, args...; kw...)

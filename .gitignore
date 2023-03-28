@@ -28,6 +28,8 @@ docs/site/
 Manifest.toml
 !docs/Manifest.toml
 
+tempo-data/
+
 docs/src/index.md
 output.json
 

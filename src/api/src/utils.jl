@@ -12,13 +12,13 @@ function str2loglevel(s)
     S = uppercase(s)
 
     if S == "DEBUG"
-        Debug
+        Logging.Debug
     elseif S == "INFO"
-        Info
+        Logging.Info
     elseif S == "WARN"
-        Warn
+        Logging.Warn
     elseif S == "ERROR"
-        Error
+        Logging.Error
     else
         throw(ArgumentError("Unknown log level: $s"))
     end
