@@ -55,12 +55,23 @@ Base.iterate(x::BoundedAttributes, args...) = iterate(x.attrs, args...)
 Base.pairs(A::BoundedAttributes) = pairs(A.attrs)
 Base.hash(x::BoundedAttributes, h::UInt) = hash(x.attrs, h)
 Base.:(==)(x::BoundedAttributes, y::BoundedAttributes) = x.attrs == y.attrs
+
 Base.merge(x::BoundedAttributes, y::BoundedAttributes) = BoundedAttributes(
     merge(x.attrs, y.attrs),
     x.count_limit,
     x.value_length_limit,
     x.n_dropped,
 )
+
+function Base.merge(x::StaticBoundedAttributes, y::StaticBoundedAttributes)
+    attrs = merge(x.attrs, y.attrs)
+    BoundedAttributes(
+        attrs[TupleTools.sort(keys(attrs))],
+        x.count_limit,
+        x.value_length_limit,
+        x.n_dropped,
+    )
+end
 
 Base.show(io::IO, A::BoundedAttributes) = join(io, ("$k=$v" for (k, v) in pairs(A)), ",")
 
@@ -79,12 +90,6 @@ const TAttrVal = Union{
     Vector{UInt8},
     Vector{Float64},
 }
-
-is_valid_attr_val(nt::NamedTuple) = is_valid_attr_val(values(nt))
-is_valid_attr_val(t::Tuple) = is_valid_attr_val(first(t)) && is_valid_attr_val(Base.tail(t))
-is_valid_attr_val(x::TAttrVal) = true
-is_valid_attr_val(t::Tuple{}) = true
-is_valid_attr_val(x) = false
 
 Base.setindex!(attrs::BoundedAttributes, v::AbstractString, k) =
     setindex!(attrs, string(v), k)

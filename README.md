@@ -17,8 +17,6 @@ using OpenTelemetry
 using Term # optional, for better display
 using Logging
 
-global_logger(OtelSimpleLogger());
-
 @info "Hello, World!"
 @warn "from"
 @error "OpenTelemetry.jl!"
@@ -29,8 +27,6 @@ global_logger(OtelSimpleLogger());
 ### Traces
 
 ```julia
-global_tracer_provider(TracerProvider());
-
 with_span("Hello, World!") do
     with_span("from") do
         @info "OpenTelemetry.jl!"
@@ -43,8 +39,6 @@ end
 ### Metrics
 
 ```julia
-global_meter_provider(MeterProvider());
-
 m = Meter("demo_metrics");
 c = Counter{Int}("fruit_counter", m);
 

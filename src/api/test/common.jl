@@ -15,10 +15,10 @@
                 # should only work for OrderedDict
                 # @test A["b"] == "bb"
 
-                A["c"] = "ccc"
+                A["c"] = ["ccc", "cccc"]
                 @test length(A) == 1
-                @test A["c"] == "cc"
-                @test repr(A) == "c=cc"
+                @test A["c"] == ["cc", "cc"]
+                @test repr(A) == "c=[\"cc\", \"cc\"]"
                 @test n_dropped(A) == 2
             end
         end
@@ -58,5 +58,11 @@
                 @test current_context()[:b] == "bar"
             end
         end
+    end
+
+    @testset "Resource" begin
+        r1 = Resource((a = 1, b = 2))
+        r2 = Resource((b = 3, c = 4))
+        @test merge(r1, r2) == Resource((a = 1, b = 3, c = 4))
     end
 end

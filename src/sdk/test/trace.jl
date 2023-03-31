@@ -3,7 +3,7 @@
         global_tracer_provider(
             TracerProvider(
                 span_processor = CompositSpanProcessor(
-                    SimpleSpanProcessor(InMemoryExporter()),
+                    BatchSpanProcessor(InMemoryExporter()),
                 ),
             ),
         )
@@ -20,9 +20,10 @@
 
         p = global_tracer_provider()
         sp = p.span_processor.span_processors[1]
+        flush(p)
         @test length(sp.exporter.pool) == 6
 
-        push!(p, SimpleSpanProcessor(ConsoleExporter()))
+        push!(BatchSpanProcessor(ConsoleExporter()))
 
         @test_throws ErrorException with_span("test", t) do
             span_name!("TEST")  # one can change the name of current span

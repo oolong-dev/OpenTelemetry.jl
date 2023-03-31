@@ -204,7 +204,7 @@ uuid = "c1912aec-9d41-432b-84fe-e17fd97255be"
 version = "0.3.0"
 
 [[OpenTelemetryAPI]]
-deps = ["Dates", "Logging", "Random", "TOML", "TupleTools", "UUIDs"]
+deps = ["Dates", "Logging", "Random", "Requires", "TOML", "TupleTools", "UUIDs"]
 path = "../src/api"
 uuid = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
 version = "0.4.0"

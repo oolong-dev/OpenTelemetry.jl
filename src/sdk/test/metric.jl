@@ -127,7 +127,7 @@
     @test og_points[].value == -2 # the last value
 
     periodic_reader = PeriodicMetricReader(
-        CompositMetricReader(r, MetricReader(p, ConsoleExporter()));
+        CompositMetricReader(r, MetricReader(p, InMemoryExporter()));
         export_interval_seconds = 1,
     )
 

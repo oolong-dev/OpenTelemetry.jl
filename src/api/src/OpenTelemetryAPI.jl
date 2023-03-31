@@ -25,6 +25,12 @@ function __init__()
             "../ext/OpenTelemetryAPIHTTPExt.jl",
         )
     end
+
+    for p in OTEL_PROPAGATORS()
+        if p == "tracecontext"
+            push!(TraceContextTextMapPropagator())
+        end
+    end
 end
 
 end # module
