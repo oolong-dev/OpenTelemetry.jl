@@ -1,4 +1,4 @@
-export Resource, InstrumentationScope
+export Resource, InstrumentationScope, instrument!, uninstrument!
 
 """
     Resource(;attributes=nothing, schema_url="")
@@ -58,3 +58,6 @@ Base.@kwdef struct InstrumentationScope
     schema_url::String = ""
     attributes::BoundedAttributes = BoundedAttributes()
 end
+
+instrument!(m::Module) = instrument!(Val(Symbol(m)))
+uninstrument!(m::Module) = uninstrument!(Val(Symbol(m)))

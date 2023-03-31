@@ -1,8 +1,8 @@
-module OpenTelemetrySDKHTTPExt
+module OpenTelemetryAPIHTTPExt
 
 export otel_http_layer, otel_http_middleware
 
-using OpenTelemetrySDK
+using OpenTelemetryAPI
 
 if isdefined(Base, :get_extension)
     import HTTP
@@ -199,13 +199,13 @@ function otel_http_middleware(h)
     end
 end
 
-function OpenTelemetrySDK.instrument!(::Val{:HTTP})
+function OpenTelemetryAPI.instrument!(::Val{:HTTP})
     uninstrument!(Val(:HTTP))  # !!! avoid repeated instrumentation
     HTTP_INSTRUMENT[] = HttpInstrument()
     HTTP.pushlayer!(otel_http_layer; request = true)
 end
 
-function OpenTelemetrySDK.uninstrument!(::Val{:HTTP})
+function OpenTelemetryAPI.uninstrument!(::Val{:HTTP})
     deleteat!(
         HTTP.REQUEST_LAYERS,
         [
