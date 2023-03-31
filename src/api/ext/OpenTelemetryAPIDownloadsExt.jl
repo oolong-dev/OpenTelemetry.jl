@@ -1,6 +1,6 @@
-module OpenTelemetrySDKDownloadsExt
+module OpenTelemetryAPIDownloadsExt
 
-using OpenTelemetrySDK
+using OpenTelemetryAPI
 
 if isdefined(Base, :get_extension)
     import Downloads
@@ -27,7 +27,7 @@ function (h::OtelEasyHook)(easy, info)
     h.old_hook !== nothing && h.old_hook(easy, info)
 end
 
-function OpenTelemetrySDK.instrument!(::Val{:Downloads})
+function OpenTelemetryAPI.instrument!(::Val{:Downloads})
     if OLD_EASY_HOOK[] === missing
         old_easy_hook = Downloads.EASY_HOOK[]
         OLD_EASY_HOOK[] = old_easy_hook
@@ -38,7 +38,7 @@ function OpenTelemetrySDK.instrument!(::Val{:Downloads})
     end
 end
 
-function OpenTelemetrySDK.uninstrument!(::Val{:Downloads})
+function OpenTelemetryAPI.uninstrument!(::Val{:Downloads})
     if OLD_EASY_HOOK[] === missing
         @warn "Downloads.jl is not instrumented yet!"
     else

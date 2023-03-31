@@ -1,11 +1,12 @@
 using OpenTelemetryAPI
 using Test
-using LoggingExtras
 using Logging
+using LoggingExtras
 
 const API = OpenTelemetryAPI
 
 @testset "OpenTelemetryAPI.jl" begin
+    include("utils.jl")
     include("common.jl")
     include("propagator.jl")
     include("trace.jl")

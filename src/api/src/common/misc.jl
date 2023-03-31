@@ -1,7 +1,7 @@
-export Resource, InstrumentationScope
+export Resource, InstrumentationScope, instrument!, uninstrument!
 
 """
-    Resource(;attributes=nothing, schema_url="")
+    Resource(;attributes=nothing, schema_url="", default_attributes=OTEL_RESOURCE_ATTRIBUTES())
 
 Quoted from [the specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/overview.md#resources):
 
@@ -58,3 +58,6 @@ Base.@kwdef struct InstrumentationScope
     schema_url::String = ""
     attributes::BoundedAttributes = BoundedAttributes()
 end
+
+instrument!(m::Module) = instrument!(Val(Symbol(m)))
+uninstrument!(m::Module) = uninstrument!(Val(Symbol(m)))

@@ -1,3 +1,5 @@
+export get_pkg_version
+
 using Logging
 
 # ??? what if value contains `,`? escape?
@@ -21,5 +23,14 @@ function str2loglevel(s)
         Logging.Error
     else
         throw(ArgumentError("Unknown log level: $s"))
+    end
+end
+
+function get_pkg_version(m::Module)
+    project_toml = TOML.parsefile(joinpath(dirname(dirname(pathof(m))), "Project.toml"))
+    if haskey(project_toml, "version")
+        VersionNumber(project_toml["version"])
+    else
+        VERSION # stdlibs do not have version field
     end
 end

@@ -23,21 +23,15 @@ Term = "2"
 julia = "1"
 
 [extensions]
-OpenTelemetrySDKDownloadsExt = "Downloads"
-OpenTelemetrySDKHTTPExt = "HTTP"
 OpenTelemetrySDKTermExt = "Term"
 
 [extras]
-Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
-HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 LoggingExtras = "e6f89c97-d47a-5376-807f-9c37f3926c36"
 Term = "22787eb5-b846-44ae-b979-8e399b8463ab"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "LoggingExtras", "Downloads", "HTTP"]
+test = ["Test", "LoggingExtras"]
 
 [weakdeps]
-Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
-HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 Term = "22787eb5-b846-44ae-b979-8e399b8463ab"

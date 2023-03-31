@@ -1,4 +1,0 @@
-using OpenTelemetryAPI
-using OpenTelemetryInstrumentationBase
-
-OpenTelemetryInstrumentationBase.init()

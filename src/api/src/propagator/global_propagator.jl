@@ -23,10 +23,17 @@ end
 
 #####
 
-const GLOBAL_PROPAGATOR =
-    CompositePropagator(AbstractPropagator[TraceContextTextMapPropagator()])
+const GLOBAL_PROPAGATOR = CompositePropagator(AbstractPropagator[])
 
 global_propagator() = GLOBAL_PROPAGATOR
 
-Base.push!(cp::CompositePropagator, p::AbstractPropagator) = push!(cp.propagators, p)
+function Base.push!(cp::CompositePropagator, p::AbstractPropagator)
+    for x in cp.propagators
+        if x == p
+            return
+        end
+    end
+    push!(cp.propagators, p)
+end
+
 Base.push!(p::AbstractPropagator) = push!(global_propagator(), p)
