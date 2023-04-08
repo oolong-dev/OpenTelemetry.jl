@@ -12,6 +12,8 @@ ProtoBuf = "3349acd9-ac6a-5e09-bcdb-63829b23a429"
 
 [compat]
 OpenTelemetryAPI = "0.4"
+OpenTelemetryProto = "0.19"
+OpenTelemetrySDK = "0.3"
 julia = "1.6"
 
 [extras]
