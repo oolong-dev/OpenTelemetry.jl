@@ -64,8 +64,6 @@ It's recommended to walk through these tutorials one-by-one.
 - [View Traces in Jaeger](https://oolong-dev.github.io/OpenTelemetry.jl/dev/tutorials/View_Traces_in_Jaeger/)
 - [Send Logs to Loki via OpenTelemetry Collector](https://oolong-dev.github.io/OpenTelemetry.jl/dev/tutorials/Send_Logs_to_Loki_via_OpenTelemetry_Collector/)
 - [A Typical Example with HTTP.jl](https://oolong-dev.github.io/OpenTelemetry.jl/dev/tutorials/A_Typical_Example_with_HTTP.jl/)
-- Case Study 1: Empower `Dagger.jl` with `OpenTelemetry.jl`
-- Case Study 2: Empower `AlphaZero.jl` with `OpenTelemetry.jl`
 
 ## Tips for Developers
 
@@ -78,18 +76,7 @@ It's recommended to walk through these tutorials one-by-one.
 
 ## FAQ
 
-Some frequently asked questions are maintained here. If you can't find the answer to your question there, please [create an issue](https://github.com/oolong-dev/OpenTelemetry.jl/issues). Your feedback is **VERY IMPORTANT** to the quality of this package❤.
-
-1. Method overwritten warning
-
-When building `OpenTelemetrySDK` for the first time, you'll see the following warning message:
-
-```
-WARNING: Method definition schedule(Task) in module Base at task.jl:639 overwritten in module OpenTelemetrySDK at /home/tj/workspace/git/OpenTelemetry.jl/src/sdk/src/patch.jl:6.
-  ** incremental compilation may be fatally broken for this module **
-```
-
-Unfortunately, this is unavoidable and shouldn't be a problem in most cases (unless you also overwritten the `schedule(Task)` method...). See more discussions in [#32](https://github.com/oolong-dev/OpenTelemetry.jl/issues/32).
+Some frequently asked questions are maintained [here](https://oolong.dev/OpenTelemetry.jl/dev/FAQ). If you can't find the answer to your question there, please [create an issue](https://github.com/oolong-dev/OpenTelemetry.jl/issues). Your feedback is **VERY IMPORTANT** to the quality of this package❤.
 
 ## Packages
 
@@ -102,7 +89,3 @@ Unfortunately, this is unavoidable and shouldn't be a problem in most cases (unl
 | [`OpenTelemetryExporterOtlpProtoHttp`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryExporterOtlpProtoHttp/) | Provide exporters in OTLP through HTTP.| ![version](https://juliahub.com/docs/OpenTelemetryExporterOtlpProtoHttp/version.svg) |
 | [`OpenTelemetryExporterPrometheus`](https://oolong.dev/OpenTelemetry.jl/dev/OpenTelemetryExporterPrometheus/) | Provide a meter to allow pulling metrics from Prometheus |[![version](https://juliahub.com/docs/OpenTelemetryExporterPrometheus/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetryExporterPrometheus/Xma7h) |
 |`OpenTelemetry` | Reexport all above. For demonstration and test only. Application users should import `OpenTelemetrySDK` in combination with necessary plugins or instrumentations explicitly. | [![version](https://juliahub.com/docs/OpenTelemetry/version.svg)](https://juliahub.com/ui/Packages/OpenTelemetry/L4aUb) |
-
-## Benchmarks
-
-Check out the benchmark results of some essential operations with [Julia@v1.6](https://oolong-dev.github.io/OpenTelemetry.jl/benchmarks/Julia-v1.6/).
