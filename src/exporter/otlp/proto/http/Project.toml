@@ -15,6 +15,7 @@ HTTP = "1"
 OpenTelemetryAPI = "0.4"
 OpenTelemetryProto = "0.19"
 OpenTelemetrySDK = "0.3"
+ProtoBuf = "1"
 julia = "1.6"
 
 [extras]
