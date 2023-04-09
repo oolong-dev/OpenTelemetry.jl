@@ -11,6 +11,7 @@ OpenTelemetrySDK = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
 ProtoBuf = "3349acd9-ac6a-5e09-bcdb-63829b23a429"
 
 [compat]
+HTTP = "1"
 OpenTelemetryAPI = "0.4"
 OpenTelemetryProto = "0.19"
 OpenTelemetrySDK = "0.3"
