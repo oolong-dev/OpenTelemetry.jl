@@ -23,7 +23,7 @@ using Logging
 ```
 
 <!-- ```@raw html -->
-<img src="https://github.com/oolong-dev/OpenTelemetry.jl/raw/master/docs/src/assets/log_info.png" height="320"/><img src="https://github.com/oolong-dev/OpenTelemetry.jl/raw/master/docs/src/assets/log_warn.png" height="320" /><img src="https://github.com/oolong-dev/OpenTelemetry.jl/raw/master/docs/src/assets/log_error.png" height="320"/>
+<img src="https://github.com/oolong-dev/OpenTelemetry.jl/raw/master/docs/src/assets/log_info.png" style="height:320px"/><img src="https://github.com/oolong-dev/OpenTelemetry.jl/raw/master/docs/src/assets/log_warn.png" style="height:320px" /><img src="https://github.com/oolong-dev/OpenTelemetry.jl/raw/master/docs/src/assets/log_error.png" style="height:320px"/>
 <!-- ``` -->
 
 ### Traces
@@ -37,7 +37,7 @@ end
 ```
 
 <!-- ```@raw html -->
-<img src="https://github.com/oolong-dev/OpenTelemetry.jl/raw/master/docs/src/assets/span_info.png" height="400"/><img src="https://github.com/oolong-dev/OpenTelemetry.jl/raw/master/docs/src/assets/span_inner.png" height="400" /><img src="https://github.com/oolong-dev/OpenTelemetry.jl/raw/master/docs/src/assets/span_outer.png" height="400"/>
+<img src="https://github.com/oolong-dev/OpenTelemetry.jl/raw/master/docs/src/assets/span_info.png" style="height:400px"/><img src="https://github.com/oolong-dev/OpenTelemetry.jl/raw/master/docs/src/assets/span_inner.png" style="height:400px" /><img src="https://github.com/oolong-dev/OpenTelemetry.jl/raw/master/docs/src/assets/span_outer.png" style="height:400px"/>
 <!-- ``` -->
 
 ### Metrics
@@ -58,7 +58,7 @@ r()
 ```
 
 <!-- ```@raw html -->
-<img src="https://github.com/oolong-dev/OpenTelemetry.jl/raw/master/docs/src/assets/metrics.png" height="480"/>
+<img src="https://github.com/oolong-dev/OpenTelemetry.jl/raw/master/docs/src/assets/metrics.png" style="height:480px"/>
 <!-- ``` -->
 
 ## Tutorial
