@@ -22,7 +22,7 @@ using Logging
 @error "OpenTelemetry.jl!"
 ```
 
-<!-- ```@raw html -->"
+<!-- ```@raw html -->
 <img src="./docs/src/assets/log_info.png" height="320"/><img src="./docs/src/assets/log_warn.png" height="320" /><img src="./docs/src/assets/log_error.png" height="320"/>
 <!-- ``` -->
 
