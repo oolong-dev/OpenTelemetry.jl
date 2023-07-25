@@ -31,7 +31,7 @@ Next, we'll create a simple HTTP service and make several requests to it.
 
 ```julia
 using HTTP
-instrument!(HTTP)
+_, otel_http_middleware = instrument!(HTTP)
 ```
 
 Let me explain a little bit about `instrument!(HTTP)` first. `OpenTelemetry.jl` has a built-in support for `HTTP.jl`. By executing `instrument!(HTTP)`, we're actually injecting some hooks into the `HTTP` package. So that when you use HTTP to make requests, we'll create a new span and pass the current trace context to the server automatically. Beyond that, by convention, we'll also record some common metrics automatically. We'll see them soon.
@@ -39,7 +39,6 @@ Let me explain a little bit about `instrument!(HTTP)` first. `OpenTelemetry.jl` 
 ```julia
 # For now, we still need to manually set the OpenTelemetry middleware layer
 # Watch: https://github.com/JuliaWeb/HTTP.jl/issues/801#issuecomment-1484097096
-using OpenTelemetrySDK.OpenTelemetrySDKHTTPExt: otel_http_middleware
 
 function handle(req)
     sleep(rand())

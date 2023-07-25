@@ -147,4 +147,9 @@ function Base.show(io::IO, m::SDK.Metric)
         ),
     )
 end
+
+function __init__()
+    println("$(@__MODULE__) is loaded!")
+end
+
 end
