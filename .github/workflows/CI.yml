@@ -44,6 +44,11 @@ jobs:
           cd docs
           julia --project --code-coverage=user --color=yes -e '
             using Pkg;
+            Pkg.dev("src/api")
+            Pkg.dev("src/sdk")
+            Pkg.dev("src/proto")
+            Pkg.dev("src/exporter/otlp/proto/http")
+            Pkg.dev("src/exporter/prometheus")
             Pkg.instantiate();
             Pkg.test("OpenTelemetryAPI", coverage=true)
             Pkg.test("OpenTelemetrySDK", coverage=true)
