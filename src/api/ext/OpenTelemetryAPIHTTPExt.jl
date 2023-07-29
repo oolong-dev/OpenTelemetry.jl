@@ -203,6 +203,7 @@ function OpenTelemetryAPI.instrument!(::Val{:HTTP})
     uninstrument!(Val(:HTTP))  # !!! avoid repeated instrumentation
     HTTP_INSTRUMENT[] = HttpInstrument()
     HTTP.pushlayer!(otel_http_layer; request = true)
+    otel_http_layer, otel_http_middleware
 end
 
 function OpenTelemetryAPI.uninstrument!(::Val{:HTTP})
@@ -213,6 +214,10 @@ function OpenTelemetryAPI.uninstrument!(::Val{:HTTP})
             i in 1:length(HTTP.REQUEST_LAYERS) if HTTP.REQUEST_LAYERS[i] === otel_http_layer
         ],
     )
+end
+
+function __init__()
+    println("$(@__MODULE__) is loaded!")
 end
 
 end
