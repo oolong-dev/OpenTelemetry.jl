@@ -5,6 +5,10 @@ using OpenTelemetryProto
 using Logging
 using Test
 
+struct UnknownAttributeValue
+    X::Any
+end
+
 @testset "HTTP Proto" begin
     span_exporter = InMemoryExporter()
     log_exporter = InMemoryExporter()
@@ -24,6 +28,8 @@ using Test
                 with_span("baz") do
                     @warn "World!!!" bar = "bar"
                     @error "!!!!!"
+                    # https://github.com/oolong-dev/OpenTelemetry.jl/issues/82
+                    @info "Test for #82" x = UnknownAttributeValue(nothing)
                 end
             end
         end
