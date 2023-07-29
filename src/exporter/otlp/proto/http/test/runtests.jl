@@ -29,7 +29,9 @@ end
                     @warn "World!!!" bar = "bar"
                     @error "!!!!!"
                     # https://github.com/oolong-dev/OpenTelemetry.jl/issues/82
-                    @info "Test for #82" x = UnknownAttributeValue(nothing)
+                    @info "Test for #82" x = UnknownAttributeValue(nothing) y = "y" => 123 z =
+                        @view("zzz"[1:3]) t = true i = 0 j = 0x12 k = 1.0 m = Float16(1.0) a =
+                        [1, 2.0] b = ["a" => 1, "b" => 2]
                 end
             end
         end

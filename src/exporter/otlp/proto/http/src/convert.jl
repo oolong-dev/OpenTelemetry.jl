@@ -35,6 +35,7 @@ Base.convert(::Type{COMMON.KeyValue}, x::Pair) =
 # https://github.com/oolong-dev/OpenTelemetry.jl/issues/82
 Base.convert(::Type{COMMON.AnyValue}, x::Any) =
     COMMON.AnyValue(OneOf(:string_value, repr(x)))
+Base.convert(::Type{COMMON.AnyValue}, x::COMMON.AnyValue) = x
 
 Base.convert(::Type{COMMON.AnyValue}, x::SubString) =
     COMMON.AnyValue(OneOf(:string_value, string(x)))
