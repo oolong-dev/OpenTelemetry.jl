@@ -100,6 +100,7 @@ function (r::MetricReader{<:MeterProvider,<:PrometheusPushgatewayExporter})()
 
     if r.exporter.resource_to_telemetry_conversion
         for (k, v) in pairs(OTEL_RESOURCE_ATTRIBUTES())
+            k = sanitize(k)
             if isempty(v)
                 k = "$(k)@base64"
                 v = "="
@@ -130,8 +131,8 @@ function text_based_format(
 )
     for m in metrics(provider)
         name = sanitize(m.name)
-        println(io, "# HELP $name $(m.description)")
-        println(io, "# TYPE $name $(prometheus_type(m.aggregation))")
+        write(io, "# HELP $name $(m.description)\n")
+        write(io, "# TYPE $name $(prometheus_type(m.aggregation))\n")
         for (attrs, point) in m
             if resource_to_telemetry_conversion
                 attrs = merge(attrs, resource(provider).attributes)
@@ -148,29 +149,34 @@ function text_based_format(
                 end
                 for (i, c) in enumerate(Iterators.accumulate(+, val.counts))
                     if i < length(val.counts)
-                        print(
+                        write(
                             io,
                             "$(name)_bucket{$(s_attrs)le=\"$(val.boundaries[i])\"} $c",
                         )
-                        with_timestamp ? println(io, " $time") : println(io)
+                        with_timestamp && write(io, " $time")
+                        write(io, "\n")
                     else
-                        print(io, "$(name)_bucket{$(s_attrs)le=\"+Inf\"} $c")
-                        with_timestamp ? println(io, " $time") : println(io)
-                        println(io, "$(name)_count$wrapped_s_attrs $c")
-                        with_timestamp ? println(io, " $time") : println(io)
+                        write(io, "$(name)_bucket{$(s_attrs)le=\"+Inf\"} $c")
+                        with_timestamp && write(io, " $time")
+                        write(io, "\n")
+                        write(io, "$(name)_count$wrapped_s_attrs $c")
+                        with_timestamp && write(io, " $time")
+                        write(io, "\n")
                     end
                 end
                 # ???
                 if !isnothing(val.sum)
-                    print(io, "$(name)_sum$wrapped_s_attrs $(val.sum)")
-                    with_timestamp ? println(io, " $time") : println(io)
+                    write(io, "$(name)_sum$wrapped_s_attrs $(val.sum)")
+                    with_timestamp && write(io, " $time")
+                    write(io, "\n")
                 end
             else
-                print(io, "$name$wrapped_s_attrs $val")
-                with_timestamp ? println(io, " $time") : println(io)
+                write(io, "$name$wrapped_s_attrs $val")
+                with_timestamp && write(io, " $time")
+                write(io, "\n")
             end
         end
-        println(io)
+        write(io, "\n")
     end
 end
 
