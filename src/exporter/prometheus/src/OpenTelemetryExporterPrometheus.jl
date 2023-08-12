@@ -69,12 +69,69 @@ function (r::MetricReader{<:MeterProvider,<:PrometheusExporter})()
     end
 end
 
+#####
+
+export PrometheusPushgatewayExporter
+
+using URIs
+using Base64
+
+struct PrometheusPushgatewayExporter <: OpenTelemetrySDK.AbstractExporter
+    headers::HTTP.Headers
+    endpoint::URI
+    resource_to_telemetry_conversion::Bool
+end
+
+# https://prometheus.io/docs/prometheus/latest/storage/#overview
+function PrometheusPushgatewayExporter(;
+    scheme = "http",
+    host = "localhost",
+    port = 9091,
+    headers = HTTP.Headers[],
+    resource_to_telemetry_conversion = false,
+)
+    endpoint = URI(; scheme, host, port)
+    PrometheusPushgatewayExporter(headers, endpoint, resource_to_telemetry_conversion)
+end
+
+function (r::MetricReader{<:MeterProvider,<:PrometheusPushgatewayExporter})()
+    job_name = OTEL_SERVICE_NAME()
+    path = "metrics/job/$(job_name)"
+
+    if r.exporter.resource_to_telemetry_conversion
+        for (k, v) in pairs(OTEL_RESOURCE_ATTRIBUTES())
+            if isempty(v)
+                k = "$(k)@base64"
+                v = "="
+            elseif '/' in v
+                k = "$(k)@base64"
+                v = base64encode(v)
+            end
+            path = joinpath(path, "$k/$v")
+        end
+    end
+
+    url = joinpath(r.exporter.endpoint, path)
+
+    body = IOBuffer()
+    text_based_format(body, r.provider, false; with_timestamp = false)
+    seek(body, 0)
+
+    HTTP.request("PUT", url, r.exporter.headers, body)
+end
+#####
+
 # TODO: support exemplars
-function text_based_format(io, provider::MeterProvider, resource_to_telemetry_conversion)
+function text_based_format(
+    io,
+    provider::MeterProvider,
+    resource_to_telemetry_conversion;
+    with_timestamp = true,
+)
     for m in metrics(provider)
         name = sanitize(m.name)
-        write(io, "# HELP $name $(m.description)\n")
-        write(io, "# TYPE $name $(prometheus_type(m.aggregation))\n")
+        println(io, "# HELP $name $(m.description)")
+        println(io, "# TYPE $name $(prometheus_type(m.aggregation))")
         for (attrs, point) in m
             if resource_to_telemetry_conversion
                 attrs = merge(attrs, resource(provider).attributes)
@@ -91,24 +148,29 @@ function text_based_format(io, provider::MeterProvider, resource_to_telemetry_co
                 end
                 for (i, c) in enumerate(Iterators.accumulate(+, val.counts))
                     if i < length(val.counts)
-                        println(
+                        print(
                             io,
-                            "$(name)_bucket{$(s_attrs)le=\"$(val.boundaries[i])\"} $c $time",
+                            "$(name)_bucket{$(s_attrs)le=\"$(val.boundaries[i])\"} $c",
                         )
+                        with_timestamp ? println(io, " $time") : println(io)
                     else
-                        println(io, "$(name)_bucket{$(s_attrs)le=\"+Inf\"} $c $time")
+                        print(io, "$(name)_bucket{$(s_attrs)le=\"+Inf\"} $c")
+                        with_timestamp ? println(io, " $time") : println(io)
                         println(io, "$(name)_count$wrapped_s_attrs $c")
+                        with_timestamp ? println(io, " $time") : println(io)
                     end
                 end
                 # ???
                 if !isnothing(val.sum)
-                    println(io, "$(name)_sum$wrapped_s_attrs $(val.sum) $time")
+                    print(io, "$(name)_sum$wrapped_s_attrs $(val.sum)")
+                    with_timestamp ? println(io, " $time") : println(io)
                 end
             else
-                println(io, "$name$wrapped_s_attrs $val $time")
+                print(io, "$name$wrapped_s_attrs $val")
+                with_timestamp ? println(io, " $time") : println(io)
             end
         end
-        write(io, "\n")
+        println(io)
     end
 end
 

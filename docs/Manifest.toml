@@ -32,9 +32,9 @@ version = "1.2.0"
 
 [[CodeTracking]]
 deps = ["InteractiveUtils", "UUIDs"]
-git-tree-sha1 = "d730914ef30a06732bdd9f763f6cc32e92ffbff1"
+git-tree-sha1 = "a1296f0fe01a4c3f9bf0dc2934efbf4416f5db31"
 uuid = "da1fd8a2-8d9e-5ec2-8556-3022fb5608a2"
-version = "1.3.1"
+version = "1.3.4"
 
 [[CodecZlib]]
 deps = ["TranscodingStreams", "Zlib_jll"]
@@ -66,6 +66,10 @@ version = "1.0.0"
 [[Dates]]
 deps = ["Printf"]
 uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
+
+[[Distributed]]
+deps = ["Random", "Serialization", "Sockets"]
+uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[DocStringExtensions]]
 deps = ["LibGit2"]
@@ -142,6 +146,12 @@ git-tree-sha1 = "31e996f0a15c7b280ba9f76636b3ff9e2ae58c9a"
 uuid = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 version = "0.21.4"
 
+[[JuliaInterpreter]]
+deps = ["CodeTracking", "InteractiveUtils", "Random", "UUIDs"]
+git-tree-sha1 = "e8ab063deed72e14666f9d8af17bd5f9eab04392"
+uuid = "aa1ae85d-cabe-5617-a682-6adf51b2e16a"
+version = "0.9.24"
+
 [[LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
@@ -176,6 +186,12 @@ deps = ["Dates", "Logging"]
 git-tree-sha1 = "cedb76b37bc5a6c702ade66be44f831fa23c681e"
 uuid = "e6f89c97-d47a-5376-807f-9c37f3926c36"
 version = "1.0.0"
+
+[[LoweredCodeUtils]]
+deps = ["JuliaInterpreter"]
+git-tree-sha1 = "60168780555f3e663c536500aa790b6368adc02a"
+uuid = "6f1432cf-f94c-5a45-995e-cdbf5db27b0b"
+version = "2.3.0"
 
 [[Markdown]]
 deps = ["Base64"]
@@ -221,12 +237,12 @@ version = "1.4.1"
 
 [[OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "cae3153c7f6cf3f069a853883fd1919a6e5bab5b"
+git-tree-sha1 = "e78db7bd5c26fc5a6911b50a47ee302219157ea8"
 uuid = "458c3c95-2e84-50aa-8efc-19380b2a3a95"
-version = "3.0.9+0"
+version = "3.0.10+0"
 
 [[OpenTelemetry]]
-deps = ["Logging", "OpenTelemetryAPI", "OpenTelemetryExporterOtlpProtoHttp", "OpenTelemetryExporterPrometheus", "OpenTelemetryProto", "OpenTelemetrySDK", "Reexport"]
+deps = ["Logging", "OpenTelemetryAPI", "OpenTelemetryExporterOtlpProtoHttp", "OpenTelemetryExporterPrometheus", "OpenTelemetryProto", "OpenTelemetrySDK", "Reexport", "Revise"]
 path = ".."
 uuid = "c1912aec-9d41-432b-84fe-e17fd97255be"
 version = "0.3.0"
@@ -235,7 +251,7 @@ version = "0.3.0"
 deps = ["Dates", "Logging", "PackageExtensionCompat", "Random", "Requires", "TOML", "TupleTools", "UUIDs"]
 path = "../src/api"
 uuid = "4f63ef3d-5940-44e7-a611-2d97696cffc9"
-version = "0.4.0"
+version = "0.4.1"
 weakdeps = ["Downloads", "HTTP"]
 
     [OpenTelemetryAPI.extensions]
@@ -249,7 +265,7 @@ uuid = "f175482f-0544-4037-b362-361efbf21c04"
 version = "0.1.0"
 
 [[OpenTelemetryExporterPrometheus]]
-deps = ["HTTP", "OpenTelemetrySDK"]
+deps = ["Base64", "HTTP", "OpenTelemetrySDK", "URIs"]
 path = "../src/exporter/prometheus"
 uuid = "34e26579-e93c-4b5e-ba07-7afb633408c2"
 version = "0.2.0"
@@ -264,7 +280,7 @@ version = "0.19.0"
 deps = ["AbstractTrees", "Dates", "Glob", "Logging", "OpenTelemetryAPI", "PackageExtensionCompat", "Pkg", "Random", "Reexport", "Requires", "StructTypes"]
 path = "../src/sdk"
 uuid = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
-version = "0.3.0"
+version = "0.3.1"
 weakdeps = ["Term"]
 
     [OpenTelemetrySDK.extensions]
@@ -276,9 +292,9 @@ uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
 version = "1.6.2"
 
 [[PackageExtensionCompat]]
-git-tree-sha1 = "32f3d52212a8d1c5d589a58851b1f04c97339110"
+git-tree-sha1 = "f9b1e033c2b1205cf30fd119f4e50881316c1923"
 uuid = "65ce6f38-6b18-4e1d-a461-8949797d7930"
-version = "1.0.0"
+version = "1.0.1"
 weakdeps = ["Requires", "TOML"]
 
 [[Parameters]]
@@ -289,9 +305,9 @@ version = "0.12.3"
 
 [[Parsers]]
 deps = ["Dates", "PrecompileTools", "UUIDs"]
-git-tree-sha1 = "4b2e829ee66d4218e0cef22c0a64ee37cf258c29"
+git-tree-sha1 = "716e24b21538abc91f6205fd1d8363f39b442851"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "2.7.1"
+version = "2.7.2"
 
 [[Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "FileWatching", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
@@ -344,6 +360,12 @@ deps = ["UUIDs"]
 git-tree-sha1 = "838a3a4188e2ded87a4f9f184b4b0d78a1e91cb7"
 uuid = "ae029012-a4dd-5104-9daa-d747884805df"
 version = "1.3.0"
+
+[[Revise]]
+deps = ["CodeTracking", "Distributed", "FileWatching", "JuliaInterpreter", "LibGit2", "LoweredCodeUtils", "OrderedCollections", "Pkg", "REPL", "Requires", "UUIDs", "Unicode"]
+git-tree-sha1 = "1e597b93700fa4045d7189afa7c004e0584ea548"
+uuid = "295af30f-e4ad-537b-8983-00126c2a3abe"
+version = "3.5.3"
 
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
@@ -410,9 +432,9 @@ uuid = "9d95972d-f1c8-5527-a6e0-b4b365fa01f6"
 version = "1.3.0"
 
 [[URIs]]
-git-tree-sha1 = "074f993b0ca030848b897beff716d93aca60f06a"
+git-tree-sha1 = "b7a5e99f24892b6824a954199a45e9ffcc1c70f0"
 uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
-version = "1.4.2"
+version = "1.5.0"
 
 [[UUIDs]]
 deps = ["Random", "SHA"]
