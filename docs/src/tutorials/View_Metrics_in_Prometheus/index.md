@@ -114,4 +114,14 @@ Now open your browser and head to [http://localhost:9090](http://localhost:9090)
 
 Then click the icon near the **Execute** button to select the `fruit_counter`, and finally click the **Execute** button to execute the query. You'll see the metrics in the **Table** tab. Now switch to the **Graph** tab, you can see historical values of the fruit counter in each dimension. Come back to the Julia REPL. Try to add more fruits and see how the graph in the Prometheus portal changes.
 
+## Export Metrics to Prometheus through Pushgateway
+
+In some cases, you may prefer the [Pushgateway](https://github.com/prometheus/pushgateway) approach to export metrics. You can create a reader with `PrometheusPushgatewayExporter`.
+
+```julia
+prometheus_reader = MetricReader(PrometheusPushgatewayExporter(;resource_to_telemetry_conversion=true));
+```
+
+Then each time we call `prometheus_reader()`, it will send the latest metrics to the default push gateway endpoint.
+
 In [the next tutorial](../View_Metrics_in_Prometheus_through_OpenTelemetry_Collector/), we'll learn more about [OpenTelemetry](https://opentelemetry.io/) and advanced metrics related usages.
