@@ -1,5 +1,10 @@
 module OpenTelemetrySDK
 
+@static if VERSION >= v"1.10.0-alpha"
+    # https://github.com/oolong-dev/OpenTelemetry.jl/issues/93
+    __precompile__(false)
+end
+
 if !isdefined(Base, :get_extension)
     using Requires
 end
@@ -18,7 +23,6 @@ using PackageExtensionCompat
 
 function __init__()
     @require_extensions
-    committypepiracy()
 end
 
 end # module
