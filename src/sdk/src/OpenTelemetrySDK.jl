@@ -18,6 +18,7 @@ using PackageExtensionCompat
 
 function __init__()
     @require_extensions
+    committypepiracy()
 end
 
 end # module
