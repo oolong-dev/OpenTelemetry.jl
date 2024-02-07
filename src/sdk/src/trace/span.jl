@@ -67,7 +67,9 @@ end
 function OpenTelemetryAPI.create_span(
     name::String,
     tracer::Tracer{<:TracerProvider};
-    context = current_context(),
+    context::OpenTelemetryAPI.Context = current_context(),
+    parent_span_ctx::Union{Nothing,SpanContext} = span_context(current_span(context)),
+    trace_id::Union{Nothing, TraceIdType} = nothing,
     kind = SPAN_KIND_INTERNAL,
     attributes = Dict{String,OpenTelemetryAPI.TAttrVal}(),
     links = Link[],
@@ -76,12 +78,14 @@ function OpenTelemetryAPI.create_span(
     is_remote = false,
 )
     provider = tracer.provider
-    parent_span_ctx = context |> current_span |> span_context
-    if isnothing(parent_span_ctx)
-        trace_id = generate_trace_id(provider.id_generator)
-    else
-        trace_id = parent_span_ctx.trace_id
-    end
+    
+    if trace_id === nothing
+        if isnothing(parent_span_ctx)
+            trace_id = generate_trace_id(provider.id_generator)
+        else
+            trace_id = parent_span_ctx.trace_id
+        end
+    end 
 
     attributes = BoundedAttributes(
         attributes;
@@ -94,7 +98,7 @@ function OpenTelemetryAPI.create_span(
 
     sampling_result = should_sample(
         provider.sampler,
-        context,
+        parent_span_ctx,
         trace_id,
         name,
         kind,
