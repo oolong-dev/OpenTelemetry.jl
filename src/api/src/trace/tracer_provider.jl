@@ -297,15 +297,15 @@ Here we follow the [Behavior of the API in the absence of an installed SDK](http
 """
 function create_span(
     name::String,
-    tracer::Tracer{DummyTracerProvider};
-    context = current_context(),
+    tracer::Tracer{DummyTracerProvider} = Tracer();
+    context::Context = current_context(),
+    parent_span::Union{Nothing,AbstractSpan} = current_span(context),
+    parent_span_ctx::Union{Nothing,SpanContext} = span_context(parent_span),
     kw...,
 )
-    parent_span = current_span(context)
     if isnothing(parent_span)
         NonRecordingSpan(name, INVALID_SPAN_CONTEXT, nothing)
     elseif is_recording(parent_span)
-        parent_span_ctx = span_context(parent_span)
         NonRecordingSpan(name, parent_span_ctx, parent_span_ctx)
     else
         parent_span
@@ -313,7 +313,7 @@ function create_span(
 end
 
 """
-    with_span(f, name::String, [tracer=Tracer()];kw...)
+    with_span(f, name::String, [tracer=Tracer()]; kw...)
 
 Call function `f` with the current span set a newly created one of `name` with `tracer`.
 
@@ -334,6 +334,27 @@ function with_span(
     kw...,
 )
     s = create_span(name, tracer; kw...)
+    return with_span(f, s; end_on_exit, record_exception, set_status_on_exception)
+end
+
+"""
+    with_span(f, s::AbstractSpan; kw...)
+
+Call function `f` with the provided span `s`.
+
+# Keyword arguments
+
+  - `end_on_exit=true`, controls whether to call [`end_span!`](@ref) after `f` or not.
+  - `record_exception=true`, controls whether to record the exception.
+  - `set_status_on_exception=true`, decides whether to set status to [`SPAN_STATUS_ERROR`](@ref) automatically when an exception is caught.
+"""
+function with_span(
+    f::Function,
+    s::AbstractSpan;
+    end_on_exit = true,
+    record_exception = true,
+    set_status_on_exception = true,
+)
     with_context(; SPAN_KEY_IN_CONTEXT => s) do
         try
             f()
