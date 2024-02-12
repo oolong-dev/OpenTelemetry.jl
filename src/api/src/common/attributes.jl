@@ -16,11 +16,11 @@ The following methods from `Base` are defined on `BoundedAttributes` which are t
   - `Base.haskey`
   - `Base.push!`. Obviously, an error will be thrown when calling on immutable `attrs`s like `NamedTuple`.
 """
-struct BoundedAttributes{T}
+mutable struct BoundedAttributes{T}
     attrs::T
     count_limit::Int
     value_length_limit::Int
-    n_dropped::Ref{UInt32}
+    n_dropped::UInt32 # mutable
 end
 
 const StaticBoundedAttributes = BoundedAttributes{<:NamedTuple}
@@ -44,7 +44,7 @@ function BoundedAttributes(
 )
     attrs = _try_reorder(attrs) # !!! the order of static attributes is important in Metrics
     attrs, n_dropped = clean_attrs!(attrs, count_limit, value_length_limit)
-    BoundedAttributes(attrs, count_limit, value_length_limit, Ref{UInt32}(n_dropped))
+    BoundedAttributes(attrs, count_limit, value_length_limit, UInt32(n_dropped))
 end
 
 Base.getindex(x::BoundedAttributes, args...) = getindex(x.attrs, args...)
@@ -101,7 +101,7 @@ Base.setindex!(attrs::BoundedAttributes, v::AbstractFloat, k) =
 function Base.setindex!(attrs::BoundedAttributes, v::TAttrVal, k)
     if !haskey(attrs, k) && length(attrs) >= attrs.count_limit
         clip_attrs_by_count!(attrs.attrs, attrs.count_limit - 1)
-        attrs.n_dropped[] += 1
+        attrs.n_dropped += 1
         @warn "The count of attributes exceeds the preset limit ($(attrs.count_limit))."
     end
     attrs.attrs[k] = _truncate(v, attrs.value_length_limit)
@@ -115,7 +115,7 @@ Base.setindex!(attrs::StaticBoundedAttributes, v::TAttrVal, k) =
 
 Return the total number of dropped elements since creation.
 """
-n_dropped(x::BoundedAttributes) = x.n_dropped[]
+n_dropped(x::BoundedAttributes) = x.n_dropped
 
 function clip_attrs_by_count!(attrs, count_limit)
     n_dropped = max(0, length(attrs) - count_limit)

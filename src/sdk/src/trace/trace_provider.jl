@@ -17,7 +17,7 @@ The following extra methods are provided beyond those defined in [`AbstractTrace
   - [`close(p::TracerProvider)`](@ref)
   - [`Base.push!(p::TracerProvider, sp::AbstractSpanProcessor)`](@ref)
 """
-Base.@kwdef struct TracerProvider{
+Base.@kwdef mutable struct TracerProvider{
     S<:AbstractSampler,
     R<:Resource,
     SP<:AbstractSpanProcessor,
@@ -28,7 +28,7 @@ Base.@kwdef struct TracerProvider{
     span_processor::SP = SimpleSpanProcessor(ConsoleExporter())
     id_generator::RNG = RandomIdGenerator()
     limit_info::LimitInfo = LimitInfo()
-    is_closed::Ref{Bool} = Ref(false)
+    is_closed::Bool = false # mutable
 end
 
 OpenTelemetryAPI.resource(p::TracerProvider) = p.resource
@@ -47,7 +47,7 @@ Shut down inner span processors and then mark itself as shut down.
 """
 function Base.close(p::TracerProvider)
     close(p.span_processor)
-    p.is_closed[] = true
+    p.is_closed = true
 end
 
 """

@@ -223,7 +223,7 @@ function PB.decode(d::PB.AbstractProtoDecoder, ::Type{<:Span})
             PB.skip(d, wire_type)
         end
     end
-    return Span(trace_id, span_id, trace_state, parent_span_id, name, kind, start_time_unix_nano, end_time_unix_nano, attributes[], dropped_attributes_count, events[], dropped_events_count, links[], dropped_links_count, status[])
+    return Span(trace_id, span_id, trace_state, parent_span_id, name, kind, start_time_unix_nano, end_time_unix_nano, attributes[], dropped_attributes_count, events[], dropped_events_count, links[], dropped_links_count, status)
 end
 
 function PB.encode(e::PB.AbstractProtoEncoder, x::Span)
