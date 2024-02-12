@@ -66,7 +66,7 @@ end
 
 function OpenTelemetryAPI.create_span(
     name::String,
-    tracer::Tracer{<:TracerProvider} = Tracer();
+    tracer::Tracer{<:TracerProvider};
     context::OpenTelemetryAPI.Context = current_context(),
     parent_span::Union{Nothing,AbstractSpan} = current_span(context),
     parent_span_ctx::Union{Nothing,SpanContext} = span_context(parent_span),

@@ -297,7 +297,7 @@ Here we follow the [Behavior of the API in the absence of an installed SDK](http
 """
 function create_span(
     name::String,
-    tracer::Tracer{DummyTracerProvider} = Tracer();
+    tracer::Tracer{DummyTracerProvider};
     context::Context = current_context(),
     parent_span::Union{Nothing,AbstractSpan} = current_span(context),
     parent_span_ctx::Union{Nothing,SpanContext} = span_context(parent_span),
@@ -311,6 +311,9 @@ function create_span(
         parent_span
     end
 end
+
+# To avoid default argument implementation that causes redifinitions
+create_span(name::String; kwargs...) = create_span(name, Tracer(); kwargs...)
 
 """
     with_span(f, name::String, [tracer=Tracer()]; kw...)
