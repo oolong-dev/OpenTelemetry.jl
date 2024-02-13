@@ -5,14 +5,14 @@ export PrometheusExporter
 using OpenTelemetrySDK
 using HTTP
 
-function handler(io, provider::MeterProvider, resource_to_telemetry_conversion)
-    for ins in provider.async_instruments
+function handler(io, provider::Ref{MeterProvider}, resource_to_telemetry_conversion)
+    for ins in provider[].async_instruments
         ins()
     end
     HTTP.setstatus(io, 200)
     HTTP.setheader(io, "Content-Type" => "text/plain")
     HTTP.startwrite(io)
-    text_based_format(io, provider, resource_to_telemetry_conversion)
+    text_based_format(io, provider[], resource_to_telemetry_conversion)
     nothing
 end
 
