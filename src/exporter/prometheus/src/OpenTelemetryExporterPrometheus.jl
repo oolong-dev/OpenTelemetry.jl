@@ -36,7 +36,7 @@ Note that `PrometheusExporter` is a pull based exporter. There's no need to exec
 """
 mutable struct PrometheusExporter <: OpenTelemetrySDK.AbstractExporter
     server::HTTP.Servers.Server
-    provider::Union{MeterProvider,Nothing} # mutable
+    provider::Ref{MeterProvider} # mutable
     function PrometheusExporter(;
         host = OTEL_EXPORTER_PROMETHEUS_HOST(),
         port = OTEL_EXPORTER_PROMETHEUS_PORT(),
@@ -44,7 +44,7 @@ mutable struct PrometheusExporter <: OpenTelemetrySDK.AbstractExporter
         path = "/metrics",
         kw...,
     )
-        provider = nothing
+        provider = Ref{MeterProvider}()
 
         router = HTTP.Router()
         HTTP.register!(
@@ -62,10 +62,10 @@ end
 Base.close(r::PrometheusExporter) = close(r.server)
 
 function (r::MetricReader{<:MeterProvider,<:PrometheusExporter})()
-    if r.exporter.provider === nothing
+    if isassigned(r.exporter.provider)
         @info "The prometheus exporter is already properly set!"
     else
-        r.exporter.provider = r.provider
+        r.exporter.provider[] = r.provider
     end
 end
 
