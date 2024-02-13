@@ -33,7 +33,7 @@ export!(e::DummyExporter, xs) = nothing
 
 Simply store all `export!`ed elements into the `pool`.
 """
-Base.@kwdef struct InMemoryExporter <: AbstractExporter
+Base.@kwdef mutable struct InMemoryExporter <: AbstractExporter
     pool::Vector = []
     is_closed::Bool = false # mutable
 end

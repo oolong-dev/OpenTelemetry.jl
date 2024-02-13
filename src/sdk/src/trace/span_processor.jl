@@ -91,7 +91,7 @@ function BatchSpanProcessor(
     bsp = BatchSpanProcessor(
         exporter,
         queue,
-        Timer(),
+        Timer(0),
         false,
         max_queue_size,
         scheduled_delay_millis,

@@ -82,7 +82,7 @@ function OtelBatchLogger(
         exporter,
         OtelLogTransformer(resource, instrumentation_scope),
         queue,
-        Timer(),
+        Timer(0),
         false,
         max_queue_size,
         scheduled_delay_millis,
