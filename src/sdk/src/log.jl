@@ -32,12 +32,12 @@ Base.close(sl::OtelSimpleLogger) = close(sl.exporter)
 
 #####
 
-struct OtelBatchLogger{E<:AbstractExporter,T<:OtelLogTransformer} <: AbstractLogger
+mutable struct OtelBatchLogger{E<:AbstractExporter,T<:OtelLogTransformer} <: AbstractLogger
     exporter::E
     transformer::T
     queue::BatchContainer{LogRecord}
-    timer::Ref{Timer}
-    is_shutdown::Ref{Bool}
+    timer::Timer # mutable
+    is_shutdown::Bool # mutable
     max_queue_size::Int
     scheduled_delay_millis::Int
     export_timeout_millis::Int
@@ -46,7 +46,7 @@ struct OtelBatchLogger{E<:AbstractExporter,T<:OtelLogTransformer} <: AbstractLog
 end
 
 function reset_timer!(bl::OtelBatchLogger)
-    bl.timer[] = Timer(bl.scheduled_delay_millis / 1_000) do t
+    bl.timer = Timer(bl.scheduled_delay_millis / 1_000) do t
         export!(bl.exporter, take!(bl.queue))
         close(t)
         reset_timer!(bl)
@@ -82,8 +82,8 @@ function OtelBatchLogger(
         exporter,
         OtelLogTransformer(resource, instrumentation_scope),
         queue,
-        Ref{Timer}(),
-        Ref(false),
+        Timer(0),
+        false,
         max_queue_size,
         scheduled_delay_millis,
         export_timeout_millis,
@@ -100,7 +100,7 @@ Logging.catch_exceptions(l::OtelBatchLogger, args...; kw...) = true
 
 function Logging.handle_message(bl::OtelBatchLogger, args...; kw...)
     r = bl.transformer(handle_message_args(args...; kw...))
-    if !bl.is_shutdown[]
+    if !bl.is_shutdown
         is_full = put!(bl.queue, r.message)
         if is_full
             export!(bl.exporter, take!(bl.queue))
@@ -111,8 +111,8 @@ end
 
 function Base.close(bl::OtelBatchLogger)
     close(bl.exporter)
-    bl.is_shutdown[] = true
-    close(bl.timer[])
+    bl.is_shutdown = true
+    close(bl.timer)
 end
 
 function Base.flush(bl::OtelBatchLogger)

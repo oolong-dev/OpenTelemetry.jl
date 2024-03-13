@@ -45,13 +45,13 @@ trace_suite["Create Span"] = @benchmarkable init_span($TRACER)
 trace_suite["Create Dummy Span"] = @benchmarkable init_span($DUMMY_TRACER)
 
 const TYPICAL_SPAN = OpenTelemetrySDK.Span(
-    Ref{String}("TYPICAL_SPAN"),
+    "TYPICAL_SPAN",
     TRACER,
     INVALID_SPAN_CONTEXT,
     nothing,
     SPAN_KIND_INTERNAL,
     UInt(time() * 10^9),
-    Ref{Union{Nothing,UInt}}(UInt(time() * 10^9)),
+    UInt(time() * 10^9),
     DynamicAttrs(
         Dict{String,TAttrVal}(
             "aaa" => repeat("a", 32),
@@ -61,7 +61,7 @@ const TYPICAL_SPAN = OpenTelemetrySDK.Span(
     ),
     Limited(Link[Link(INVALID_SPAN_CONTEXT, StaticAttrs(; a = 1, b = 2.0))]),
     Limited(Event[Event("xyz", UInt(time() * 10^9), StaticAttrs(; m = [1], n = "2"))]),
-    Ref{SpanStatus}(SpanStatus(SPAN_STATUS_UNSET)),
+    SpanStatus(SPAN_STATUS_UNSET),
 )
 
 trace_suite["Convert Span to Grpc"] = @benchmarkable convert(

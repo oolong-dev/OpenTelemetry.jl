@@ -5,14 +5,14 @@ export PrometheusExporter
 using OpenTelemetrySDK
 using HTTP
 
-function handler(io, provider_ref::Ref{MeterProvider}, resource_to_telemetry_conversion)
-    for ins in provider_ref[].async_instruments
+function handler(io, provider::Ref{MeterProvider}, resource_to_telemetry_conversion)
+    for ins in provider[].async_instruments
         ins()
     end
     HTTP.setstatus(io, 200)
     HTTP.setheader(io, "Content-Type" => "text/plain")
     HTTP.startwrite(io)
-    text_based_format(io, provider_ref[], resource_to_telemetry_conversion)
+    text_based_format(io, provider[], resource_to_telemetry_conversion)
     nothing
 end
 
@@ -34,7 +34,7 @@ r = MetricReader(PrometheusExporter())
 
 Note that `PrometheusExporter` is a pull based exporter. There's no need to execute `r()` to update the metrics.
 """
-struct PrometheusExporter <: OpenTelemetrySDK.AbstractExporter
+mutable struct PrometheusExporter <: OpenTelemetrySDK.AbstractExporter
     server::HTTP.Servers.Server
     provider::Ref{MeterProvider}
     function PrometheusExporter(;
@@ -44,18 +44,18 @@ struct PrometheusExporter <: OpenTelemetrySDK.AbstractExporter
         path = "/metrics",
         kw...,
     )
-        provider_ref = Ref{MeterProvider}()
+        provider = Ref{MeterProvider}()
 
         router = HTTP.Router()
         HTTP.register!(
             router,
             "GET",
             path,
-            io -> handler(io, provider_ref, resource_to_telemetry_conversion),
+            io -> handler(io, provider, resource_to_telemetry_conversion),
         )
         server = HTTP.serve!(router, host, port; stream = true, kw...)
 
-        new(server, provider_ref)
+        new(server, provider)
     end
 end
 

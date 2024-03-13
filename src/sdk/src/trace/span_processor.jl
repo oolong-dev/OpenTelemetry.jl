@@ -58,11 +58,11 @@ Base.flush(ssp::SimpleSpanProcessor) = flush(ssp.exporter)
 
 The default values of above keyword arugments are read from corresponding environment variables.
 """
-struct BatchSpanProcessor{T} <: AbstractSpanProcessor
+mutable struct BatchSpanProcessor{T} <: AbstractSpanProcessor
     exporter::T
     queue::BatchContainer{<:OpenTelemetryAPI.AbstractSpan}
-    timer::Ref{Timer}
-    is_shutdown::Ref{Bool}
+    timer::Timer # mutable
+    is_shutdown::Bool # mutable
     max_queue_size::Int
     scheduled_delay_millis::Int
     export_timeout_millis::Int
@@ -70,7 +70,7 @@ struct BatchSpanProcessor{T} <: AbstractSpanProcessor
 end
 
 function reset_timer!(bsp::BatchSpanProcessor)
-    bsp.timer[] = Timer(bsp.scheduled_delay_millis / 1_000) do t
+    bsp.timer = Timer(bsp.scheduled_delay_millis / 1_000) do t
         export!(bsp.exporter, take!(bsp.queue))
         close(t)
         reset_timer!(bsp)
@@ -91,8 +91,8 @@ function BatchSpanProcessor(
     bsp = BatchSpanProcessor(
         exporter,
         queue,
-        Ref{Timer}(),
-        Ref(false),
+        Timer(0),
+        false,
         max_queue_size,
         scheduled_delay_millis,
         export_timeout_millis,
@@ -105,7 +105,7 @@ end
 on_start!(bsp::BatchSpanProcessor, span) = nothing
 
 function on_end!(bsp::BatchSpanProcessor, span)
-    if !bsp.is_shutdown[]
+    if !bsp.is_shutdown
         is_full = put!(bsp.queue, span)
         if is_full
             export!(bsp.exporter, take!(bsp.queue))
@@ -116,8 +116,8 @@ end
 
 function Base.close(bsp::BatchSpanProcessor)
     close(bsp.exporter)
-    bsp.is_shutdown[] = true
-    close(bsp.timer[])
+    bsp.is_shutdown = true
+    close(bsp.timer)
 end
 
 function Base.flush(bsp::BatchSpanProcessor)

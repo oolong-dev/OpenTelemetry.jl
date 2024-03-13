@@ -29,13 +29,13 @@ export!(e::DummyExporter, xs) = nothing
 #####
 
 """
-    InMemoryExporter(;pool=[], is_closed=Ref(false))
+    InMemoryExporter(;pool=[], is_closed=false)
 
 Simply store all `export!`ed elements into the `pool`.
 """
-Base.@kwdef struct InMemoryExporter <: AbstractExporter
+Base.@kwdef mutable struct InMemoryExporter <: AbstractExporter
     pool::Vector = []
-    is_closed::Ref{Bool} = Ref(false)
+    is_closed::Bool = false # mutable
 end
 
 Base.show(io::IO, e::InMemoryExporter) =
@@ -46,12 +46,12 @@ Base.iterate(e::InMemoryExporter, args...) = iterate(e.pool, args...)
 
 function Base.close(se::InMemoryExporter)
     flush(se)
-    se.is_closed[] = true
+    se.is_closed = true
     true
 end
 
 function export!(e::InMemoryExporter, xs)
-    if e.is_closed[]
+    if e.is_closed
         EXPORT_FAILURE
     else
         append!(e.pool, xs)
@@ -79,35 +79,35 @@ end
 
 #####
 
-struct BatchContainer{T}
+mutable struct BatchContainer{T}
     container::Vector{T}
-    start::Ref{Int}
-    count::Ref{Int}
+    start::Int
+    count::Int
     batch_size::Int
 end
 
 BatchContainer(container, batch_size) =
-    BatchContainer(container, Ref(1), Ref(0), batch_size)
+    BatchContainer(container, 1, 0, batch_size)
 
 function Base.put!(c::BatchContainer{T}, x::T) where {T}
-    if c.count[] < length(c.container)
-        c.count[] += 1
-        i = mod1(c.start[] + c.count[] - 1, length(c.container))
+    if c.count < length(c.container)
+        c.count += 1
+        i = mod1(c.start + c.count - 1, length(c.container))
         c.container[i] = x
     else
         # dropped
     end
-    c.count[] >= c.batch_size
+    c.count >= c.batch_size
 end
 
 function Base.take!(c::BatchContainer)
-    n = min(c.batch_size, c.count[])
+    n = min(c.batch_size, c.count)
     batch = similar(c.container, n)
     for i in 1:n
-        ii = mod1(c.start[] + i - 1, length(c.container))
+        ii = mod1(c.start + i - 1, length(c.container))
         batch[i] = c.container[ii]
     end
-    c.start[] = mod1(c.start[] + n, length(c.container))
-    c.count[] -= n
+    c.start = mod1(c.start + n, length(c.container))
+    c.count -= n
     batch
 end

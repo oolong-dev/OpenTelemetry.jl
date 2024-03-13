@@ -120,9 +120,9 @@ function Base.show(io::IO, s::SDK.Span)
             convert(Tree, StructTree(s));
             fit = true,
             style = style,
-            title = s.name[],
+            title = s.name,
             title_style = "bold $style",
-            subtitle = "$(unix2datetime(s.start_time / 10^9)) ~ $(unix2datetime(s.end_time[] / 10^9))",
+            subtitle = "$(unix2datetime(s.start_time / 10^9)) ~ $(unix2datetime(s.end_time / 10^9))",
             subtitle_style = "bold $style",
             subtitle_justify = :right,
         ),
