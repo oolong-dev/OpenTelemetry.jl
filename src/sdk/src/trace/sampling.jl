@@ -51,7 +51,7 @@ end
 
 ## Arguments
 
-  - `parent_context`::[`Context`](@ref),
+  - `parent_span_ctx`::[`SpanContext`](@ref),
   - `trace_id`::[`TraceIdType`](@ref),
   - `name::String`, the span name
   - `kind`::[`SpanKind`](@ref),
@@ -63,7 +63,7 @@ function should_sample end
 
 function should_sample(
     s::StaticSampler,
-    parent_context,
+    parent_span_ctx,
     trace_id,
     name,
     kind = SPAN_KIND_INTERNAL,
@@ -88,7 +88,7 @@ end
 
 function should_sample(
     s::TraceIdRatioBased,
-    parent_context,
+    parent_span_ctx,
     trace_id,
     name,
     kind = SPAN_KIND_INTERNAL,
@@ -116,7 +116,7 @@ end
 
 function should_sample(
     s::ParentBasedSampler,
-    parent_context,
+    parent_span_ctx,
     trace_id,
     name,
     kind = SPAN_KIND_INTERNAL,
@@ -124,7 +124,6 @@ function should_sample(
     links = [],
     trace_state = TraceState(),
 )
-    parent_span_ctx = parent_context |> current_span |> span_context
     sampler = s.root_sampler
     if !isnothing(parent_span_ctx)
         if parent_span_ctx.is_remote
@@ -143,7 +142,7 @@ function should_sample(
     end
     should_sample(
         sampler,
-        parent_context,
+        parent_span_ctx,
         trace_id,
         name,
         kind,
