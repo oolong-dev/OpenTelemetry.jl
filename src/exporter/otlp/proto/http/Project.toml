@@ -1,7 +1,7 @@
 name = "OpenTelemetryExporterOtlpProtoHttp"
 uuid = "f175482f-0544-4037-b362-361efbf21c04"
 authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
@@ -12,9 +12,9 @@ ProtoBuf = "3349acd9-ac6a-5e09-bcdb-63829b23a429"
 
 [compat]
 HTTP = "1"
-OpenTelemetryAPI = "0.4"
-OpenTelemetryProto = "0.19"
-OpenTelemetrySDK = "0.3"
+OpenTelemetryAPI = "0.4,0.5"
+OpenTelemetryProto = "0.19,0.20"
+OpenTelemetrySDK = "0.3,0.4"
 ProtoBuf = "1"
 julia = "1.6"
 
