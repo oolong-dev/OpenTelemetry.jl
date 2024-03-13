@@ -23,6 +23,7 @@ OpenTelemetryAPIDownloadsExt = "Downloads"
 OpenTelemetryAPIHTTPExt = "HTTP"
 
 [compat]
+ScopedValues = "1.2"
 PackageExtensionCompat = "1"
 Requires = "1"
 TOML = "1"
