@@ -70,7 +70,7 @@ function extract_context(
     else
         merge(
             ctx,
-            Context((;
+            Context(Dict(
                 SPAN_KEY_IN_CONTEXT => NonRecordingSpan(
                     "",
                     SpanContext(span_id, trace_id, false, trace_flag, trace_state),

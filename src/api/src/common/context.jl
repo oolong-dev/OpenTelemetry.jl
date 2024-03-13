@@ -1,17 +1,20 @@
 export current_context, with_context, is_suppress_instrument
 
 using UUIDs: uuid4
+using ScopedValues: @with, ScopedValue
 
-const CONTEXT_KEY = :OPEN_TELEMETRY_CONTEXT
 
 # ??? performace issue with NamedTuple
-struct Context{T<:NamedTuple}
+struct Context{T<:Dict}
     kv::T
 end
 
-Context() = Context(NamedTuple())
+Context() = Context(Dict())
 
 Base.merge(c1::Context, c2::Context) = Context(merge(c1.kv, c2.kv))
+Base.merge(c1::Context, nt::Base.Pairs) = Context(merge(c1.kv, Dict(nt)))
+
+const CONTEXT_KEY = ScopedValue(Context())
 
 create_key(s) = Symbol(s, '-', uuid4())
 
@@ -28,13 +31,16 @@ Run function `f` in the `context`. If extra `kv` pairs are provided, they will
 be merged with the `context` to form a new context. When `context` is not
 provided, the [`current_context`](@ref) will be used.
 """
-with_context(f, ctx::Context; kw...) =
-    task_local_storage(f, CONTEXT_KEY, merge(ctx, Context(values(kw))))
+function with_context(f, ctx::Context; kw...) 
+    @with CONTEXT_KEY => merge(ctx, kw) begin 
+        f() 
+    end
+end
 
 """
 Return the `Context` associated with the caller's current execution unit.
 """
-current_context() = get(task_local_storage(), CONTEXT_KEY, Context())::Context
+current_context() = CONTEXT_KEY[]::Context
 
 #####
 

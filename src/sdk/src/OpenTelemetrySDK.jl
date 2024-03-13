@@ -12,7 +12,6 @@ include("exporter.jl")
 include("log.jl")
 include("trace/trace.jl")
 include("metric/metric.jl")
-include("patch.jl")
 
 using PackageExtensionCompat
 
