@@ -1,7 +1,7 @@
 name = "OpenTelemetry"
 uuid = "c1912aec-9d41-432b-84fe-e17fd97255be"
 authors = ["Jun Tian <tianjun.cpp@gmail.com> and contributors"]
-version = "0.3.0"
+version = "0.4.0"
 
 [deps]
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
@@ -13,11 +13,11 @@ OpenTelemetrySDK = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 
 [compat]
-OpenTelemetryAPI = "0.4"
+OpenTelemetryAPI = "0.5"
 OpenTelemetryExporterOtlpProtoHttp = "0.1"
 OpenTelemetryExporterPrometheus = "0.2"
-OpenTelemetryProto = "0.19"
-OpenTelemetrySDK = "0.3"
+OpenTelemetryProto = "0.20"
+OpenTelemetrySDK = "0.4"
 Reexport = "1"
 julia = "1"
 

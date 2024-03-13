@@ -1,7 +1,7 @@
 name = "OpenTelemetrySDK"
 uuid = "f5929ecf-be04-446c-b2f2-494e1fe70ee4"
 authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
-version = "0.3.1"
+version = "0.4.0"
 
 [deps]
 AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
