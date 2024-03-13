@@ -25,7 +25,7 @@ OpenTelemetrySDKTermExt = "Term"
 [compat]
 AbstractTrees = "0.4"
 Glob = "1"
-OpenTelemetryAPI = "0.4"
+OpenTelemetryAPI = "0.5"
 PackageExtensionCompat = "1"
 Reexport = "1"
 Requires = "1"
