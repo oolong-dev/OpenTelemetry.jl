@@ -15,7 +15,7 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 [compat]
 OpenTelemetryAPI = "0.5"
 OpenTelemetryExporterOtlpProtoHttp = "0.1.1"
-OpenTelemetryExporterPrometheus = "0.2"
+OpenTelemetryExporterPrometheus = "0.3"
 OpenTelemetryProto = "0.20"
 OpenTelemetrySDK = "0.4"
 Reexport = "1"
