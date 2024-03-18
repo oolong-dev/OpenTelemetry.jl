@@ -142,7 +142,12 @@ end
 
 function Base.convert(::Type{TRACES.Span}, x::SDK.Span)
     ctx = API.span_context(x)
-    parent_ctx = something(API.parent_span_context(x), API.INVALID_SPAN_CONTEXT)
+    parent_ctx = API.parent_span_context(x)
+    parent_span_id = if parent_ctx === nothing
+        UInt8[]
+    else
+        reinterpret(UInt8, [parent_ctx.span_id])
+    end
     attrs = API.attributes(x)
     evts = API.span_events(x)
     links = API.span_links(x)
@@ -150,7 +155,7 @@ function Base.convert(::Type{TRACES.Span}, x::SDK.Span)
         reinterpret(UInt8, [ctx.trace_id]),
         reinterpret(UInt8, [ctx.span_id]),
         string(ctx.trace_state),
-        reinterpret(UInt8, [parent_ctx.span_id]),
+        parent_span_id,
         API.span_name(x),
         convert(TRACES.var"Span.SpanKind".T, API.span_kind(x)),
         API.start_time(x),
