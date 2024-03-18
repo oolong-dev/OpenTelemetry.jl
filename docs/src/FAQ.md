@@ -2,6 +2,11 @@
 
 ## Method overwritten warning
 
+!!! tip
+    The type piracy issue described below is now fixed in OpenTelemetrySDK v0.4.0.
+    Upgrading should be simple as there shouldn't be any breaking changes in the interface.
+    The main difference is that ScopedValues.jl is being introduced as a new dependency.
+
 When building `OpenTelemetrySDK` for the first time, you'll see the following warning message:
 
 ```
