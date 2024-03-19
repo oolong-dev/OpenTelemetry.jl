@@ -81,33 +81,48 @@ end
 
 mutable struct BatchContainer{T}
     container::Vector{T}
+    max_queue_size::Int
     start::Int
     count::Int
     batch_size::Int
+    lock::ReentrantLock
 end
 
-BatchContainer(container, batch_size) =
-    BatchContainer(container, 1, 0, batch_size)
+function BatchContainer{T}(max_queue_size::Int, batch_size::Int) where T
+    return BatchContainer{T}(
+        Vector{T}(undef, max_queue_size), 
+        max_queue_size, 
+        1, 
+        0, 
+        batch_size,  
+        ReentrantLock()
+    )
+end
 
 function Base.put!(c::BatchContainer{T}, x::T) where {T}
-    if c.count < length(c.container)
-        c.count += 1
-        i = mod1(c.start + c.count - 1, length(c.container))
-        c.container[i] = x
-    else
-        # dropped
+    lock(c.lock) do
+        if c.count < c.max_queue_size
+            c.count += 1
+            i = mod1(c.start + c.count - 1, c.max_queue_size)
+            c.container[i] = x
+        else
+            # dropped
+        end
+        return c.count >= c.batch_size 
+        # returns condition to export: queue contains at least maxExportBatchSize elements
     end
-    c.count >= c.batch_size
 end
 
 function Base.take!(c::BatchContainer)
-    n = min(c.batch_size, c.count)
-    batch = similar(c.container, n)
-    for i in 1:n
-        ii = mod1(c.start + i - 1, length(c.container))
-        batch[i] = c.container[ii]
+    lock(c.lock) do
+        n = min(c.batch_size, c.count)
+        batch = similar(c.container, n)
+        for i in 1:n
+            ii = mod1(c.start + i - 1, c.max_queue_size)
+            batch[i] = c.container[ii]
+        end
+        c.start = mod1(c.start + n, c.max_queue_size)
+        c.count -= n
+        return batch
     end
-    c.start = mod1(c.start + n, length(c.container))
-    c.count -= n
-    batch
 end

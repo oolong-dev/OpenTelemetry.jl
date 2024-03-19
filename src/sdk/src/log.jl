@@ -77,7 +77,7 @@ function OtelBatchLogger(
     instrumentation_scope = InstrumentationScope(),
     log_level = OTEL_LOG_LEVEL(),
 )
-    queue = BatchContainer(Array{LogRecord}(undef, max_queue_size), max_export_batch_size)
+    queue = BatchContainer{LogRecord}(max_queue_size, max_export_batch_size)
     bl = OtelBatchLogger(
         exporter,
         OtelLogTransformer(resource, instrumentation_scope),

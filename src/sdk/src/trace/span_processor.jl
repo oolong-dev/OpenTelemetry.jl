@@ -84,8 +84,8 @@ function BatchSpanProcessor(
     export_timeout_millis = OTEL_BSP_EXPORT_TIMEOUT(),
     max_export_batch_size = OTEL_BSP_MAX_EXPORT_BATCH_SIZE(),
 )
-    queue = BatchContainer(
-        Array{OpenTelemetryAPI.AbstractSpan}(undef, max_queue_size),
+    queue = BatchContainer{OpenTelemetryAPI.AbstractSpan}(
+        max_queue_size,
         max_export_batch_size,
     )
     bsp = BatchSpanProcessor(
