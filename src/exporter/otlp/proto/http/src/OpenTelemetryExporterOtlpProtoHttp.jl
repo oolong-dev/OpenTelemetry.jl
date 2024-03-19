@@ -67,23 +67,37 @@ OtlpHttpMetricsExporter(;
     timeout,
 )
 
-function SDK.export!(x::OtlpHttpExporter{Req,Resp}, batch) where {Req,Resp}
-    if isempty(batch)
-        SDK.EXPORT_SUCCESS
-    else
+function SDK.export!(x::OtlpHttpExporter{Req,Resp}, batch::Vector) where {Req,Resp}
+    isempty(batch) && return SDK.EXPORT_SUCCESS
+
+    try
         io = IOBuffer()
         e = ProtoEncoder(io)
         encode(e, convert(Req, batch))
         seekstart(io)
 
         res = API.with_context(; API.SUPPRESS_INSTRUMENTATION_KEY => true) do
-            HTTP.post(x.url, x.headers; body = io)
+            HTTP.post(
+                x.url, 
+                x.headers; 
+                body = io, 
+                readtimeout=x.timeout, 
+                retry=true,
+                retry_non_idempotent=true
+            )
         end
 
         res_io = IOBuffer(res.body)
         d = ProtoDecoder(res_io)
         resp = decode(d, Resp)
-        convert(SDK.ExportResult, resp)
+        return convert(SDK.ExportResult, resp)
+    catch ex
+        @error(
+            "Error in OtlpHttpExporter, the attempted batch export failed and will not be retried anymore. " *
+            "The batch will not be returned to the queue either.",
+            exception=(ex, catch_backtrace())
+        )
+        return SDK.EXPORT_FAILURE
     end
 end
 
