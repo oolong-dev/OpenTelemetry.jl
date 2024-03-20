@@ -99,6 +99,12 @@ function BatchContainer{T}(max_queue_size::Int, batch_size::Int) where T
     )
 end
 
+function has_maxExportBatchSize(c::BatchContainer)
+    lock(c.lock) do
+        return c.count >= c.batch_size
+    end
+end
+
 function Base.put!(c::BatchContainer{T}, x::T) where {T}
     lock(c.lock) do
         if c.count < c.max_queue_size
@@ -108,7 +114,7 @@ function Base.put!(c::BatchContainer{T}, x::T) where {T}
         else
             # dropped
         end
-        return c.count >= c.batch_size 
+        return c.count >= c.batch_size, c.count == 1
         # returns condition to export: queue contains at least maxExportBatchSize elements
     end
 end

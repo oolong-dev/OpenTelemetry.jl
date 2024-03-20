@@ -61,20 +61,26 @@ The default values of above keyword arugments are read from corresponding enviro
 mutable struct BatchSpanProcessor{T} <: AbstractSpanProcessor
     exporter::T
     queue::BatchContainer{<:OpenTelemetryAPI.AbstractSpan}
-    timer::Timer # mutable
     is_shutdown::Bool # mutable
     max_queue_size::Int
     scheduled_delay_millis::Int
     export_timeout_millis::Int
     max_export_batch_size::Int
+    export_event::Base.Event
+    export_lock::ReentrantLock
+    export_loop_task::Union{Nothing,Task}
 end
 
-function reset_timer!(bsp::BatchSpanProcessor)
-    bsp.timer = Timer(bsp.scheduled_delay_millis / 1_000) do t
-        export!(bsp.exporter, take!(bsp.queue))
-        close(t)
-        reset_timer!(bsp)
+function export_wrapper(bsp::BatchSpanProcessor)
+    lock(bsp.export_lock) do
+        batch_cond = true
+        while batch_cond
+            @debug("BatchSpanProcessor: Exporting batch")
+            export!(bsp.exporter, take!(bsp.queue))
+            batch_cond = has_maxExportBatchSize(bsp.queue)
+        end
     end
+    return nothing
 end
 
 function BatchSpanProcessor(
@@ -91,37 +97,48 @@ function BatchSpanProcessor(
     bsp = BatchSpanProcessor(
         exporter,
         queue,
-        Timer(0),
         false,
         max_queue_size,
         scheduled_delay_millis,
         export_timeout_millis,
         max_export_batch_size,
+        Base.Event(true),
+        ReentrantLock(),
+        nothing
     )
-    reset_timer!(bsp)
-    bsp
+    t = Threads.@spawn :default begin
+        while !bsp.is_shutdown
+            wait(bsp.export_event)
+            batch_cond = has_maxExportBatchSize(bsp.queue) # check if has batchSize items
+            !batch_cond && sleep(bsp.scheduled_delay_millis / 1_000) # only execute immediately when condition is set
+            try
+                export_wrapper(bsp)
+            catch ex
+                @error("Unexpected error in exporter", exception(ex, catch_backtrace()))
+            end
+        end
+    end
+
+    bsp.export_loop_task = t
+    return bsp
 end
 
 on_start!(bsp::BatchSpanProcessor, span) = nothing
 
 function on_end!(bsp::BatchSpanProcessor, span)
     if !bsp.is_shutdown
-        is_full = put!(bsp.queue, span)
-        if is_full
-            export!(bsp.exporter, take!(bsp.queue))
-            reset_timer!(bsp)
-        end
+        is_full, was_empty = put!(bsp.queue, span)
+        (was_empty || is_full) && notify(bsp.export_event)
     end
 end
 
 function Base.close(bsp::BatchSpanProcessor)
     close(bsp.exporter)
     bsp.is_shutdown = true
-    close(bsp.timer)
 end
 
 function Base.flush(bsp::BatchSpanProcessor)
-    export!(bsp.exporter, take!(bsp.queue))
+    export_wrapper(bsp)
     flush(bsp.exporter)
 end
 

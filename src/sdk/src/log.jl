@@ -101,7 +101,7 @@ Logging.catch_exceptions(l::OtelBatchLogger, args...; kw...) = true
 function Logging.handle_message(bl::OtelBatchLogger, args...; kw...)
     r = bl.transformer(handle_message_args(args...; kw...))
     if !bl.is_shutdown
-        is_full = put!(bl.queue, r.message)
+        is_full, _ = put!(bl.queue, r.message)
         if is_full
             export!(bl.exporter, take!(bl.queue))
             reset_timer!(bl)
