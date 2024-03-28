@@ -114,7 +114,7 @@ function BatchSpanProcessor(
             try
                 export_wrapper(bsp)
             catch ex
-                @error("Unexpected error in exporter", exception(ex, catch_backtrace()))
+                @error("Unexpected error in exporter", exception=(ex, catch_backtrace()))
             end
         end
     end
