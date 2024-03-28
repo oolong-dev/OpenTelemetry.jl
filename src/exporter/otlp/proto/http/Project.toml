@@ -1,7 +1,7 @@
 name = "OpenTelemetryExporterOtlpProtoHttp"
 uuid = "f175482f-0544-4037-b362-361efbf21c04"
 authors = ["Jun Tian <tianjun.cpp@gmail.com>"]
-version = "0.1.2"
+version = "0.1.3"
 
 [deps]
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"

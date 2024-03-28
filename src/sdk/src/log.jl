@@ -77,7 +77,7 @@ function OtelBatchLogger(
     instrumentation_scope = InstrumentationScope(),
     log_level = OTEL_LOG_LEVEL(),
 )
-    queue = BatchContainer(Array{LogRecord}(undef, max_queue_size), max_export_batch_size)
+    queue = BatchContainer{LogRecord}(max_queue_size, max_export_batch_size)
     bl = OtelBatchLogger(
         exporter,
         OtelLogTransformer(resource, instrumentation_scope),
@@ -101,7 +101,7 @@ Logging.catch_exceptions(l::OtelBatchLogger, args...; kw...) = true
 function Logging.handle_message(bl::OtelBatchLogger, args...; kw...)
     r = bl.transformer(handle_message_args(args...; kw...))
     if !bl.is_shutdown
-        is_full = put!(bl.queue, r.message)
+        is_full, _ = put!(bl.queue, r.message)
         if is_full
             export!(bl.exporter, take!(bl.queue))
             reset_timer!(bl)
