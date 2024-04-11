@@ -19,6 +19,14 @@ Base.convert(::Type{SDK.ExportResult}, resp::COLL_METRICS.ExportMetricsServiceRe
         SDK.EXPORT_FAILURE
     end
 
+
+"""
+uint2uint8(u::Unsigned)
+
+Converts any UInt into Network byte order (big-endian) UInt8 vector
+"""
+uint2uint8(u::Unsigned) = reinterpret(UInt8, [hton(u)])
+
 # Resource
 
 # !!! The dropped attributes of `Resource` is always 0
@@ -109,8 +117,8 @@ Base.convert(::Type{LOGS.LogRecord}, x::API.LogRecord) = LOGS.LogRecord(
     convert(Vector{COMMON.KeyValue}, x.attributes),
     API.n_dropped(x.attributes),
     convert(UInt32, x.trace_flags.sampled),
-    reinterpret(UInt8, [x.trace_id]),
-    reinterpret(UInt8, [x.span_id]),
+    uint2uint8(x.trace_id),
+    uint2uint8(x.span_id),
 )
 
 # Traces
@@ -146,14 +154,14 @@ function Base.convert(::Type{TRACES.Span}, x::SDK.Span)
     parent_span_id = if parent_ctx === nothing
         UInt8[]
     else
-        reinterpret(UInt8, [parent_ctx.span_id])
+        uint2uint8(parent_ctx.span_id)
     end
     attrs = API.attributes(x)
     evts = API.span_events(x)
     links = API.span_links(x)
     TRACES.Span(
-        reinterpret(UInt8, [ctx.trace_id]),
-        reinterpret(UInt8, [ctx.span_id]),
+        uint2uint8(ctx.trace_id),
+        uint2uint8(ctx.span_id),
         string(ctx.trace_state),
         parent_span_id,
         API.span_name(x),
@@ -183,8 +191,8 @@ Base.convert(::Type{TRACES.var"Span.Event"}, x::API.Event) = TRACES.var"Span.Eve
 function Base.convert(::Type{TRACES.var"Span.Link"}, x::API.Link)
     ctx = x.context
     TRACES.var"Span.Link"(
-        reinterpret(UInt8, [ctx.trace_id]),
-        reinterpret(UInt8, [ctx.span_id]),
+        uint2uint8(ctx.trace_id),
+        uint2uint8(ctx.span_id),
         string(ctx.trace_state),
         convert(Vector{COMMON.KeyValue}, x.attributes),
         API.n_dropped(x.attributes),
