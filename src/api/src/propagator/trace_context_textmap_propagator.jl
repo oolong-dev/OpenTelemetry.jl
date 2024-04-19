@@ -43,29 +43,80 @@ TRACEPARENT_HEADER_FORMAT =
     r"^[ \t]*(?P<version>[0-9a-f]{2})-(?P<trace_id>[0-9a-f]{32})-(?P<span_id>[0-9a-f]{16})-(?P<trace_flag>[0-9a-f]{2})(?P<rest>-.*)?[ \t]*$"
 
 function extract_context(
-    carrier::Union{
-        AbstractVector{<:Pair{<:AbstractString,<:AbstractString}},
-        AbstractDict{<:AbstractString,<:AbstractString},
-    },
+    carrier::AbstractDict{<:AbstractString,<:AbstractString},
     propagator::TraceContextTextMapPropagator,
     ctx::Context = current_context(),
 )
-    trace_id, span_id, trace_flag, trace_state = nothing, nothing, nothing, TraceState()
-    for (k, v) in carrier
-        if k == "traceparent"
-            m = match(TRACEPARENT_HEADER_FORMAT, v)
-            if !isnothing(m)
-                if m["version"] == "00" && isnothing(m["rest"])
-                    trace_id = parse(TraceIdType, m["trace_id"], base = 16)
-                    span_id = parse(SpanIdType, m["span_id"], base = 16)
-                    trace_flag = parse(TraceFlag, m["trace_flag"])
-                end
+    trace_id = nothing
+    span_id = nothing
+    trace_flag = nothing
+    trace_state = TraceState()
+
+    carrier_keys = collect(keys(carrier))
+
+    traceparent_idx = findfirst(k -> lowercase(k) == "traceparent", carrier_keys)
+
+    if traceparent_idx !== nothing
+        m = match(TRACEPARENT_HEADER_FORMAT, carrier[carrier_keys[traceparent_idx]])
+        if m !== nothing && m["version"] == "00" && m["rest"] === nothing
+            trace_id = parse(TraceIdType, m["trace_id"], base = 16)
+            span_id = parse(SpanIdType, m["span_id"], base = 16)
+            trace_flag = parse(TraceFlag, m["trace_flag"])
+
+            # we only look for/parse tracestate if traceparent is ok
+            tracestate_idx = findfirst(k -> lowercase(k) == "tracestate", carrier_keys)
+            if tracestate_idx !== nothing
+                trace_state = parse(TraceState, carrier[carrier_keys[tracestate_idx]])
             end
-        elseif k == "tracestate"
-            trace_state = parse(TraceState, v)
         end
     end
-    if isnothing(trace_id) || isnothing(span_id) || isnothing(trace_flag)
+
+    return _extract_context(trace_id, span_id, trace_flag, trace_state, propagator, ctx)
+end
+
+function extract_context(
+    carrier::AbstractVector{<:Pair{<:AbstractString,<:AbstractString}},
+    propagator::TraceContextTextMapPropagator,
+    ctx::Context = current_context(),
+)
+    trace_id = nothing
+    span_id = nothing
+    trace_flag = nothing
+    trace_state = TraceState()
+
+    traceparent_idx = findfirst(kv -> lowercase(kv[1]) == "traceparent", carrier)
+
+    if traceparent_idx !== nothing
+        m = match(TRACEPARENT_HEADER_FORMAT, carrier[traceparent_idx][2])
+        if m !== nothing && m["version"] == "00" && m["rest"] === nothing
+            trace_id = parse(TraceIdType, m["trace_id"], base = 16)
+            span_id = parse(SpanIdType, m["span_id"], base = 16)
+            trace_flag = parse(TraceFlag, m["trace_flag"])
+
+            # we only look for/parse tracestate if traceparent is ok
+            tracestate_idx = findfirst(kv -> lowercase(kv[1]) == "tracestate", carrier)
+            if tracestate_idx !== nothing
+                trace_state = parse(TraceState, carrier[tracestate_idx][2])
+            end
+        end
+    end
+
+    return _extract_context(trace_id, span_id, trace_flag, trace_state, propagator, ctx)
+end
+
+function _extract_context(
+    trace_id,
+    span_id,
+    trace_flag,
+    trace_state,
+    propagator::TraceContextTextMapPropagator,
+    ctx::Context = current_context(),
+)
+    return if (
+        trace_id === nothing || 
+        span_id === nothing || 
+        trace_flag === nothing
+    )
         ctx
     else
         merge(
