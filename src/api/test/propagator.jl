@@ -20,6 +20,24 @@
         @test sc.trace_flag == TraceFlag(false)
     end
 
+
+    header = Dict{String,String}(
+        "traceparent" => "00-$(string(test_trace_id, base=16, pad=32))-$(string(test_span_id,base=16,pad=16))-00",
+        "tracestate" => tracestate_value,
+    )
+    with_context(; x = 123) do
+        ctx = extract_context(header)
+        @test ctx[:x] == 123
+        @test ctx |> current_span |> span_status == SpanStatus(SPAN_STATUS_UNSET)
+
+        sc = span_context(ctx)
+        @test sc.trace_id == test_trace_id
+        @test sc.span_id == test_span_id
+        @test string(sc.trace_state) ==
+              string(TraceState("foo" => "1", "bar" => "2", "baz" => "3"))
+        @test sc.trace_flag == TraceFlag(false)
+    end
+
     header = Dict("Content-Type" => "text/plain")
     with_span("test") do
         inject_context!(header)
