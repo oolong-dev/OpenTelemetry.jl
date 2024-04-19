@@ -107,7 +107,9 @@ function Base.show(io::IO, ts::TraceState)
 end
 
 function Base.parse(::Type{TraceState}, s::AbstractString)
-    TraceState((Pair(split(kv, '=')...) for kv in split(s, ','))...)
+    kvs = split(s, ',')
+    fkvs = filter(kv -> match(r"^[^=]*=[^=]*$", kv) !== nothing, kvs)
+    TraceState((Pair(split(kv, '=')...) for kv in fkvs)...)
 end
 
 """

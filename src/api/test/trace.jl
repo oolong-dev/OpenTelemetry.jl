@@ -18,6 +18,10 @@
             @test haskey(ts, :foo)
             @test !haskey(ts, "^foo-_*/bar")
             @test ts[:foo] == "bar3"
+
+            @test isempty(parse(TraceState, ""))
+            @test !isempty(parse(TraceState, "a=b,c=d"))
+            @test !isempty(parse(TraceState, "a=b,ss=dwdw=dwdwd,c=d"))
         end
     end
 
