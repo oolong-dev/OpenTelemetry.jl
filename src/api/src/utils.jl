@@ -31,6 +31,6 @@ function get_pkg_version(m::Module)
     if haskey(project_toml, "version")
         VersionNumber(project_toml["version"])
     else
-        VERSION # stdlibs do not have version field
+        VERSION
     end
 end
