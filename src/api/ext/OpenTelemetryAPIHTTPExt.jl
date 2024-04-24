@@ -216,8 +216,4 @@ function OpenTelemetryAPI.uninstrument!(::Val{:HTTP})
     )
 end
 
-function __init__()
-    println("$(@__MODULE__) is loaded!")
-end
-
 end
