@@ -13,9 +13,9 @@ function inject_context!(
         AbstractDict{<:AbstractString,<:AbstractString},
     },
     propagator::TraceContextTextMapPropagator,
-    ctx::Context = current_context(),
+    ctx::Context = current_context();
+    sc = span_context(ctx),
 )
-    sc = span_context(ctx)
     if !isnothing(sc)
         s_trace_parent = "00-$(string(sc.trace_id, base=16, pad=32))-$(string(sc.span_id, base=16,pad=16))-$(sc.trace_flag.sampled ? "01" : "00")"
         push!(carrier, "traceparent" => s_trace_parent)
@@ -31,7 +31,8 @@ end
 function inject_context!(
     carrier::T,
     ::TraceContextTextMapPropagator,
-    ctx::Context = current_context(),
+    ctx::Context = current_context();
+    sc = span_context(ctx),
 ) where {T}
     @warn "unknown carrier type $T"
     carrier
@@ -43,10 +44,53 @@ TRACEPARENT_HEADER_FORMAT =
     r"^[ \t]*(?P<version>[0-9a-f]{2})-(?P<trace_id>[0-9a-f]{32})-(?P<span_id>[0-9a-f]{16})-(?P<trace_flag>[0-9a-f]{2})(?P<rest>-.*)?[ \t]*$"
 
 function extract_context(
-    carrier::AbstractDict{<:AbstractString,<:AbstractString},
+    carrier::Union{
+        AbstractDict{<:AbstractString,<:AbstractString},
+        AbstractVector{<:Pair{<:AbstractString,<:AbstractString}}
+    },
     propagator::TraceContextTextMapPropagator,
     ctx::Context = current_context(),
 )
+    trace_id, span_id, trace_flag, trace_state = extract_from(carrier)
+    return if (
+        trace_id === nothing || 
+        span_id === nothing || 
+        trace_flag === nothing
+    )
+        ctx
+    else
+        merge(
+            ctx,
+            Context(Dict(
+                SPAN_KEY_IN_CONTEXT => NonRecordingSpan(
+                    "",
+                    SpanContext(span_id, trace_id, false, trace_flag, trace_state),
+                    nothing,
+                )
+            )),
+        )
+    end
+end
+
+function extract_span_context(
+    carrier::Union{
+        AbstractDict{<:AbstractString,<:AbstractString},
+        AbstractVector{<:Pair{<:AbstractString,<:AbstractString}}
+    }
+)
+    trace_id, span_id, trace_flag, trace_state = extract_from(carrier)
+    return if (
+        trace_id === nothing || 
+        span_id === nothing || 
+        trace_flag === nothing
+    )
+        nothing
+    else
+        SpanContext(span_id, trace_id, false, trace_flag, trace_state)
+    end
+end
+
+function extract_from(carrier::AbstractDict{<:AbstractString,<:AbstractString})
     trace_id = nothing
     span_id = nothing
     trace_flag = nothing
@@ -70,15 +114,10 @@ function extract_context(
             end
         end
     end
-
-    return _extract_context(trace_id, span_id, trace_flag, trace_state, propagator, ctx)
+    return trace_id, span_id, trace_flag, trace_state
 end
 
-function extract_context(
-    carrier::AbstractVector{<:Pair{<:AbstractString,<:AbstractString}},
-    propagator::TraceContextTextMapPropagator,
-    ctx::Context = current_context(),
-)
+function extract_from(carrier::AbstractVector{<:Pair{<:AbstractString,<:AbstractString}})
     trace_id = nothing
     span_id = nothing
     trace_flag = nothing
@@ -100,37 +139,9 @@ function extract_context(
             end
         end
     end
-
-    return _extract_context(trace_id, span_id, trace_flag, trace_state, propagator, ctx)
+    return trace_id, span_id, trace_flag, trace_state
 end
 
-function _extract_context(
-    trace_id,
-    span_id,
-    trace_flag,
-    trace_state,
-    propagator::TraceContextTextMapPropagator,
-    ctx::Context = current_context(),
-)
-    return if (
-        trace_id === nothing || 
-        span_id === nothing || 
-        trace_flag === nothing
-    )
-        ctx
-    else
-        merge(
-            ctx,
-            Context(Dict(
-                SPAN_KEY_IN_CONTEXT => NonRecordingSpan(
-                    "",
-                    SpanContext(span_id, trace_id, false, trace_flag, trace_state),
-                    nothing,
-                )
-            )),
-        )
-    end
-end
 
 # fallback
 function extract_context(
@@ -141,3 +152,4 @@ function extract_context(
     @warn "unknown carrier type $T"
     ctx
 end
+
