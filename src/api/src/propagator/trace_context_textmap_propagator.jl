@@ -7,19 +7,30 @@ This propagator follows the [W3C format](https://www.w3.org/TR/trace-context/#tr
 """
 struct TraceContextTextMapPropagator <: AbstractPropagator end
 
+function generate_w3c_traceparent(trace_id, span_id, trace_flag_sampled)
+    return "00-$(string(trace_id, base=16, pad=32))-$(string(span_id, base=16,pad=16))-$(trace_flag_sampled ? "01" : "00")"
+end
+
+function generate_w3c_traceparent(sc::SpanContext)
+    return generate_w3c_traceparent(sc.trace_id, sc.span_id, sc.trace_flag.sampled)
+end
+
+function generate_w3c_context(sc::SpanContext)
+    return generate_w3c_traceparent(sc), string(sc.trace_state)
+end
+
 function inject_context!(
     carrier::Union{
         AbstractVector{<:Pair{<:AbstractString,<:AbstractString}},
         AbstractDict{<:AbstractString,<:AbstractString},
     },
     propagator::TraceContextTextMapPropagator,
-    ctx::Context = current_context();
-    sc = span_context(ctx),
+    ctx::Context = current_context()
 )
+    sc = span_context(ctx)
     if !isnothing(sc)
-        s_trace_parent = "00-$(string(sc.trace_id, base=16, pad=32))-$(string(sc.span_id, base=16,pad=16))-$(sc.trace_flag.sampled ? "01" : "00")"
+        s_trace_parent, s_trace_state = generate_w3c_context(sc)
         push!(carrier, "traceparent" => s_trace_parent)
-        s_trace_state = string(sc.trace_state)
         if !isempty(s_trace_state)
             push!(carrier, "tracestate" => s_trace_state)
         end
@@ -31,8 +42,7 @@ end
 function inject_context!(
     carrier::T,
     ::TraceContextTextMapPropagator,
-    ctx::Context = current_context();
-    sc = span_context(ctx),
+    ctx::Context = current_context()
 ) where {T}
     @warn "unknown carrier type $T"
     carrier
