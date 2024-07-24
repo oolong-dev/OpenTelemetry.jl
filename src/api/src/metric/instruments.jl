@@ -240,7 +240,9 @@ struct ObservableMultiInstrument <: AbstractAsyncInstrument{Any}
 end
 
 function (ins::ObservableMultiInstrument)()
-    for (x, m) in zip(ins.instruments, ins.callback())
+    measurements = ins.callback()
+    @assert length(measurements) == length(ins.instruments) "length mismatch"
+    for (x, m) in zip(ins.instruments, measurements)
         x(m)
     end
 end
