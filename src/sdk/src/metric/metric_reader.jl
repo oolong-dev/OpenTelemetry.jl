@@ -59,10 +59,14 @@ MetricReader() = MetricReader(global_meter_provider(), ConsoleExporter())
 
 For async instruments in `r`, their callbacks will be executed first before reading all the metrics.
 """
-function (r::MetricReader)()
+function (r::MetricReader{<:MeterProvider})()
     for ins in r.provider.async_instruments
         ins()
     end
+    export!(r.exporter, metrics(r.provider))
+end
+
+function (r::MetricReader)()
     export!(r.exporter, metrics(r.provider))
 end
 

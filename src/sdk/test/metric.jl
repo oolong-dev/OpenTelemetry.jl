@@ -247,3 +247,10 @@ end
     @test length(e) == 1
     @test e.pool[1].name == "Y"
 end
+
+@testset "#111" begin
+    p = OpenTelemetryAPI.DummyMeterProvider()
+    e = InMemoryExporter()
+    r = MetricReader(p, e)
+    r()
+end
