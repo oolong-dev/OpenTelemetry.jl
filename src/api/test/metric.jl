@@ -45,5 +45,10 @@
             rand(1:10)
         end
         obs_up_down_counter()
+
+        obs_multi_ins = ObservableMultiInstrument([counter, up_down_counter]) do
+            (rand(1:10), rand(-10:10))
+        end
+        obs_multi_ins()
     end
 end

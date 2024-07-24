@@ -4,7 +4,8 @@ export Measurement,
     Histogram,
     ObservableGauge,
     UpDownCounter,
-    ObservableUpDownCounter
+    ObservableUpDownCounter,
+    ObservableMultiInstrument
 
 """
     Measurement(value, [attributes=BoundedAttributes()])
@@ -223,5 +224,23 @@ struct ObservableUpDownCounter{T,F} <: AbstractAsyncInstrument{T}
         examine_instrument(c)
         push!(meter, c)
         c
+    end
+end
+
+
+"""
+    ObservableMultiInstrument(callback, instruments)
+
+The number of measurements returned by the `callback` should be the same as the number of `instruments`.
+See also [#112](https://github.com/oolong-dev/OpenTelemetry.jl/issues/112)
+"""
+struct ObservableMultiInstrument <: AbstractAsyncInstrument{Any}
+    callback::Any
+    instruments::AbstractVector{<:AbstractSyncInstrument}
+end
+
+function (ins::ObservableMultiInstrument)()
+    for (x, m) in zip(ins.instruments, ins.callback())
+        x(m)
     end
 end

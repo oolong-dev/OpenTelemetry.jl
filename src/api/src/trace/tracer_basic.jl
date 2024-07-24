@@ -94,6 +94,7 @@ Base.getindex(s::TraceState, key) = s.kv[key]
 Base.haskey(s::TraceState, key) = haskey(s.kv, key)
 Base.haskey(s::TraceState, key::String) = haskey(s, Symbol(key))
 Base.length(s::TraceState) = length(s.kv)
+Base.isempty(s::TraceState) = isempty(s.kv)
 
 function Base.show(io::IO, ts::TraceState)
     for (i, (k, v)) in enumerate(pairs(ts.kv))
