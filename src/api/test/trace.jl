@@ -21,7 +21,7 @@
 
             @test isempty(parse(TraceState, ""))
             @test !isempty(parse(TraceState, "a=b,c=d"))
-            @test !isempty(parse(TraceState, "a=b,ss=dwdw=dwdwd,c=d"))
+            @test length(parse(TraceState, "a=b,ss=dwdw=dwdwd,c=d")) == 2
         end
     end
 
