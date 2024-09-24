@@ -67,7 +67,7 @@ OtlpHttpMetricsExporter(;
     timeout,
 )
 
-function SDK.export!(x::OtlpHttpExporter{Req,Resp}, batch::Vector) where {Req,Resp}
+function SDK.export!(x::OtlpHttpExporter{Req,Resp}, batch::Union{AbstractVector, Base.IdSet}) where {Req,Resp}
     isempty(batch) && return SDK.EXPORT_SUCCESS
 
     try
