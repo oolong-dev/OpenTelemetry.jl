@@ -5,14 +5,19 @@ export PrometheusExporter
 using OpenTelemetrySDK
 using HTTP
 
-function handler(io, provider::Ref{MeterProvider}, resource_to_telemetry_conversion)
+function handler(
+    io,
+    provider::Ref{MeterProvider},
+    resource_to_telemetry_conversion,
+    with_timestamp,
+)
     for ins in provider[].async_instruments
         ins()
     end
     HTTP.setstatus(io, 200)
     HTTP.setheader(io, "Content-Type" => "text/plain")
     HTTP.startwrite(io)
-    text_based_format(io, provider[], resource_to_telemetry_conversion)
+    text_based_format(io, provider[], resource_to_telemetry_conversion; with_timestamp)
     nothing
 end
 
@@ -42,6 +47,7 @@ mutable struct PrometheusExporter <: OpenTelemetrySDK.AbstractExporter
         port = OTEL_EXPORTER_PROMETHEUS_PORT(),
         resource_to_telemetry_conversion = false,
         path = "/metrics",
+        with_timestamp = true,
         kw...,
     )
         provider = Ref{MeterProvider}()
@@ -51,7 +57,7 @@ mutable struct PrometheusExporter <: OpenTelemetrySDK.AbstractExporter
             router,
             "GET",
             path,
-            io -> handler(io, provider, resource_to_telemetry_conversion),
+            io -> handler(io, provider, resource_to_telemetry_conversion, with_timestamp),
         )
         server = HTTP.serve!(router, host, port; stream = true, kw...)
 
