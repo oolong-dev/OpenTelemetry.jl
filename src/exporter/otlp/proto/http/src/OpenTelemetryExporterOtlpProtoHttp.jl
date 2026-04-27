@@ -95,7 +95,7 @@ function SDK.export!(x::OtlpHttpExporter{Req,Resp}, batch::Union{AbstractVector,
         @error(
             "Error in OtlpHttpExporter, the attempted batch export failed and will not be retried anymore. " *
             "The batch will not be returned to the queue either.",
-            exception=(ex, catch_backtrace())
+            exception=(ex, stacktrace(catch_backtrace()))
         )
         return SDK.EXPORT_FAILURE
     end
