@@ -6,7 +6,7 @@ using Logging
 """
 Turn `"a=b,c=d"` into a `NamedTuple`
 """
-extract_attrs(s) = NamedTuple(let (k, v) = split(kv, '=')
+extract_attrs(s) = NamedTuple(let (k, v) = split(kv, '=', limit=2)
     Symbol(k) => v
 end for kv in split(s, ',') if !isempty(kv))
 
