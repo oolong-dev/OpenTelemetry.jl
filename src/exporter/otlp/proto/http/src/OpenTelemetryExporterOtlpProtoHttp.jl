@@ -20,6 +20,14 @@ import OpenTelemetryProto.opentelemetry.proto.metrics.v1 as METRICS
 import OpenTelemetryProto.opentelemetry.proto.common.v1 as COMMON
 import OpenTelemetryProto.opentelemetry.proto.resource.v1 as RESOURCE
 
+# HTTP.jl 2.0 renamed the request-wide deadline keyword: `readtimeout` (HTTP 1.x)
+# became a deprecated alias mapping to the inactivity-based `read_idle_timeout`,
+# while overall request deadlines now use `request_timeout`. Detect the major
+# version once at load time and pick the right keyword. `pkgversion` exists since
+# Julia 1.9; HTTP 2 itself requires Julia >= 1.10, so on older Julia (no
+# `pkgversion`) only HTTP 1 can be installed and `false` is the correct default.
+const _HTTP_V2 = isdefined(Base, :pkgversion) ? Base.pkgversion(HTTP) >= v"2" : false
+
 struct OtlpHttpExporter{Req,Resp} <: SDK.AbstractExporter
     url::String
     headers::Vector{Pair{String,String}}
@@ -76,14 +84,18 @@ function SDK.export!(x::OtlpHttpExporter{Req,Resp}, batch::Union{AbstractVector,
         encode(e, convert(Req, batch))
         seekstart(io)
 
+        # `retry` / `retry_non_idempotent` remain valid keywords in both HTTP 1.x
+        # and 2.x; only the timeout keyword changed (see `_HTTP_V2` above).
+        timeout_kw = _HTTP_V2 ? (; request_timeout = x.timeout) : (; readtimeout = x.timeout)
+
         res = API.with_context(; API.SUPPRESS_INSTRUMENTATION_KEY => true) do
             HTTP.post(
-                x.url, 
-                x.headers; 
-                body = io, 
-                readtimeout=x.timeout, 
-                retry=true,
-                retry_non_idempotent=true
+                x.url,
+                x.headers;
+                body = io,
+                retry = true,
+                retry_non_idempotent = true,
+                timeout_kw...,
             )
         end
 
