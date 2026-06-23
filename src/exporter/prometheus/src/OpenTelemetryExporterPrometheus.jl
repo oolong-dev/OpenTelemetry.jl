@@ -5,8 +5,11 @@ export PrometheusExporter
 using OpenTelemetrySDK
 using HTTP
 
+# A request handler returning an `HTTP.Response`. This works identically across
+# HTTP.jl 1.x and 2.x. (HTTP 2.0 dropped the `stream = true` server mode and the
+# `setstatus`/`setheader`/`startwrite` streaming helpers in favor of returning a
+# `Response`; buffering the body here keeps a single code path for both.)
 function handler(
-    io,
     provider::Ref{MeterProvider},
     resource_to_telemetry_conversion,
     with_timestamp,
@@ -14,11 +17,9 @@ function handler(
     for ins in provider[].async_instruments
         ins()
     end
-    HTTP.setstatus(io, 200)
-    HTTP.setheader(io, "Content-Type" => "text/plain")
-    HTTP.startwrite(io)
+    io = IOBuffer()
     text_based_format(io, provider[], resource_to_telemetry_conversion; with_timestamp)
-    nothing
+    HTTP.Response(200, ["Content-Type" => "text/plain"]; body = take!(io))
 end
 
 """
@@ -40,7 +41,9 @@ r = MetricReader(PrometheusExporter())
 Note that `PrometheusExporter` is a pull based exporter. There's no need to execute `r()` to update the metrics.
 """
 mutable struct PrometheusExporter <: OpenTelemetrySDK.AbstractExporter
-    server::HTTP.Servers.Server
+    # Untyped: the running-server handle type differs between HTTP.jl versions
+    # (`HTTP.Servers.Server` on 1.x, `HTTP.Server` on 2.x).
+    server::Any
     provider::Ref{MeterProvider}
     function PrometheusExporter(;
         host = OTEL_EXPORTER_PROMETHEUS_HOST(),
@@ -57,9 +60,9 @@ mutable struct PrometheusExporter <: OpenTelemetrySDK.AbstractExporter
             router,
             "GET",
             path,
-            io -> handler(io, provider, resource_to_telemetry_conversion, with_timestamp),
+            _ -> handler(provider, resource_to_telemetry_conversion, with_timestamp),
         )
-        server = HTTP.serve!(router, host, port; stream = true, kw...)
+        server = HTTP.serve!(router, host, port; kw...)
 
         new(server, provider)
     end
