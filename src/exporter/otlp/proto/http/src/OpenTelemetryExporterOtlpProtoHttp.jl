@@ -23,10 +23,17 @@ import OpenTelemetryProto.opentelemetry.proto.resource.v1 as RESOURCE
 # HTTP.jl 2.0 renamed the request-wide deadline keyword: `readtimeout` (HTTP 1.x)
 # became a deprecated alias mapping to the inactivity-based `read_idle_timeout`,
 # while overall request deadlines now use `request_timeout`. Detect the major
-# version once at load time and pick the right keyword. `pkgversion` exists since
-# Julia 1.9; HTTP 2 itself requires Julia >= 1.10, so on older Julia (no
-# `pkgversion`) only HTTP 1 can be installed and `false` is the correct default.
-const _HTTP_V2 = isdefined(Base, :pkgversion) ? Base.pkgversion(HTTP) >= v"2" : false
+# version once at load time and pick the right keyword.
+#
+# Primary signal is the package version. `pkgversion(::Module)` exists since
+# Julia 1.9 but may return `nothing` (e.g. when a module wasn't loaded from a
+# versioned package), so we fall back to API feature detection: the `HTTP.Servers`
+# submodule exists throughout HTTP 1.x and was removed in 2.0, making it a
+# reliable discriminator that also covers Julia < 1.9 (where only HTTP 1 can
+# resolve, since HTTP 2 requires Julia >= 1.10).
+const _HTTP_V2 = let v = isdefined(Base, :pkgversion) ? Base.pkgversion(HTTP) : nothing
+    v === nothing ? !isdefined(HTTP, :Servers) : v >= v"2"
+end
 
 struct OtlpHttpExporter{Req,Resp} <: SDK.AbstractExporter
     url::String
